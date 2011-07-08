@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using SlimDX;
 
-namespace MiniTri
+namespace Direct3DControl
 {
     /// <summary>
     /// This class encompasses any kind of object that has a 3D position, scale and a 3D rotation.
@@ -17,12 +17,12 @@ namespace MiniTri
         /// </summary>
         public Matrix World { get { return mWorld; } set { mWorld = value; } }
 
-        private bool mThirdPerson = false;
+        //private bool mThirdPerson = false;
         /// <summary>
         /// When IsThirdPerson, camera rotates about the point specified by Location looking toward it.
         /// When not IsThirdPerson (FirstPerson) camera is looking out from the point specified by Location.
         /// </summary>
-        public bool IsThirdPerson { get { return mThirdPerson; } set { mThirdPerson = value; updateWorld(IsThirdPerson); } }
+        //public bool IsThirdPerson { get { return mThirdPerson; } set { mThirdPerson = value; updateWorld(IsThirdPerson); } }
 
         protected Vector3 mScale = new Vector3(1, 1, 1);
         /// <summary>
@@ -31,7 +31,7 @@ namespace MiniTri
         public Vector3 Scale
         {
             get { return mScale; }
-            set { mScale = value; updateWorld(IsThirdPerson); }
+            set { mScale = value; updateWorld(); }
         }
         protected Vector3 mLocation = new Vector3(0,0,0);
         /// <summary>
@@ -40,7 +40,7 @@ namespace MiniTri
         public Vector3 Location
         {
             get { return mLocation; }
-            set { mLocation = value; updateWorld(IsThirdPerson); }
+            set { mLocation = value; updateWorld(); }
         }
         protected Vector3 mRotation = new Vector3(0, 0, 0);
         /// <summary>
@@ -52,7 +52,8 @@ namespace MiniTri
         {
             get { return mRotation; }
             set {
-                mRotation = new Vector3(UnwrapPhase(value.X), UnwrapPhase(value.Y), UnwrapPhase(value.Z)); updateWorld(IsThirdPerson);
+                mRotation = new Vector3(UnwrapPhase(value.X), UnwrapPhase(value.Y), UnwrapPhase(value.Z));
+                updateWorld();
             }
         }
 

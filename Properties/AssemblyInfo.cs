@@ -6,11 +6,11 @@ using System.Resources;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("MiniTri")]
+[assembly: AssemblyTitle("Direct3DControl")]
 [assembly: AssemblyDescription("A sample that shows a minimal Direct3D10 program in SlimDX.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("SlimDX Group")]
-[assembly: AssemblyProduct("MiniTri")]
+[assembly: AssemblyProduct("Direct3DControl")]
 [assembly: AssemblyCopyright("Copyright © 2007-2011 SlimDX Group")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
 
-namespace MiniTri
+namespace Direct3DControl
 {
     public class Direct3DForm : Form
     {

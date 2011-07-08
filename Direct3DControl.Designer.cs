@@ -1,4 +1,4 @@
-﻿namespace MiniTri
+﻿namespace Direct3DControl
 {
     partial class Direct3DControl
     {

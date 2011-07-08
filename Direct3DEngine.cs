@@ -13,7 +13,7 @@ using Device = SlimDX.Direct3D10.Device;
 using Buffer = SlimDX.Direct3D10.Buffer;
 //using System.Runtime.InteropServices;
 
-namespace MiniTri
+namespace Direct3DControl
 {
     public class Direct3DEngine : IDisposable
     {
@@ -136,10 +136,11 @@ namespace MiniTri
             float h = mParent.Height;
             float w = mParent.Width;
             Matrix iProj = camera.Proj;
-            v.X = (((2.0f * p.X) / w) - 1) / iProj.M22;
-            v.Y = -(((2.0f * p.Y) / h) - 1) / iProj.M33;
+            v.X = (((2.0f * p.X) / w) - 1) / iProj.M11;
+            v.Y = -(((2.0f * p.Y) / h) - 1) / iProj.M22;
             v.Z = 1;
-
+            //Plane pl = new Plane();
+           
             Matrix m = Matrix.Invert(camera.View);
             Vector3 rayDir = new Vector3();
             rayDir.X = v.X * m.M11 + v.Y * m.M21 + v.Z * m.M31;
@@ -155,26 +156,43 @@ namespace MiniTri
             double minZ = float.MaxValue;
             foreach (Shape s in shapeList)
             {
+                bool ints = false;
+                float dist = 0;
                 //Console.WriteLine("test shape: " + s + ", " + s.Name + ", Loc: " + s.Location + "\n\t"
                 //    + Vector3.TransformCoordinate(s.Location, camera.World) + "\n");
-                BoundingBox bb = GetSurroundingBox(s);
-                //Console.WriteLine("BB: " + bb);
-                float dist = 0;
-                bool ints = Ray.Intersects(ray, bb, out dist);
-
-                if (ints)
+                if (s.Indices != null && s.Indices.Length > 2 && s.Indices.Length % 3 == 0)
                 {
-                    Console.WriteLine("Intersect! "+s + ", " + dist+", bb: "+bb);
-                    if (dist < minZ)
+                    for (int i = 0; i < s.Indices.Length; i += 3)
                     {
-                        ret = s;
-                        minZ = dist;
+                        Vector3 v1 = Vector3.TransformCoordinate(s.Vertices[s.Indices[i + 2]].Position, s.World);
+                        Vector3 v2 = Vector3.TransformCoordinate(s.Vertices[s.Indices[i + 1]].Position, s.World);
+                        Vector3 v3 = Vector3.TransformCoordinate(s.Vertices[s.Indices[i]].Position, s.World);
+
+                        dist = 0;
+                        ints = Ray.Intersects(ray, v1, v2, v3, out dist);
+                        if (ints && dist < minZ)
+                        {
+                            ret = s;
+                            minZ = dist;
+                        }
                     }
                 }
+                else
+                {
+                    BoundingBox bb = GetSurroundingBox(s);
+                    dist = 0;
+                    ints = Ray.Intersects(ray, bb, out dist);
+                }
+
+                if (ints && dist < minZ)
+                {
+                    ret = s;
+                    minZ = dist;
+                }
+
             }
 
             Vector3 vv = Vector3.Project(new Vector3(0,0,0), 0, 0, mParent.Width, mParent.Height, 0.1f, 100, camera.World);
-            Console.WriteLine(""+ret+"\n\n");
             return ret;
         }
 
@@ -188,8 +206,7 @@ namespace MiniTri
             float minZ = float.MaxValue;
             for (int i = 0; i < s.Vertices.Length; i++)
             {
-                Vector4 v4 = s.Vertices[i].Position;
-                Vector3 v = new Vector3(v4.X, v4.Y, v4.Z);
+                Vector3 v = s.Vertices[i].Position;
                 v = Vector3.TransformCoordinate(v, s.World);
                 if (v.X < minX) minX = v.X;
                 if (v.Y < minY) minY = v.Y;
@@ -272,9 +289,12 @@ namespace MiniTri
     [StructLayout(LayoutKind.Sequential)]
     public struct Vertex
     {
-        public Vector4 Position;
+        public Vector3 Position;
         public Color4 Color;
-        public Vertex(Vector4 pos, Color col) { Position = pos; Color = new Color4(col); }
+        public Vertex(Vector4 pos, Color col) {
+            Vector3 pp = new Vector3(pos.X, pos.Y, pos.Z);
+            Position = pp; Color = new Color4(col);
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]

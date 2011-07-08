@@ -1,24 +1,4 @@
-/*
-* Copyright (c) 2007-2011 SlimDX Group
-* 
-* Permission is hereby granted, free of charge, to any person obtaining a copy
-* of this software and associated documentation files (the "Software"), to deal
-* in the Software without restriction, including without limitation the rights
-* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-* copies of the Software, and to permit persons to whom the Software is
-* furnished to do so, subject to the following conditions:
-* 
-* The above copyright notice and this permission notice shall be included in
-* all copies or substantial portions of the Software.
-* 
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-* THE SOFTWARE.
-*/
+
 using System;
 using System.Drawing;
 using SlimDX;
@@ -30,7 +10,7 @@ using Device = SlimDX.Direct3D10.Device;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace MiniTri
+namespace Direct3DControl
 {
     static class Program
     {
@@ -39,22 +19,22 @@ namespace MiniTri
         [STAThread]
         static void Main()
         {
-            NewMiniTriCode();
-            //OriginalMiniTriCode();
+            NewDirect3DControlCode();
+            //OriginalDirect3DControlCode();
         }
 
-        public static void NewMiniTriCode()
+        public static void NewDirect3DControlCode()
         {
             Direct3DForm form = new TestForm();
-            form.Text = "SlimDX - MiniTri Direct3D 11 Sample";
+            form.Text = "SlimDX - Direct3DControl Direct3D 11 Sample";
             //Direct3DEngine engine = new Direct3DEngine(form);
             MessagePump.Run(form, form.Render);
         }
 
-        public static void OriginalMiniTriCode()
+        public static void OriginalDirect3DControlCode()
         {
             /*
-            var form = new RenderForm("SlimDX - MiniTri Direct3D 11 Sample");
+            var form = new RenderForm("SlimDX - Direct3DControl Direct3D 11 Sample");
             var desc = new SwapChainDescription()
             {
                 BufferCount = 1,
@@ -77,7 +57,7 @@ namespace MiniTri
 
             //Texture2D backBuffer = Texture2D.FromSwapChain<Texture2D>(swapChain, 0);
             //var renderView = new RenderTargetView(device, backBuffer);
-            var bytecode = ShaderBytecode.CompileFromFile("MiniTri.fx", "fx_5_0", ShaderFlags.None, EffectFlags.None);
+            var bytecode = ShaderBytecode.CompileFromFile("Direct3DControl.fx", "fx_5_0", ShaderFlags.None, EffectFlags.None);
             Effect effect = null;// = new Effect(device, bytecode);
             var technique = effect.GetTechniqueByIndex(0);
             var pass = technique.GetPassByIndex(0);

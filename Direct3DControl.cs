@@ -7,7 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using SlimDX;
 
-namespace MiniTri
+namespace Direct3DControl
 {
     public partial class Direct3DControl : UserControl
     {
@@ -29,6 +29,11 @@ namespace MiniTri
             engine = new Direct3DEngine(this);
             
         }
+
+        public float CameraPan { get { return engine.CameraView.Pan; } set { engine.CameraView.Pan = value; } }
+        public float CameraTilt { get { return engine.CameraView.Tilt; } set { engine.CameraView.Tilt = value; } }
+        public float CameraZoom { get { return engine.CameraView.Zoom; } set { engine.CameraView.Zoom = value; } }
+        public Vector3 CameraLocation { get { return engine.CameraView.Location; } set { engine.CameraView.Location = value; } }
 
         public CameraControl CameraView { get { return engine.CameraView; } set { engine.CameraView = value; } }
 
@@ -119,9 +124,9 @@ namespace MiniTri
             if (keyDownList.Contains(Keys.D))
                 keyAD += f;
             if (keyDownList.Contains(Keys.Q))
-                keyQE += f;
-            if (keyDownList.Contains(Keys.E))
                 keyQE -= f;
+            if (keyDownList.Contains(Keys.E))
+                keyQE += f;
             if (keyShift)
             {
                 engine.CameraView.Tilt += keyWS;

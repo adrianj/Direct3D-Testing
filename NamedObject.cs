@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MiniTri
+namespace Direct3DControl
 {
     /// <summary>
     /// A general purpose class for object that have a Name property.

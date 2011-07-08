@@ -7,7 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using SlimDX;
 
-namespace MiniTri
+namespace Direct3DControl
 {
     public partial class TestForm : Direct3DForm
     {
@@ -17,7 +17,6 @@ namespace MiniTri
             if (direct3DControl.IsInitialized)
             {
                 InitTest();
-                thirdPersonCheck.Checked = direct3DControl.CameraView.IsThirdPerson;
             }
         }
 
@@ -107,9 +106,5 @@ namespace MiniTri
                 direct3DControl.Render();
         }
 
-        private void thirdPersonCheck_CheckedChanged(object sender, EventArgs e)
-        {
-            direct3DControl.CameraView.IsThirdPerson = thirdPersonCheck.Checked;
-        }
     }
 }

@@ -10,7 +10,7 @@ using Device = SlimDX.Direct3D10.Device;
 using SlimDX.D3DCompiler;
 using System.Drawing;
 
-namespace MiniTri
+namespace Direct3DControl
 {
     /// <summary>
     /// A class that consists of a number of ColoredVertices, and an index buffer specifying
@@ -39,7 +39,10 @@ namespace MiniTri
         private EffectPass effectPass;
         private EffectMatrixVariable transformVariable;
 
-        public Shape() { }
+        public Shape() {
+            Vertices = new Vertex[0];
+            Indices = new short[0];
+        }
         public Shape(Vertex[] vertices)
         {
             Vertices = vertices;
@@ -94,8 +97,8 @@ namespace MiniTri
             // Set the input layout.
             InputElement[] inputElements = new InputElement[]
             {
-                new InputElement("POSITION",0,Format.R32G32B32A32_Float,0,0),
-                new InputElement("COLOR",0,Format.R32G32B32A32_Float,16,0)
+                new InputElement("POSITION",0,Format.R32G32B32_Float,0,0),
+                new InputElement("COLOR",0,Format.R32G32B32A32_Float,12,0)
             };
             vertexLayout = new InputLayout(device, effectPass.Description.Signature, inputElements);
 

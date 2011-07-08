@@ -1,4 +1,4 @@
-﻿namespace MiniTri
+﻿namespace Direct3DControl
 {
     partial class TestForm
     {
@@ -28,9 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.direct3DControl = new MiniTri.Direct3DControl();
+            this.direct3DControl = new Direct3DControl();
             this.textBox1 = new System.Windows.Forms.TextBox();
-            this.thirdPersonCheck = new System.Windows.Forms.CheckBox();
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.propertyGrid = new System.Windows.Forms.PropertyGrid();
             this.SuspendLayout();
@@ -54,18 +53,6 @@
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(420, 20);
             this.textBox1.TabIndex = 1;
-            // 
-            // thirdPersonCheck
-            // 
-            this.thirdPersonCheck.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.thirdPersonCheck.AutoSize = true;
-            this.thirdPersonCheck.Location = new System.Drawing.Point(478, 8);
-            this.thirdPersonCheck.Name = "thirdPersonCheck";
-            this.thirdPersonCheck.Size = new System.Drawing.Size(91, 17);
-            this.thirdPersonCheck.TabIndex = 2;
-            this.thirdPersonCheck.Text = "IsThirdPerson";
-            this.thirdPersonCheck.UseVisualStyleBackColor = true;
-            this.thirdPersonCheck.CheckedChanged += new System.EventHandler(this.thirdPersonCheck_CheckedChanged);
             // 
             // textBox2
             // 
@@ -92,7 +79,6 @@
             this.ClientSize = new System.Drawing.Size(581, 318);
             this.Controls.Add(this.propertyGrid);
             this.Controls.Add(this.textBox2);
-            this.Controls.Add(this.thirdPersonCheck);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.direct3DControl);
             this.Name = "TestForm";
@@ -107,7 +93,6 @@
 
         private Direct3DControl direct3DControl;
         private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.CheckBox thirdPersonCheck;
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.PropertyGrid propertyGrid;
     }
