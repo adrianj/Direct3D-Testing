@@ -49,11 +49,11 @@ namespace MiniTri
 
         public void Initialize()
         {
-            IsThirdPerson = true;
-            Pan = (float)Math.PI / 4; ;
-            Tilt = -(float)Math.PI/4;
+            IsThirdPerson = false;
+            Pan = 0;
+            Tilt = 0;
             Zoom = 5.0f;
-            Location = new Vector3(-2, 2, -2);
+            Location = new Vector3(0, 0, 0);
         }
 
         public void Translate(float x, float y, float z)

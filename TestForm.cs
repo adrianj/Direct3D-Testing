@@ -14,8 +14,11 @@ namespace MiniTri
         public TestForm()
         {
             InitializeComponent();
-            InitTest();
-            thirdPersonCheck.Checked = direct3DControl.CameraView.IsThirdPerson;
+            if (direct3DControl.IsInitialized)
+            {
+                InitTest();
+                thirdPersonCheck.Checked = direct3DControl.CameraView.IsThirdPerson;
+            }
         }
 
         private void InitTest()
@@ -26,7 +29,7 @@ namespace MiniTri
             Shape shape = new Cube();
             shape.Scale = new Vector3(50, 50, 50);
             Array.Reverse(shape.Indices);
-            direct3DControl.AddShape(shape);
+            //direct3DControl.AddShape(shape);
             // Build a room 10x10x10
             float rWidth = 10;
             shape = new Square(Color.LightBlue);
@@ -83,9 +86,10 @@ namespace MiniTri
         void direct3DControl_MouseClick(object sender, MouseEventArgs e)
         {
             // Attempt to select an object at the mouse location.
-            Console.WriteLine("mouse click at : " + e.Location);
-            Vector4 obj = direct3DControl.PickObjectAt(e.Location);
+            Shape obj = direct3DControl.PickObjectAt(e.Location);
             textBox2.Text = "" + obj;
+            if (obj != null)
+                propertyGrid.SelectedObject = obj;
         }
 
 
@@ -99,7 +103,8 @@ namespace MiniTri
         public override void Render()
         {
             PreRenderTest();
-            direct3DControl.Render();
+            if(direct3DControl.IsInitialized)
+                direct3DControl.Render();
         }
 
         private void thirdPersonCheck_CheckedChanged(object sender, EventArgs e)

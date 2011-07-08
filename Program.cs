@@ -22,11 +22,11 @@
 using System;
 using System.Drawing;
 using SlimDX;
-using SlimDX.Direct3D11;
+using SlimDX.Direct3D10;
 using SlimDX.DXGI;
 using SlimDX.Windows;
 using SlimDX.D3DCompiler;
-using Device = SlimDX.Direct3D11.Device;
+using Device = SlimDX.Direct3D10.Device;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -53,6 +53,7 @@ namespace MiniTri
 
         public static void OriginalMiniTriCode()
         {
+            /*
             var form = new RenderForm("SlimDX - MiniTri Direct3D 11 Sample");
             var desc = new SwapChainDescription()
             {
@@ -67,17 +68,17 @@ namespace MiniTri
 
             Device device;
             SwapChain swapChain;
-            Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.Debug, desc, out device, out swapChain);
+            //Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.Debug, desc, out device, out swapChain);
 
 
 
-            Factory factory = swapChain.GetParent<Factory>();
-            factory.SetWindowAssociation(form.Handle, WindowAssociationFlags.IgnoreAll);
+            //Factory factory = swapChain.GetParent<Factory>();
+            //factory.SetWindowAssociation(form.Handle, WindowAssociationFlags.IgnoreAll);
 
-            Texture2D backBuffer = Texture2D.FromSwapChain<Texture2D>(swapChain, 0);
-            var renderView = new RenderTargetView(device, backBuffer);
+            //Texture2D backBuffer = Texture2D.FromSwapChain<Texture2D>(swapChain, 0);
+            //var renderView = new RenderTargetView(device, backBuffer);
             var bytecode = ShaderBytecode.CompileFromFile("MiniTri.fx", "fx_5_0", ShaderFlags.None, EffectFlags.None);
-            var effect = new Effect(device, bytecode);
+            Effect effect = null;// = new Effect(device, bytecode);
             var technique = effect.GetTechniqueByIndex(0);
             var pass = technique.GetPassByIndex(0);
             var layout = new InputLayout(device, pass.Description.Signature, new[] {
@@ -96,7 +97,7 @@ namespace MiniTri
 
             stream.Position = 0;
 
-            var vertices = new SlimDX.Direct3D11.Buffer(device, stream, new BufferDescription()
+            var vertices = new SlimDX.Direct3D10.Buffer(device, stream, new BufferDescription()
             {
                 BindFlags = BindFlags.VertexBuffer,
                 CpuAccessFlags = CpuAccessFlags.None,
@@ -106,36 +107,38 @@ namespace MiniTri
             });
             stream.Dispose();
 
-            device.ImmediateContext.OutputMerger.SetTargets(renderView);
-            device.ImmediateContext.Rasterizer.SetViewports(new Viewport(0, 0, form.ClientSize.Width, form.ClientSize.Height, 0.0f, 1.0f));
+
+            //device.ImmediateContext.OutputMerger.SetTargets(renderView);
+            //device.ImmediateContext.Rasterizer.SetViewports(new Viewport(0, 0, form.ClientSize.Width, form.ClientSize.Height, 0.0f, 1.0f));
 
 
 
             MessagePump.Run(form, () =>
             {
-                device.ImmediateContext.ClearRenderTargetView(renderView, Color.White);
+                //device.ImmediateContext.ClearRenderTargetView(renderView, Color.White);
 
-                device.ImmediateContext.InputAssembler.InputLayout = layout;
-                device.ImmediateContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-                device.ImmediateContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(vertices, Marshal.SizeOf(typeof(Vertex)), 0));
+                //device.ImmediateContext.InputAssembler.InputLayout = layout;
+                //device.ImmediateContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+                //device.ImmediateContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(vertices, Marshal.SizeOf(typeof(Vertex)), 0));
 
                 for (int i = 0; i < technique.Description.PassCount; ++i)
                 {
-                    pass.Apply(device.ImmediateContext);
-                    device.ImmediateContext.Draw(3, 0);
+                    //pass.Apply(device.ImmediateContext);
+                   // device.ImmediateContext.Draw(3, 0);
                 }
 
-                swapChain.Present(0, PresentFlags.None);
+                //swapChain.Present(0, PresentFlags.None);
             });
 
             bytecode.Dispose();
             vertices.Dispose();
             layout.Dispose();
             effect.Dispose();
-            renderView.Dispose();
-            backBuffer.Dispose();
+            //renderView.Dispose();
+            //backBuffer.Dispose();
             device.Dispose();
-            swapChain.Dispose();
+            //swapChain.Dispose();
+             */
         }
              
     }

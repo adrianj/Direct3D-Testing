@@ -5,12 +5,12 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using SlimDX;
-using SlimDX.Direct3D11;
+using SlimDX.Direct3D10;
 using SlimDX.DXGI;
 //using SlimDX.Windows;
 using SlimDX.D3DCompiler;
-using Device = SlimDX.Direct3D11.Device;
-using Buffer = SlimDX.Direct3D11.Buffer;
+using Device = SlimDX.Direct3D10.Device;
+using Buffer = SlimDX.Direct3D10.Buffer;
 //using System.Runtime.InteropServices;
 
 namespace MiniTri
@@ -24,15 +24,16 @@ namespace MiniTri
         {
             mParent = con;
             mParent.Disposed += (o, e) => { this.Dispose(); };
-            InitializeDevice();
+            IsInitialized = InitializeDevice();
         }
         #endregion
+
 
         #region Dispose Method
         public void Dispose()
         {
-            device.Dispose();
-            swapChain.Dispose();
+            if(device != null) device.Dispose();
+            if (swapChain != null) swapChain.Dispose();
         }
         #endregion
 
@@ -40,6 +41,8 @@ namespace MiniTri
         private Color mBackColor = Color.Beige;
         public Color BackColor { get { return mBackColor; } set { mBackColor = value; } }
         #endregion
+
+        public bool IsInitialized { get; set; }
 
         private Device device;
         private SwapChain swapChain;
@@ -123,12 +126,9 @@ namespace MiniTri
 
          */
 
-        public Vector4 PickObjectAt(Point screenLocation)
+        public Shape PickObjectAt(Point screenLocation)
         {
             Point p = screenLocation;
-            Shape s = shapeList[3];
-            Console.WriteLine("test shape: " + s + ", " + s.Name + ", Loc: " + s.Location + "\n\t" 
-                + Vector3.TransformCoordinate(s.Location, camera.World)+"\n");
             
             Vector3 nearClick = new Vector3(p.X, p.Y, camera.ZClipNear);
             Vector3 farClick = new Vector3(p.X, p.Y, camera.ZClipFar);
@@ -139,26 +139,69 @@ namespace MiniTri
             v.X = (((2.0f * p.X) / w) - 1) / iProj.M22;
             v.Y = -(((2.0f * p.Y) / h) - 1) / iProj.M33;
             v.Z = 1;
-            Console.WriteLine("\t" + v  +  "  (should be near the shape?)");
 
             Matrix m = Matrix.Invert(camera.View);
             Vector3 rayDir = new Vector3();
             rayDir.X = v.X * m.M11 + v.Y * m.M21 + v.Z * m.M31;
             rayDir.Y = v.X * m.M12 + v.Y * m.M22 + v.Z * m.M32;
             rayDir.Z = v.X * m.M13 + v.Y * m.M23 + v.Z * m.M33;
+            rayDir = Vector3.Normalize(rayDir);
             Vector3 rayOrigin = new Vector3();
             rayOrigin.X = m.M41;
             rayOrigin.Y = m.M42;
             rayOrigin.Z = m.M43;
             Ray ray = new Ray(rayOrigin,rayDir);
-            Console.WriteLine("Ray: "+ray);
+            Shape ret = null;
+            double minZ = float.MaxValue;
+            foreach (Shape s in shapeList)
+            {
+                //Console.WriteLine("test shape: " + s + ", " + s.Name + ", Loc: " + s.Location + "\n\t"
+                //    + Vector3.TransformCoordinate(s.Location, camera.World) + "\n");
+                BoundingBox bb = GetSurroundingBox(s);
+                //Console.WriteLine("BB: " + bb);
+                float dist = 0;
+                bool ints = Ray.Intersects(ray, bb, out dist);
+
+                if (ints)
+                {
+                    Console.WriteLine("Intersect! "+s + ", " + dist+", bb: "+bb);
+                    if (dist < minZ)
+                    {
+                        ret = s;
+                        minZ = dist;
+                    }
+                }
+            }
 
             Vector3 vv = Vector3.Project(new Vector3(0,0,0), 0, 0, mParent.Width, mParent.Height, 0.1f, 100, camera.World);
-            Console.WriteLine("\n\n");
-            return new Vector4(vv, 0);
+            Console.WriteLine(""+ret+"\n\n");
+            return ret;
         }
 
-        private void InitializeDevice()
+        private BoundingBox GetSurroundingBox(Shape s)
+        {
+            float maxX = float.MinValue;
+            float maxY = float.MinValue;
+            float maxZ = float.MinValue;
+            float minX = float.MaxValue;
+            float minY = float.MaxValue;
+            float minZ = float.MaxValue;
+            for (int i = 0; i < s.Vertices.Length; i++)
+            {
+                Vector4 v4 = s.Vertices[i].Position;
+                Vector3 v = new Vector3(v4.X, v4.Y, v4.Z);
+                v = Vector3.TransformCoordinate(v, s.World);
+                if (v.X < minX) minX = v.X;
+                if (v.Y < minY) minY = v.Y;
+                if (v.Z < minZ) minZ = v.Z;
+                if (v.X > maxX) maxX = v.X;
+                if (v.Y > maxY) maxY = v.Y;
+                if (v.Z > maxZ) maxZ = v.Z;
+            }
+            return new BoundingBox(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
+        }
+
+        private bool InitializeDevice()
         {
             camera = new CameraControl(mParent);
             // Declare and create the Device and SwapChain.
@@ -172,12 +215,21 @@ namespace MiniTri
                 SwapEffect = SwapEffect.Discard,
                 Usage = Usage.RenderTargetOutput
             };
-            Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.Debug, desc, out device, out swapChain);
-            DeviceContext context = device.ImmediateContext;
+            try
+            {
+                Device.CreateWithSwapChain(null,DriverType.Hardware,DeviceCreationFlags.None,desc,out device, out swapChain);
+                //device = new Device(DriverType.Hardware, DeviceCreationFlags.None);
+                
+                //Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.Debug, desc, out device, out swapChain);
+            }
+            catch (Direct3D10Exception ex) { MessageBox.Show("" + ex.Message + "\n\n" + ex.ResultCode.Code.ToString("X")); return false; }
+            Device context = device;
+            //DeviceContext context = device.ImmediateContext;
             // Set the view port
             viewPort = new Viewport(0, 0, mParent.Width, mParent.Height, 0.0f, 1.0f);
             context.Rasterizer.SetViewports(viewPort);
             // Set the render target.
+            
             Texture2D backBuffer = Texture2D.FromSwapChain<Texture2D>(swapChain, 0);
             renderView = new RenderTargetView(device, backBuffer);
 
@@ -200,11 +252,13 @@ namespace MiniTri
             renderDepth = new DepthStencilView(device, dBuf);
 
             context.OutputMerger.SetTargets(renderDepth,renderView);
+            return true;
         }
 
         public void Render()
         {
-            DeviceContext context = device.ImmediateContext;
+            Device context = device;
+            //DeviceContext context = device.ImmediateContext;
             // Clear the view, resetting to the background colour.
             context.ClearRenderTargetView(renderView, new Color4(this.BackColor));
             context.ClearDepthStencilView(renderDepth, DepthStencilClearFlags.Depth, 1, 0);

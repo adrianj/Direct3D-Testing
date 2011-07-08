@@ -4,9 +4,9 @@ using System.Text;
 using SlimDX;
 using SlimDX.DXGI;
 using System.Runtime.InteropServices;
-using SlimDX.Direct3D11;
-using Buffer = SlimDX.Direct3D11.Buffer;
-using Device = SlimDX.Direct3D11.Device;
+using SlimDX.Direct3D10;
+using Buffer = SlimDX.Direct3D10.Buffer;
+using Device = SlimDX.Direct3D10.Device;
 using SlimDX.D3DCompiler;
 using System.Drawing;
 
@@ -31,8 +31,8 @@ namespace MiniTri
         private int nElements = 0;
         public int NumElements { get { return nElements; } }
         
-        private SlimDX.Direct3D11.Buffer vertexBuffer;
-        private SlimDX.Direct3D11.Buffer indexBuffer;
+        private SlimDX.Direct3D10.Buffer vertexBuffer;
+        private SlimDX.Direct3D10.Buffer indexBuffer;
         private InputLayout vertexLayout;
         private Effect effect;
         private EffectTechnique effectTechnique;
@@ -80,12 +80,13 @@ namespace MiniTri
                 SizeInBytes = (int)this.VertexSize,
                 Usage = ResourceUsage.Default
             };
-            vertexBuffer = new SlimDX.Direct3D11.Buffer(device, dataStream, desc);
+            vertexBuffer = new SlimDX.Direct3D10.Buffer(device, dataStream, desc);
             dataStream.Close();
 
             // Get the shader effects.
-            ShaderBytecode bytecode = ShaderBytecode.CompileFromFile("shaders/SimpleRender.fx", "fx_5_0", ShaderFlags.None, EffectFlags.None);
-            effect = new Effect(device, bytecode);
+            //ShaderBytecode bytecode = ShaderBytecode.CompileFromFile("shaders/SimpleRender.fx", "fx_5_0", ShaderFlags.None, EffectFlags.None);
+            effect = Effect.FromFile(device, "shaders/SimpleRender.fx", "fx_4_0", ShaderFlags.None, EffectFlags.None);
+            //effect = new Effect(device, bytecode);
             effectTechnique = effect.GetTechniqueByIndex(0);
             effectPass = effectTechnique.GetPassByIndex(0);
             transformVariable = effect.GetVariableByName("WorldViewProj").AsMatrix();
@@ -118,16 +119,19 @@ namespace MiniTri
             }
         }
 
-        public void Render(DeviceContext context, Matrix worldViewProj)
+        //public void Render(DeviceContext context, Matrix worldViewProj)
+            public void Render(Device context, Matrix worldViewProj)
         {
-            context.InputAssembler.InputLayout = vertexLayout;
-            context.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+            //context.InputAssembler.InputLayout = vertexLayout;
+            context.InputAssembler.SetInputLayout(vertexLayout);
+            context.InputAssembler.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
+            //context.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
             context.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(vertexBuffer, Marshal.SizeOf(typeof(Vertex)), 0));
             if(this.Indices != null)
                 context.InputAssembler.SetIndexBuffer(indexBuffer, Format.R16_UInt, 0);
             Matrix wvp = World * worldViewProj;
             transformVariable.SetMatrix(wvp);
-            effectPass.Apply(context);
+            effectPass.Apply();//context);
             
             if (this.Indices != null)
                 context.DrawIndexed(this.NumElements, 0, 0);
@@ -145,14 +149,14 @@ namespace MiniTri
         {
             Vertices = new Vertex[]
             {
-                new Vertex(new Vector4(-1, -1, -1,1), Color.Yellow),
-                new Vertex(new Vector4(1, -1, -1,1), Color.Yellow),
-                new Vertex(new Vector4(1, -1, 1,1), Color.Red),
-                new Vertex(new Vector4(-1, -1, 1,1), Color.Red),
-                new Vertex(new Vector4(-1, 1, -1,1), Color.Blue),
-                new Vertex(new Vector4(1,1,-1,1), Color.Blue),
-                new Vertex(new Vector4(1,1,1,1), Color.Green),
-                new Vertex(new Vector4(-1, 1,1,1), Color.Green)
+                new Vertex(new Vector4(-0.5f, -0.5f, -0.5f,1), Color.Yellow),
+                new Vertex(new Vector4(0.5f, -0.5f, -0.5f,1), Color.Yellow),
+                new Vertex(new Vector4(0.5f, -0.5f, 0.5f,1), Color.Red),
+                new Vertex(new Vector4(-0.5f, -0.5f, 0.5f,1), Color.Red),
+                new Vertex(new Vector4(-0.5f, 0.5f, -0.5f,1), Color.Blue),
+                new Vertex(new Vector4(0.5f,0.5f,-0.5f,1), Color.Blue),
+                new Vertex(new Vector4(0.5f,0.5f,0.5f,1), Color.Green),
+                new Vertex(new Vector4(-0.5f, 0.5f,0.5f,1), Color.Green)
             };
             Indices = new short[]
             {
@@ -197,10 +201,10 @@ namespace MiniTri
             : base()
         {
             Vertices = new[]{
-                new Vertex( new Vector4(-1f, 0f, -1f,1), Color.Red ),
-                new Vertex( new Vector4(-1f, 0f, 1f,1), Color.Green),
-                new Vertex( new Vector4(1f, 0f, 1f,1), Color.Yellow),
-                new Vertex( new Vector4(1f, 0f, -1f,1), Color.Blue )};
+                new Vertex( new Vector4(-0.5f, 0f, -0.5f,1), Color.Red ),
+                new Vertex( new Vector4(-0.5f, 0f, 0.5f,1), Color.Green),
+                new Vertex( new Vector4(0.5f, 0f, 0.5f,1), Color.Yellow),
+                new Vertex( new Vector4(0.5f, 0f, -0.5f,1), Color.Blue )};
             Indices = new short[] { 0, 1, 2, 2, 3, 0 };
         }
         public Square(Color4 color)

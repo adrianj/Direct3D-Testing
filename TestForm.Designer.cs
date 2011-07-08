@@ -32,6 +32,7 @@
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.thirdPersonCheck = new System.Windows.Forms.CheckBox();
             this.textBox2 = new System.Windows.Forms.TextBox();
+            this.propertyGrid = new System.Windows.Forms.PropertyGrid();
             this.SuspendLayout();
             // 
             // direct3DControl
@@ -42,7 +43,7 @@
             this.direct3DControl.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.direct3DControl.Location = new System.Drawing.Point(12, 62);
             this.direct3DControl.Name = "direct3DControl";
-            this.direct3DControl.Size = new System.Drawing.Size(940, 573);
+            this.direct3DControl.Size = new System.Drawing.Size(366, 244);
             this.direct3DControl.TabIndex = 0;
             // 
             // textBox1
@@ -51,14 +52,14 @@
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox1.Location = new System.Drawing.Point(12, 6);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(803, 20);
+            this.textBox1.Size = new System.Drawing.Size(420, 20);
             this.textBox1.TabIndex = 1;
             // 
             // thirdPersonCheck
             // 
             this.thirdPersonCheck.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.thirdPersonCheck.AutoSize = true;
-            this.thirdPersonCheck.Location = new System.Drawing.Point(861, 8);
+            this.thirdPersonCheck.Location = new System.Drawing.Point(478, 8);
             this.thirdPersonCheck.Name = "thirdPersonCheck";
             this.thirdPersonCheck.Size = new System.Drawing.Size(91, 17);
             this.thirdPersonCheck.TabIndex = 2;
@@ -72,14 +73,24 @@
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox2.Location = new System.Drawing.Point(12, 32);
             this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(803, 20);
+            this.textBox2.Size = new System.Drawing.Size(420, 20);
             this.textBox2.TabIndex = 3;
+            // 
+            // propertyGrid
+            // 
+            this.propertyGrid.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.propertyGrid.Location = new System.Drawing.Point(384, 62);
+            this.propertyGrid.Name = "propertyGrid";
+            this.propertyGrid.Size = new System.Drawing.Size(185, 244);
+            this.propertyGrid.TabIndex = 4;
             // 
             // TestForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(964, 647);
+            this.ClientSize = new System.Drawing.Size(581, 318);
+            this.Controls.Add(this.propertyGrid);
             this.Controls.Add(this.textBox2);
             this.Controls.Add(this.thirdPersonCheck);
             this.Controls.Add(this.textBox1);
@@ -98,5 +109,6 @@
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.CheckBox thirdPersonCheck;
         private System.Windows.Forms.TextBox textBox2;
+        private System.Windows.Forms.PropertyGrid propertyGrid;
     }
 }

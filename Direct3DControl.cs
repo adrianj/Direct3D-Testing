@@ -12,7 +12,10 @@ namespace MiniTri
     public partial class Direct3DControl : UserControl
     {
         private Direct3DEngine engine;
-
+        public bool IsInitialized
+        {
+            get { if (engine == null) return false; return engine.IsInitialized; }
+        }
         public Direct3DControl()
         {
             InitializeComponent();
@@ -39,7 +42,7 @@ namespace MiniTri
             if (engine != null) engine.Render();
         }
 
-        public Vector4 PickObjectAt(Point screenLocation)
+        public Shape PickObjectAt(Point screenLocation)
         { return engine.PickObjectAt(screenLocation); }
 
         #region Mouse Clicks
@@ -89,7 +92,7 @@ namespace MiniTri
         #region Key Presses
 
         private List<Keys> keyDownList = new List<Keys>();
-        private List<Keys> keysOfInterest = new List<Keys>() { Keys.W, Keys.A, Keys.S, Keys.D };
+        private List<Keys> keysOfInterest = new List<Keys>() { Keys.W, Keys.A, Keys.S, Keys.D, Keys.Q,Keys.E };
         private Timer keyMoveTimer = new Timer();
         private bool keyShift = false;
 
@@ -105,6 +108,7 @@ namespace MiniTri
         {
             float keyWS = 0;
             float keyAD = 0;
+            float keyQE = 0;
             float f = 0.05f;
             if (keyDownList.Contains(Keys.W))
                 keyWS += f;
@@ -114,6 +118,10 @@ namespace MiniTri
                 keyAD -= f;
             if (keyDownList.Contains(Keys.D))
                 keyAD += f;
+            if (keyDownList.Contains(Keys.Q))
+                keyQE += f;
+            if (keyDownList.Contains(Keys.E))
+                keyQE -= f;
             if (keyShift)
             {
                 engine.CameraView.Tilt += keyWS;
@@ -121,7 +129,7 @@ namespace MiniTri
             }
             else
             {
-                engine.CameraView.Translate(-keyAD, 0, keyWS);
+                engine.CameraView.Translate(-keyAD, keyQE, keyWS);
             }
         }
 

@@ -49,5 +49,10 @@ namespace MiniTri
         {
             Name = name;
         }
+
+        public override string ToString()
+        {
+            return base.ToString() + " {"+Name+"}";
+        }
     }
 }
