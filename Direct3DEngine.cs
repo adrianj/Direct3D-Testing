@@ -135,17 +135,24 @@ namespace MiniTri
             Vector3 v = new Vector3(0, 0, 0);
             float h = mParent.Height;
             float w = mParent.Width;
-            Console.WriteLine("near: " + nearClick + ", far: " + farClick);
             Matrix iProj = camera.Proj;
             v.X = (((2.0f * p.X) / w) - 1) / iProj.M22;
             v.Y = -(((2.0f * p.Y) / h) - 1) / iProj.M33;
             v.Z = 1;
-            Vector3 test = Vector3.Unproject(farClick,
-                 viewPort.X, viewPort.Y,
-                viewPort.Width, viewPort.Height, viewPort.MinZ, viewPort.MaxZ, camera.World);
-            //test.X /= viewPort.Width;
-            //test.Y /= viewPort.Height;
-            Console.WriteLine("\t" + v);
+            Console.WriteLine("\t" + v  +  "  (should be near the shape?)");
+
+            Matrix m = Matrix.Invert(camera.View);
+            Vector3 rayDir = new Vector3();
+            rayDir.X = v.X * m.M11 + v.Y * m.M21 + v.Z * m.M31;
+            rayDir.Y = v.X * m.M12 + v.Y * m.M22 + v.Z * m.M32;
+            rayDir.Z = v.X * m.M13 + v.Y * m.M23 + v.Z * m.M33;
+            Vector3 rayOrigin = new Vector3();
+            rayOrigin.X = m.M41;
+            rayOrigin.Y = m.M42;
+            rayOrigin.Z = m.M43;
+            Ray ray = new Ray(rayOrigin,rayDir);
+            Console.WriteLine("Ray: "+ray);
+
             Vector3 vv = Vector3.Project(new Vector3(0,0,0), 0, 0, mParent.Width, mParent.Height, 0.1f, 100, camera.World);
             Console.WriteLine("\n\n");
             return new Vector4(vv, 0);
