@@ -7,7 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using SlimDX;
 
-namespace Direct3DControl
+namespace Direct3DLib
 {
     public partial class TestForm : Direct3DForm
     {
@@ -80,12 +80,16 @@ namespace Direct3DControl
 
             shape = new Triangle();
             direct3DControl.MouseClick += new MouseEventHandler(direct3DControl_MouseClick);
+
+            MeshShape ms = new MeshShape();
+            ms.Vertices = new[] { new Vertex(0, 0, 0), new Vertex(3, 3, 3), new Vertex(0, 3, 0) };
+            direct3DControl.AddShape(ms);
         }
 
         void direct3DControl_MouseClick(object sender, MouseEventArgs e)
         {
             // Attempt to select an object at the mouse location.
-            Shape obj = direct3DControl.PickObjectAt(e.Location);
+            IRenderable obj = direct3DControl.PickObjectAt(e.Location);
             textBox2.Text = "" + obj;
             if (obj != null)
                 propertyGrid.SelectedObject = obj;

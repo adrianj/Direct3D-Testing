@@ -7,7 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using SlimDX;
 
-namespace Direct3DControl
+namespace Direct3DLib
 {
     public partial class Direct3DControl : UserControl
     {
@@ -37,7 +37,7 @@ namespace Direct3DControl
 
         public CameraControl CameraView { get { return engine.CameraView; } set { engine.CameraView = value; } }
 
-        public void AddShape(Shape s)
+        public void AddShape(IRenderable s)
         {
             engine.AddShape(s);
         }
@@ -47,7 +47,7 @@ namespace Direct3DControl
             if (engine != null) engine.Render();
         }
 
-        public Shape PickObjectAt(Point screenLocation)
+        public IRenderable PickObjectAt(Point screenLocation)
         { return engine.PickObjectAt(screenLocation); }
 
         #region Mouse Clicks

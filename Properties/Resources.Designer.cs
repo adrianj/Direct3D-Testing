@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Direct3DControl.Properties {
+namespace Direct3DLib.Properties {
     using System;
     
     

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using SlimDX;
 
-namespace Direct3DControl
+namespace Direct3DLib
 {
     /// <summary>
     /// This class encompasses any kind of object that has a 3D position, scale and a 3D rotation.

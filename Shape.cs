@@ -10,14 +10,16 @@ using Device = SlimDX.Direct3D10.Device;
 using SlimDX.D3DCompiler;
 using System.Drawing;
 
-namespace Direct3DControl
+namespace Direct3DLib
 {
     /// <summary>
     /// A class that consists of a number of ColoredVertices, and an index buffer specifying
     /// how it is made up of flat triangles.
     /// </summary>
-    public class Shape : Object3D
+    public class Shape : Object3D, IRenderable
     {
+        private bool mPick = true;
+        public bool CanPick { get { return mPick; } set { mPick = value; } }
         public Vertex[] Vertices { get; set; }
         public short[] Indices { get; set; }
         public long VertexSize
@@ -31,13 +33,13 @@ namespace Direct3DControl
         private int nElements = 0;
         public int NumElements { get { return nElements; } }
         
-        private SlimDX.Direct3D10.Buffer vertexBuffer;
-        private SlimDX.Direct3D10.Buffer indexBuffer;
-        private InputLayout vertexLayout;
-        private Effect effect;
-        private EffectTechnique effectTechnique;
-        private EffectPass effectPass;
-        private EffectMatrixVariable transformVariable;
+        protected SlimDX.Direct3D10.Buffer vertexBuffer;
+        protected SlimDX.Direct3D10.Buffer indexBuffer;
+        protected InputLayout vertexLayout;
+        protected Effect effect;
+        protected EffectTechnique effectTechnique;
+        protected EffectPass effectPass;
+        protected EffectMatrixVariable transformVariable;
 
         public Shape() {
             Vertices = new Vertex[0];
@@ -62,7 +64,7 @@ namespace Direct3DControl
 
         
 
-        public void Update(Device device)
+        public virtual void Update(Device device)
         {
             // If there are less than 2 vertices then we can't make a line, let alone a shape!
             if (Vertices == null || Vertices.Length < 2) return;
@@ -103,7 +105,7 @@ namespace Direct3DControl
             vertexLayout = new InputLayout(device, effectPass.Description.Signature, inputElements);
 
             // Draw Indexed
-            if (this.Indices != null)
+            if (this.Indices != null && this.Indices.Length > 0)
             {
                 DataStream iStream = new DataStream(sizeof(ushort) * this.Indices.Length, true, true);
                 iStream.WriteRange(this.Indices);
@@ -123,7 +125,7 @@ namespace Direct3DControl
         }
 
         //public void Render(DeviceContext context, Matrix worldViewProj)
-            public void Render(Device context, Matrix worldViewProj)
+            public virtual void Render(Device context, Matrix cameraViewProj)
         {
             //context.InputAssembler.InputLayout = vertexLayout;
             context.InputAssembler.SetInputLayout(vertexLayout);
@@ -132,9 +134,9 @@ namespace Direct3DControl
             context.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(vertexBuffer, Marshal.SizeOf(typeof(Vertex)), 0));
             if(this.Indices != null)
                 context.InputAssembler.SetIndexBuffer(indexBuffer, Format.R16_UInt, 0);
-            Matrix wvp = World * worldViewProj;
+            Matrix wvp = World * cameraViewProj;
             transformVariable.SetMatrix(wvp);
-            effectPass.Apply();//context);
+            effectPass.Apply();
             
             if (this.Indices != null)
                 context.DrawIndexed(this.NumElements, 0, 0);
@@ -196,7 +198,7 @@ namespace Direct3DControl
     }
 
     /// <summary>
-    /// A flat (Y = 0) square.
+    /// A flat (Y = 0) square with X and Z = (0=>1).
     /// </summary>
     public class Square : Shape
     {
@@ -204,10 +206,10 @@ namespace Direct3DControl
             : base()
         {
             Vertices = new[]{
-                new Vertex( new Vector4(-0.5f, 0f, -0.5f,1), Color.Red ),
-                new Vertex( new Vector4(-0.5f, 0f, 0.5f,1), Color.Green),
-                new Vertex( new Vector4(0.5f, 0f, 0.5f,1), Color.Yellow),
-                new Vertex( new Vector4(0.5f, 0f, -0.5f,1), Color.Blue )};
+                new Vertex( new Vector4(0f, 0f, 0f,1), Color.Red ),
+                new Vertex( new Vector4(0f, 0f, 1f,1), Color.Green),
+                new Vertex( new Vector4(1f, 0f, 1f,1), Color.Yellow),
+                new Vertex( new Vector4(1f, 0f, 0f,1), Color.Blue )};
             Indices = new short[] { 0, 1, 2, 2, 3, 0 };
         }
         public Square(Color4 color)

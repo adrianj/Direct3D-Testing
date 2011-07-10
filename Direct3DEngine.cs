@@ -13,7 +13,7 @@ using Device = SlimDX.Direct3D10.Device;
 using Buffer = SlimDX.Direct3D10.Buffer;
 //using System.Runtime.InteropServices;
 
-namespace Direct3DControl
+namespace Direct3DLib
 {
     public class Direct3DEngine : IDisposable
     {
@@ -54,9 +54,9 @@ namespace Direct3DControl
         public CameraControl CameraView { get { return camera; } set { camera = value; } }
 
         
-        private List<Shape> shapeList = new List<Shape>();
+        private List<IRenderable> shapeList = new List<IRenderable>();
 
-        public void AddShape(Shape s)
+        public void AddShape(IRenderable s)
         {
             s.Update(device);
             shapeList.Add(s);
@@ -87,46 +87,7 @@ namespace Direct3DControl
         }
 
 
-        /*
-        private void DoPicking(int mouseX, int mouseY)
-        {
-            // Clamp mouse coordinates to viewport 
-            if (mouseX < 0) mouseX = 0;
-            if (mouseY < 0) mouseY = 0;
-            if (mouseX > viewPort.Width) mouseX = (int)viewPort.Width;
-            if (mouseY > viewPort.Height) mouseY = (int)viewPort.Height;
-
-            // Put mouse coordinates in screenspace Vector3's. These are the points 
-            // defining our ray for picking, which we'll transform back to world space 
-            Vector3 near = new Vector3(mouseX, mouseY, 0);
-            Vector3 far = new Vector3(mouseX, mouseY, 1);
-
-            // Transform points to world space 
-            near.Unproject(this.sampleFramework.Device.Viewport, camera.ProjectionMatrix, camera.ViewMatrix, scannerWorldMatrix * Matrix.RotationY(scannerRotationTimer));
-            far.Unproject(this.sampleFramework.Device.Viewport, camera.ProjectionMatrix, camera.ViewMatrix, scannerWorldMatrix * Matrix.RotationY(scannerRotationTimer));
-
-            // Retrieve intersection information 
-            IntersectInformation closestIntersection;
-            bool intersects = scannerMesh.Intersect(near, far, out closestIntersection);
-
-            if (intersects)
-            {
-                // If you only want to confirm intersection of the mesh (ie. whether it 
-                // was clicked on), you can just use this boolean and you're done. 
-                status = string.Format("Face={0}, tu={1}, tv={2}", closestIntersection.FaceIndex, closestIntersection.U, closestIntersection.V);
-
-                // We'll continue here with showing how to obtain the intersected face 
-                HighlightIntersectedFace(closestIntersection);
-            }
-            else
-            {
-                status = "Use mouse to pick a polygon";
-            }
-        }
-
-         */
-
-        public Shape PickObjectAt(Point screenLocation)
+        public IRenderable PickObjectAt(Point screenLocation)
         {
             Point p = screenLocation;
             
@@ -152,14 +113,12 @@ namespace Direct3DControl
             rayOrigin.Y = m.M42;
             rayOrigin.Z = m.M43;
             Ray ray = new Ray(rayOrigin,rayDir);
-            Shape ret = null;
+            IRenderable ret = null;
             double minZ = float.MaxValue;
-            foreach (Shape s in shapeList)
+            foreach (IRenderable s in shapeList)
             {
                 bool ints = false;
                 float dist = 0;
-                //Console.WriteLine("test shape: " + s + ", " + s.Name + ", Loc: " + s.Location + "\n\t"
-                //    + Vector3.TransformCoordinate(s.Location, camera.World) + "\n");
                 if (s.Indices != null && s.Indices.Length > 2 && s.Indices.Length % 3 == 0)
                 {
                     for (int i = 0; i < s.Indices.Length; i += 3)
@@ -196,7 +155,7 @@ namespace Direct3DControl
             return ret;
         }
 
-        private BoundingBox GetSurroundingBox(Shape s)
+        private BoundingBox GetSurroundingBox(IRenderable s)
         {
             float maxX = float.MinValue;
             float maxY = float.MinValue;
@@ -286,19 +245,10 @@ namespace Direct3DControl
             swapChain.Present(0, PresentFlags.None);
         }
     }
-    [StructLayout(LayoutKind.Sequential)]
-    public struct Vertex
-    {
-        public Vector3 Position;
-        public Color4 Color;
-        public Vertex(Vector4 pos, Color col) {
-            Vector3 pp = new Vector3(pos.X, pos.Y, pos.Z);
-            Position = pp; Color = new Color4(col);
-        }
-    }
+
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct WorldView
+    public struct WorldViewProj
     {
         public Matrix World;
         public Matrix View;

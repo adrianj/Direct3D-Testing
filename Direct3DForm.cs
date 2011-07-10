@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
 
-namespace Direct3DControl
+namespace Direct3DLib
 {
     public class Direct3DForm : Form
     {

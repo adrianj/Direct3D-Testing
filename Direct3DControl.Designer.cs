@@ -1,4 +1,4 @@
-﻿namespace Direct3DControl
+﻿namespace Direct3DLib
 {
     partial class Direct3DControl
     {

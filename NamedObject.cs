@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Direct3DControl
+namespace Direct3DLib
 {
     /// <summary>
     /// A general purpose class for object that have a Name property.

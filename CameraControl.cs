@@ -5,7 +5,7 @@ using System.Windows.Forms;
 using SlimDX;
 using System.Drawing;
 
-namespace Direct3DControl
+namespace Direct3DLib
 {
     public class CameraControl : Object3D
     {
