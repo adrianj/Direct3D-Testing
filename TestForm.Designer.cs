@@ -28,76 +28,179 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.direct3DControl = new Direct3DLib.Direct3DControl();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.textBox2 = new System.Windows.Forms.TextBox();
-            this.propertyGrid = new System.Windows.Forms.PropertyGrid();
-            this.SuspendLayout();
-            // 
-            // direct3DControl
-            // 
-            this.direct3DControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.direct3DControl.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.direct3DControl.CameraLocation = new SlimDX.Vector3(0F, 0F, 0F);
-            this.direct3DControl.CameraPan = 0.7853982F;
-            this.direct3DControl.CameraTilt = -1.570796F;
-            this.direct3DControl.CameraZoom = 5F;
-            this.direct3DControl.Location = new System.Drawing.Point(12, 62);
-            this.direct3DControl.Name = "direct3DControl";
-            this.direct3DControl.Size = new System.Drawing.Size(545, 437);
-            this.direct3DControl.TabIndex = 0;
-            // 
-            // textBox1
-            // 
-            this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1.Location = new System.Drawing.Point(12, 6);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(736, 20);
-            this.textBox1.TabIndex = 1;
-            // 
-            // textBox2
-            // 
-            this.textBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox2.Location = new System.Drawing.Point(12, 32);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(736, 20);
-            this.textBox2.TabIndex = 3;
-            // 
-            // propertyGrid
-            // 
-            this.propertyGrid.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.propertyGrid.Location = new System.Drawing.Point(563, 62);
-            this.propertyGrid.Name = "propertyGrid";
-            this.propertyGrid.Size = new System.Drawing.Size(185, 437);
-            this.propertyGrid.TabIndex = 4;
-            // 
-            // TestForm
-            // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(760, 511);
-            this.Controls.Add(this.propertyGrid);
-            this.Controls.Add(this.textBox2);
-            this.Controls.Add(this.textBox1);
-            this.Controls.Add(this.direct3DControl);
-            this.Name = "TestForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "TestForm";
-            this.ResumeLayout(false);
-            this.PerformLayout();
+			this.textBox1 = new System.Windows.Forms.TextBox();
+			this.textBox2 = new System.Windows.Forms.TextBox();
+			this.propertyGrid = new System.Windows.Forms.PropertyGrid();
+			this.comboBox1 = new System.Windows.Forms.ComboBox();
+			this.comboBox2 = new System.Windows.Forms.ComboBox();
+			this.comboBox3 = new System.Windows.Forms.ComboBox();
+			this.label1 = new System.Windows.Forms.Label();
+			this.label2 = new System.Windows.Forms.Label();
+			this.label3 = new System.Windows.Forms.Label();
+			this.button1 = new System.Windows.Forms.Button();
+			this.direct3DControl = new Direct3DLib.Direct3DControl();
+			this.SuspendLayout();
+			// 
+			// textBox1
+			// 
+			this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.textBox1.Location = new System.Drawing.Point(12, 6);
+			this.textBox1.Multiline = true;
+			this.textBox1.Name = "textBox1";
+			this.textBox1.Size = new System.Drawing.Size(657, 42);
+			this.textBox1.TabIndex = 1;
+			// 
+			// textBox2
+			// 
+			this.textBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.textBox2.Location = new System.Drawing.Point(12, 55);
+			this.textBox2.Name = "textBox2";
+			this.textBox2.Size = new System.Drawing.Size(657, 20);
+			this.textBox2.TabIndex = 3;
+			// 
+			// propertyGrid
+			// 
+			this.propertyGrid.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.propertyGrid.Location = new System.Drawing.Point(675, 121);
+			this.propertyGrid.Name = "propertyGrid";
+			this.propertyGrid.Size = new System.Drawing.Size(339, 378);
+			this.propertyGrid.TabIndex = 4;
+			// 
+			// comboBox1
+			// 
+			this.comboBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.comboBox1.FormattingEnabled = true;
+			this.comboBox1.Location = new System.Drawing.Point(889, 6);
+			this.comboBox1.Name = "comboBox1";
+			this.comboBox1.Size = new System.Drawing.Size(125, 21);
+			this.comboBox1.TabIndex = 5;
+			this.comboBox1.SelectedValueChanged += new System.EventHandler(this.comboBox1_SelectedValueChanged);
+			// 
+			// comboBox2
+			// 
+			this.comboBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.comboBox2.FormattingEnabled = true;
+			this.comboBox2.Location = new System.Drawing.Point(889, 32);
+			this.comboBox2.Name = "comboBox2";
+			this.comboBox2.Size = new System.Drawing.Size(125, 21);
+			this.comboBox2.TabIndex = 6;
+			this.comboBox2.SelectedValueChanged += new System.EventHandler(this.comboBox1_SelectedValueChanged);
+			// 
+			// comboBox3
+			// 
+			this.comboBox3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.comboBox3.FormattingEnabled = true;
+			this.comboBox3.Location = new System.Drawing.Point(889, 59);
+			this.comboBox3.Name = "comboBox3";
+			this.comboBox3.Size = new System.Drawing.Size(125, 21);
+			this.comboBox3.TabIndex = 7;
+			this.comboBox3.SelectedValueChanged += new System.EventHandler(this.comboBox1_SelectedValueChanged);
+			// 
+			// label1
+			// 
+			this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.label1.AutoSize = true;
+			this.label1.Location = new System.Drawing.Point(780, 9);
+			this.label1.Name = "label1";
+			this.label1.Size = new System.Drawing.Size(60, 13);
+			this.label1.TabIndex = 8;
+			this.label1.Text = "Left Mouse";
+			// 
+			// label2
+			// 
+			this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.label2.AutoSize = true;
+			this.label2.Location = new System.Drawing.Point(780, 35);
+			this.label2.Name = "label2";
+			this.label2.Size = new System.Drawing.Size(67, 13);
+			this.label2.TabIndex = 9;
+			this.label2.Text = "Right Mouse";
+			// 
+			// label3
+			// 
+			this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.label3.AutoSize = true;
+			this.label3.Location = new System.Drawing.Point(780, 62);
+			this.label3.Name = "label3";
+			this.label3.Size = new System.Drawing.Size(64, 13);
+			this.label3.TabIndex = 10;
+			this.label3.Text = "Both Mouse";
+			// 
+			// button1
+			// 
+			this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.button1.Location = new System.Drawing.Point(783, 86);
+			this.button1.Name = "button1";
+			this.button1.Size = new System.Drawing.Size(231, 23);
+			this.button1.TabIndex = 12;
+			this.button1.Text = "Add Shape";
+			this.button1.UseVisualStyleBackColor = true;
+			this.button1.Click += new System.EventHandler(this.button1_Click);
+			// 
+			// direct3DControl
+			// 
+			this.direct3DControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.direct3DControl.BackColor = System.Drawing.Color.PaleTurquoise;
+			this.direct3DControl.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+			this.direct3DControl.BothMouseFunction = Direct3DLib.Direct3DControl.MouseOption.CameraTranslateXZ;
+			this.direct3DControl.LeftMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Select;
+			this.direct3DControl.LightAmbientIntensity = 0.3F;
+			this.direct3DControl.LightDirection = new SlimDX.Vector3(1F, 1F, 1F);
+			this.direct3DControl.LightDirectionalIntensity = 0.7F;
+			this.direct3DControl.Location = new System.Drawing.Point(12, 81);
+			this.direct3DControl.Name = "direct3DControl";
+			this.direct3DControl.Pan = 0.7853982F;
+			this.direct3DControl.RightMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Rotate;
+			this.direct3DControl.SelectedObject = null;
+			this.direct3DControl.Size = new System.Drawing.Size(657, 418);
+			this.direct3DControl.TabIndex = 13;
+			this.direct3DControl.Target = new SlimDX.Vector3(0F, 0F, 0F);
+			this.direct3DControl.Tilt = 0F;
+			this.direct3DControl.ZClipFar = 100F;
+			this.direct3DControl.ZClipNear = 0.1F;
+			this.direct3DControl.Zoom = 50F;
+			// 
+			// TestForm
+			// 
+			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+			this.ClientSize = new System.Drawing.Size(1026, 511);
+			this.Controls.Add(this.direct3DControl);
+			this.Controls.Add(this.button1);
+			this.Controls.Add(this.label3);
+			this.Controls.Add(this.label2);
+			this.Controls.Add(this.label1);
+			this.Controls.Add(this.comboBox3);
+			this.Controls.Add(this.comboBox2);
+			this.Controls.Add(this.comboBox1);
+			this.Controls.Add(this.propertyGrid);
+			this.Controls.Add(this.textBox2);
+			this.Controls.Add(this.textBox1);
+			this.Name = "TestForm";
+			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+			this.Text = "TestForm";
+			this.ResumeLayout(false);
+			this.PerformLayout();
 
         }
 
         #endregion
 
-        private Direct3DControl direct3DControl;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.PropertyGrid propertyGrid;
+        private System.Windows.Forms.ComboBox comboBox1;
+        private System.Windows.Forms.ComboBox comboBox2;
+        private System.Windows.Forms.ComboBox comboBox3;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+		private System.Windows.Forms.Label label3;
+		private System.Windows.Forms.Button button1;
+		private Direct3DControl direct3DControl;
     }
 }

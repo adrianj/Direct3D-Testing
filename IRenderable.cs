@@ -19,7 +19,7 @@ namespace Direct3DLib
         /// <param name="device">The prepared 3D Graphics device</param>
         /// <param name="cameraViewProj">The current view*projection of 
         /// the camera.</param>
-        void Render(Device device, Matrix cameraViewProj);
+        void Render(Device device, ConstantBufferHelper helper);
 
         /// <summary>
         /// Prepares the object in Graphics memory.
@@ -28,25 +28,24 @@ namespace Direct3DLib
         /// <param name="device"></param>
         void Update(Device device);
 
-        /// <summary>
-        /// Is this object available for Pick selection.
-        /// </summary>
-        bool CanPick { get; }
 
         /// <summary>
         /// An array of Vertices defining the structure of this object.
         /// </summary>
-        Vertex[] Vertices { get; }
+        VertexList Vertices { get; }
 
-        /// <summary>
-        /// An array of Indices defining how the object is drawn.
-        /// </summary>
-        short[] Indices { get; }
 
         /// <summary>
         /// This object's world matrix, not including any camera view or projection,
         /// ie, only the object's local location/rotation/scale.
         /// </summary>
         Matrix World { get; }
+
+
+        /// <summary>
+        /// Is this object available for Pick selection.
+        /// </summary>
+        bool CanPick { get; }
+        bool RayIntersects(Ray ray, out float dist);
     }
 }

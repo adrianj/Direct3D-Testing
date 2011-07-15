@@ -39,7 +39,7 @@ namespace Direct3DLib.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Direct3DControl.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Direct3DLib.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,6 +57,86 @@ namespace Direct3DLib.Properties {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to float4x4 WorldViewProj : WorldViewProjection;
+        ///float4 LightDir : LightDir;
+        ///float4 LightColor : LightColor;
+        ///
+        ///struct VS_IN
+        ///{
+        ///	float4 pos : POSITION;
+        ///	float4 col : COLOR0;
+        ///};
+        /// 
+        ///struct PS_IN
+        ///{
+        ///	float4 pos : SV_POSITION;
+        ///	float4 col : COLOR0;
+        ///};
+        ///
+        ///
+        /////
+        ///// Vertex Shader
+        /////
+        ///PS_IN VS(VS_IN input)
+        ///{
+        ///	PS_IN output = (PS_IN)0;
+        ///	output.pos = input.pos;
+        ///	output.pos = mul(output.pos, WorldViewProj);
+        ///	output.col = input.col;
+        /// 
+        ///	return output;
+        ///}
+        /// 
+        /////
+        ///// Pixel Shader
+        /////
+        ///float4 PS( PS_IN input ) : SV_Target
+        ///{
+        ///	float4 finalColor [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string RenderWithLighting {
+            get {
+                return ResourceManager.GetString("RenderWithLighting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to     float4x4 WorldViewProj : WorldViewProjection;
+        ///    float4 Opacity : Opacity = (0,1,1,1);
+        ///
+        ///    struct VS_IN
+        ///    {
+        ///		float4 pos : POSITION;
+        ///		float4 col : COLOR0;
+        ///    };
+        ///     
+        ///    struct PS_IN
+        ///    {
+        ///		float4 pos : SV_POSITION;
+        ///		float4 col : COLOR0;
+        ///    };
+        ///     
+        ///    PS_IN VS(VS_IN input)
+        ///    {
+        ///		PS_IN output = (PS_IN)0;
+        ///		output.pos = input.pos;
+        ///		output.pos = mul(output.pos, WorldViewProj);
+        ///		output.col = input.col;
+        ///     
+        ///		return output;
+        ///    }
+        ///     
+        ///    float4 PS( PS_IN input ) : SV_Target
+        ///    {
+        ///		return [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string SimpleRender {
+            get {
+                return ResourceManager.GetString("SimpleRender", resourceCulture);
             }
         }
     }

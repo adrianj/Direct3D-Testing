@@ -4,17 +4,20 @@ using System.Text;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.ComponentModel;
 using SlimDX;
 using SlimDX.Direct3D10;
 using SlimDX.DXGI;
+//using SlimDX.DXGI;
 //using SlimDX.Windows;
-using SlimDX.D3DCompiler;
+//using SlimDX.D3DCompiler;
 using Device = SlimDX.Direct3D10.Device;
-using Buffer = SlimDX.Direct3D10.Buffer;
+//using Buffer = SlimDX.Direct3D10.Buffer;
 //using System.Runtime.InteropServices;
 
 namespace Direct3DLib
 {
+	//[TypeConverter(typeof(EngineTypeConverter))]
     public class Direct3DEngine : IDisposable
     {
         #region Parent Declaration and Constructor
@@ -23,8 +26,9 @@ namespace Direct3DLib
         public Direct3DEngine(Control con)
         {
             mParent = con;
+            InitializeDevice();
             mParent.Disposed += (o, e) => { this.Dispose(); };
-            IsInitialized = InitializeDevice();
+            mParent.SizeChanged += (o, e) => { this.ResizeBuffers(); };
         }
         #endregion
 
@@ -32,60 +36,51 @@ namespace Direct3DLib
         #region Dispose Method
         public void Dispose()
         {
+			foreach (Shape s in shapeList) s.Dispose();
             if(device != null) device.Dispose();
             if (swapChain != null) swapChain.Dispose();
         }
         #endregion
 
         #region Public Properties
-        private Color mBackColor = Color.Beige;
-        public Color BackColor { get { return mBackColor; } set { mBackColor = value; } }
+
+		private bool isInitialized = false;
+		public bool IsInitialized { get { return isInitialized; } }
+
+		private CameraControl camera;
+		public CameraControl Camera { get { return camera; } set { camera = value; } }
+
+		public Vector3 LightDirection { get { return constantHelper.LightDirection; } set { constantHelper.LightDirection = value; } }
+		public float LightDirectionalIntensity { get { return constantHelper.LightDirectionalIntensity; } set { constantHelper.LightDirectionalIntensity = value; } }
+		public float LightAmbientIntensity { get { return constantHelper.LightAmbientIntensity; } set { constantHelper.LightAmbientIntensity = value; } }
+
+		private List<IRenderable> shapeList = new List<IRenderable>();
+		public List<IRenderable> ShapeList { get { return shapeList; }  }
+
+		private long prevTick1 = 100;
+		private long prevTick2 = 99;
+		private double refreshRate = 100;
+		public double RefreshRate { get { return refreshRate; } }
+
         #endregion
 
-        public bool IsInitialized { get; set; }
+		#region Private Properties
 
-        private Device device;
+		private Device device;
         private SwapChain swapChain;
         private RenderTargetView renderView;
         private DepthStencilView renderDepth;
         private Viewport viewPort;
+		private ConstantBufferHelper constantHelper;
 
-        private CameraControl camera;
-        public CameraControl CameraView { get { return camera; } set { camera = value; } }
+		#endregion
 
-        
-        private List<IRenderable> shapeList = new List<IRenderable>();
 
-        public void AddShape(IRenderable s)
-        {
-            s.Update(device);
-            shapeList.Add(s);
-        }
-
-        /// <summary>		
-        /// Checks to see if a bounding box is beneath some screen coordinates		
-        /// </summary>		
-        /// <param name="device">The Device to be used</param>		
-        /// <param name="bBox">The bounding box to check an intersection with</param>		
-        /// <param name="coord">The X and Y coordinate of the screen (i.e. mouse coords)</param>		
-        /// <param name="mViewProj">The view matrix * projection matrix</param>		
-        /// <param name="distance">If intersection, then this contains the distance at which the ray intersected the plane</param>		
-        /// <returns>true if successfull intersection</returns>		
-        public bool CheckPicking(Device device, BoundingBox bBox, Vector2 coord, Matrix mViewProj, out float distance)		
-        {			
-            int width = (int)viewPort.Width;			
-            int height = (int)viewPort.Height;			// Z -1000 to 1000 assumed			
-            Vector3 ZNearPlane = Vector3.Unproject(new Vector3(coord, 0), 0, 0, width, height, -1000, 1000, mViewProj);			
-            Vector3 ZFarPlane = Vector3.Unproject(new Vector3(coord, 1), 0, 0, width, height, -1000, 1000, mViewProj);			
-            Vector3 direction = ZFarPlane - ZNearPlane;			
-            direction.Normalize();			
-            Ray ray = new Ray(ZNearPlane, direction);	
-		    
-            if ( Ray.Intersects(ray, bBox, out distance) )				
-                return true;			
-            return false;		
-        }
-
+		public void UpdateShapes()
+		{
+			foreach (IRenderable s in shapeList)
+				s.Update(device);
+		}
 
         public IRenderable PickObjectAt(Point screenLocation)
         {
@@ -117,143 +112,159 @@ namespace Direct3DLib
             double minZ = float.MaxValue;
             foreach (IRenderable s in shapeList)
             {
-                bool ints = false;
+                if (!s.CanPick) continue;
                 float dist = 0;
-                if (s.Indices != null && s.Indices.Length > 2 && s.Indices.Length % 3 == 0)
-                {
-                    for (int i = 0; i < s.Indices.Length; i += 3)
-                    {
-                        Vector3 v1 = Vector3.TransformCoordinate(s.Vertices[s.Indices[i + 2]].Position, s.World);
-                        Vector3 v2 = Vector3.TransformCoordinate(s.Vertices[s.Indices[i + 1]].Position, s.World);
-                        Vector3 v3 = Vector3.TransformCoordinate(s.Vertices[s.Indices[i]].Position, s.World);
 
-                        dist = 0;
-                        ints = Ray.Intersects(ray, v1, v2, v3, out dist);
-                        if (ints && dist < minZ)
-                        {
-                            ret = s;
-                            minZ = dist;
-                        }
-                    }
-                }
-                else
-                {
-                    BoundingBox bb = GetSurroundingBox(s);
-                    dist = 0;
-                    ints = Ray.Intersects(ray, bb, out dist);
-                }
-
+                bool ints = s.RayIntersects(ray, out dist);
                 if (ints && dist < minZ)
                 {
                     ret = s;
                     minZ = dist;
+                    ret = s;
                 }
-
             }
 
             Vector3 vv = Vector3.Project(new Vector3(0,0,0), 0, 0, mParent.Width, mParent.Height, 0.1f, 100, camera.World);
             return ret;
         }
 
-        private BoundingBox GetSurroundingBox(IRenderable s)
-        {
-            float maxX = float.MinValue;
-            float maxY = float.MinValue;
-            float maxZ = float.MinValue;
-            float minX = float.MaxValue;
-            float minY = float.MaxValue;
-            float minZ = float.MaxValue;
-            for (int i = 0; i < s.Vertices.Length; i++)
-            {
-                Vector3 v = s.Vertices[i].Position;
-                v = Vector3.TransformCoordinate(v, s.World);
-                if (v.X < minX) minX = v.X;
-                if (v.Y < minY) minY = v.Y;
-                if (v.Z < minZ) minZ = v.Z;
-                if (v.X > maxX) maxX = v.X;
-                if (v.Y > maxY) maxY = v.Y;
-                if (v.Z > maxZ) maxZ = v.Z;
-            }
-            return new BoundingBox(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
-        }
 
-        private bool InitializeDevice()
+
+        private void InitializeDevice()
         {
-            camera = new CameraControl(mParent);
-            // Declare and create the Device and SwapChain.
-            var desc = new SwapChainDescription()
-            {
-                BufferCount = 1,
-                ModeDescription = new ModeDescription(mParent.ClientSize.Width, mParent.ClientSize.Height, new Rational(60, 1), Format.R8G8B8A8_UNorm),
-                IsWindowed = true,
-                OutputHandle = mParent.Handle,
-                SampleDescription = new SampleDescription(1, 0),
-                SwapEffect = SwapEffect.Discard,
-                Usage = Usage.RenderTargetOutput
-            };
+            isInitialized = false;
             try
             {
-                Device.CreateWithSwapChain(null,DriverType.Hardware,DeviceCreationFlags.None,desc,out device, out swapChain);
-                //device = new Device(DriverType.Hardware, DeviceCreationFlags.None);
-                
-                //Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.Debug, desc, out device, out swapChain);
+                camera = new CameraControl(mParent);
+                // Declare and create the Device and SwapChain.
+                var desc = new SwapChainDescription()
+                {
+                    BufferCount = 1,
+                    ModeDescription = new ModeDescription(mParent.ClientSize.Width, mParent.ClientSize.Height, new Rational(60, 1), Format.R8G8B8A8_UNorm),
+                    IsWindowed = true,
+                    OutputHandle = mParent.Handle,
+                    SampleDescription = new SampleDescription(1, 0),
+                    SwapEffect = SwapEffect.Discard,
+                    Usage = Usage.RenderTargetOutput
+                };
+                Factory fact = new Factory();
+                Device.CreateWithSwapChain(fact.GetAdapter(0), DriverType.Hardware, DeviceCreationFlags.None, desc, out device, out swapChain);
+                Device context = device;
+
+				constantHelper = new ConstantBufferHelper();
+				constantHelper.Update(device);
+
+                // Scale the buffers appropriately to the size of the parent control.
+                isInitialized = true;
+                ResizeBuffers();
             }
-            catch (Direct3D10Exception ex) { MessageBox.Show("" + ex.Message + "\n\n" + ex.ResultCode.Code.ToString("X")); return false; }
-            Device context = device;
-            //DeviceContext context = device.ImmediateContext;
-            // Set the view port
-            viewPort = new Viewport(0, 0, mParent.Width, mParent.Height, 0.0f, 1.0f);
-            context.Rasterizer.SetViewports(viewPort);
-            // Set the render target.
-            
-            Texture2D backBuffer = Texture2D.FromSwapChain<Texture2D>(swapChain, 0);
-            renderView = new RenderTargetView(device, backBuffer);
+            catch (Direct3D10Exception ex) { MessageBox.Show("" + ex.Message + "\n\n" + ex.ResultCode.Code.ToString("X")); return; }
+            catch (Exception) { throw; }
+            this.Render();
+        }
 
-            // Create the Depth Buffer.
-            // Without this, farther objects could draw on top of nearer objects.
-            Texture2DDescription depthDesc = new Texture2DDescription()
+        /// <summary>
+        /// Rescale the buffers to the size of the parent control.
+        /// </summary>
+        private void ResizeBuffers()
+        {
+            if (IsInitialized && mParent.Width > 0 && mParent.Height > 0)
             {
-                Width = mParent.Width,
-                Height = mParent.Height,
-                MipLevels = 1,
-                ArraySize = 1,
-                Format = Format.D32_Float,
-                Usage = ResourceUsage.Default,
-                SampleDescription = new SampleDescription(1, 0),
-                BindFlags = BindFlags.DepthStencil,
-                CpuAccessFlags = CpuAccessFlags.None,
-                OptionFlags = ResourceOptionFlags.None
-            };
-            Texture2D dBuf = new Texture2D(device, depthDesc);
-            renderDepth = new DepthStencilView(device, dBuf);
+                isInitialized = false;
+                if(renderView != null) renderView.Dispose();
+                if(renderDepth != null) renderDepth.Dispose();
+                swapChain.ResizeBuffers(1, mParent.Width, mParent.Height, Format.R8G8B8A8_UNorm, SwapChainFlags.None);
 
-            context.OutputMerger.SetTargets(renderDepth,renderView);
-            return true;
+                // Set the view port
+                viewPort = new Viewport(0, 0, mParent.Width, mParent.Height, 0.0f, 1.0f);
+                device.Rasterizer.SetViewports(viewPort);
+                // Set the render target.
+
+                using(Texture2D backBuffer = Texture2D.FromSwapChain<Texture2D>(swapChain, 0))
+                    renderView = new RenderTargetView(device, backBuffer);
+
+                // Create the Depth Buffer.
+                // Without this, farther objects could draw on top of nearer objects.
+                Texture2DDescription depthDesc = new Texture2DDescription()
+                {
+                    Width = mParent.Width,
+                    Height = mParent.Height,
+                    MipLevels = 1,
+                    ArraySize = 1,
+                    Format = Format.D32_Float,
+                    Usage = ResourceUsage.Default,
+                    SampleDescription = new SampleDescription(1, 0),
+                    BindFlags = BindFlags.DepthStencil,
+                    CpuAccessFlags = CpuAccessFlags.None,
+                    OptionFlags = ResourceOptionFlags.None
+                };
+                Texture2D dBuf = new Texture2D(device, depthDesc);
+                renderDepth = new DepthStencilView(device, dBuf);
+
+                device.OutputMerger.SetTargets(renderDepth, renderView);
+                Camera.Pan = Camera.Pan;
+                isInitialized = true;
+            }
         }
 
         public void Render()
         {
-            Device context = device;
-            //DeviceContext context = device.ImmediateContext;
-            // Clear the view, resetting to the background colour.
-            context.ClearRenderTargetView(renderView, new Color4(this.BackColor));
-            context.ClearDepthStencilView(renderDepth, DepthStencilClearFlags.Depth, 1, 0);
-            // Call the Render method of each shape.
-            foreach(Shape shape in shapeList)
-                shape.Render(context, camera.World);
-            // Present!
-            swapChain.Present(0, PresentFlags.None);
+			prevTick2 = prevTick1;
+			prevTick1 = DateTime.Now.Ticks;
+			double newRef = 0;
+			if (prevTick1 == prevTick2) newRef = 100;
+			else
+			{
+				long diff = prevTick1 - prevTick2;
+				newRef = Math.Round(1000000.0 / (double)(diff),2);
+			}
+			refreshRate = (refreshRate * 0.7) + (0.3 * newRef);
+            if (IsInitialized)
+            {
+                Device context = device;
+                // Clear the view, resetting to the background colour.
+                
+                context.ClearRenderTargetView(renderView, new Color4(mParent.BackColor));
+                context.ClearDepthStencilView(renderDepth, DepthStencilClearFlags.Depth, 1, 0);
+
+				constantHelper.ViewProj = Camera.World;
+				//constantHelper.Apply();
+				//constantHelper.ApplyGlobals();
+                // Call the Render method of each shape.
+				foreach (Shape shape in shapeList)
+				{
+					constantHelper.World = shape.World;
+					constantHelper.LocalRotation = shape.RotationMatrix;
+					constantHelper.Apply();
+					shape.Render(context, constantHelper);
+				}
+
+                // Present!
+                swapChain.Present(0, PresentFlags.None);
+            }
         }
     }
-
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct WorldViewProj
-    {
-        public Matrix World;
-        public Matrix View;
-        public Matrix Projection;
-    }
+	
+	public class EngineTypeConverter : System.ComponentModel.TypeConverter
+	{
+		public override bool GetPropertiesSupported(ITypeDescriptorContext context)
+		{
+			return true;
+		}
+		public override PropertyDescriptorCollection GetProperties(ITypeDescriptorContext context, object value, Attribute[] attributes)
+		{
+			PropertyDescriptorCollection original = TypeDescriptor.GetProperties(typeof(Direct3DEngine));
+			PropertyDescriptorCollection pdc = new PropertyDescriptorCollection(null, false);
+			foreach (PropertyDescriptor pd in original)
+			{
+				if (pd.Name.Equals("ShapeList"))
+					continue; 
+				pdc.Add(pd);
+			}
+			return pdc;
+		}
+	}
+	 
 }
 
 

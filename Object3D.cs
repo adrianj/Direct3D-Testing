@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using SlimDX;
+using System.ComponentModel;
 
 namespace Direct3DLib
 {
@@ -9,26 +10,24 @@ namespace Direct3DLib
     /// This class encompasses any kind of object that has a 3D position, scale and a 3D rotation.
     /// So it includes Shapes, Light sources and the Camera.
     /// </summary>
+    [Serializable]
     public class Object3D : NamedObject
     {
+        [NonSerialized,Browsable(false)]
         protected Matrix mWorld = Matrix.Identity;
         /// <summary>
         /// The final World matrix after all transformations have been applied.
         /// </summary>
-        public Matrix World { get { return mWorld; } set { mWorld = value; } }
+        public virtual Matrix World { get { return mWorld; }  }
 
-        //private bool mThirdPerson = false;
-        /// <summary>
-        /// When IsThirdPerson, camera rotates about the point specified by Location looking toward it.
-        /// When not IsThirdPerson (FirstPerson) camera is looking out from the point specified by Location.
-        /// </summary>
-        //public bool IsThirdPerson { get { return mThirdPerson; } set { mThirdPerson = value; updateWorld(IsThirdPerson); } }
+		public virtual Matrix RotationMatrix { get { return Matrix.RotationYawPitchRoll(mRotation.Y, mRotation.X, mRotation.Z); } }
+
 
         protected Vector3 mScale = new Vector3(1, 1, 1);
         /// <summary>
         /// Specifies scaling of the object.
         /// </summary>
-        public Vector3 Scale
+        public virtual Vector3 Scale
         {
             get { return mScale; }
             set { mScale = value; updateWorld(); }
@@ -37,7 +36,7 @@ namespace Direct3DLib
         /// <summary>
         /// Specifies movement of the object's centre.
         /// </summary>
-        public Vector3 Location
+        public virtual Vector3 Location
         {
             get { return mLocation; }
             set { mLocation = value; updateWorld(); }
@@ -48,7 +47,7 @@ namespace Direct3DLib
         /// This is applied as a RotateYawPitchRoll, X refers to Pitch, Y refers to Yaw,
         /// Z refers to Roll.
         /// </summary>
-        public Vector3 Rotation
+        public virtual Vector3 Rotation
         {
             get { return mRotation; }
             set {
@@ -57,7 +56,7 @@ namespace Direct3DLib
             }
         }
 
-        public float UnwrapPhase(float phase)
+        public static float UnwrapPhase(float phase)
         {
             float mod = (float)Math.PI*2;
             float p = phase % mod;

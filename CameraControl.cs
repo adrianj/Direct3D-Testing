@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 using System.Windows.Forms;
 using SlimDX;
@@ -15,27 +16,25 @@ namespace Direct3DLib
         private float mZClipFar = 100;
         public float ZClipFar { get { return mZClipFar; } set { mZClipFar = value; updateWorld(); } }
 
-        private float mPan;
-        public float Pan { get { return mPan; } set { mPan = UnwrapPhase(value); updateWorld(); } }
+        public float Pan { get { return mRotation.Y; } set { mRotation.Y = UnwrapPhase(value); updateWorld(); } }
 
         public Matrix View { get; set; }
         public Matrix Proj { get; set; }
 
         private const float MAX_TILT = (float)Math.PI - 0.001f;
-        private float mTilt;
         public float Tilt
         {
-            get { return mTilt; }
+            get { return mRotation.X; }
             set
             {
-                if (value > MAX_TILT) mTilt = MAX_TILT;
-                else if (value < -MAX_TILT) mTilt = -MAX_TILT;
-                else mTilt = value;
+                if (value > MAX_TILT) value = MAX_TILT;
+                else if (value < -MAX_TILT) value = -MAX_TILT;
+                mRotation.X = value;
                 updateWorld();
             }
         }
-        //private float mZoom = 4.0f;
-        private const float MIN_ZOOM = float.Epsilon;
+        
+        private const float MIN_ZOOM = 0.0001f;
         public float Zoom
         {
             get { return mScale.Z; }
@@ -67,13 +66,19 @@ namespace Direct3DLib
         }
 
         private Control mParent;
-        public CameraControl(Control con)
+        public CameraControl(Control con) : base()
         {
             mParent = con;
+            this.Name = "Camera";
             Initialize();
         }
 
-
+        
+        public event EventHandler CameraChanged;
+        private void FireCameraChangedEvent()
+        {
+            if (CameraChanged != null) CameraChanged(this, new EventArgs());
+        }
 
         /// <summary>
         /// The updateWorld method is different to other Shapes, since I wish to Translate first
@@ -94,7 +99,13 @@ namespace Direct3DLib
                 ZClipNear, ZClipFar);
             m = m * View;
             m = m * Proj;
-            World = m;
+            if (m != World)
+            {
+                mWorld = m;
+                FireCameraChangedEvent();
+            }
         }
+
+        
     }
 }

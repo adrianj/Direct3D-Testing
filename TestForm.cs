@@ -14,93 +14,63 @@ namespace Direct3DLib
         public TestForm()
         {
             InitializeComponent();
+            foreach (Direct3DControl.MouseOption mo in Enum.GetValues(typeof(Direct3DControl.MouseOption)))
+            {
+                comboBox1.Items.Add(mo);
+                comboBox2.Items.Add(mo);
+                comboBox3.Items.Add(mo);
+            }
+            comboBox1.SelectedItem = direct3DControl.LeftMouseFunction;
+            comboBox2.SelectedItem = direct3DControl.RightMouseFunction;
+            comboBox3.SelectedItem = direct3DControl.BothMouseFunction;
+            
             if (direct3DControl.IsInitialized)
             {
                 InitTest();
             }
         }
 
+
         private void InitTest()
         {
-            direct3DControl.CameraView.ZClipFar = 500;
-
-            // What about an inside out cube...
-            Shape shape = new Cube();
-            shape.Scale = new Vector3(50, 50, 50);
-            Array.Reverse(shape.Indices);
-            //direct3DControl.AddShape(shape);
-            // Build a room 10x10x10
-            float rWidth = 10;
-            shape = new Square(Color.LightBlue);
-            shape.Location = new Vector3(0, 0, 0);
-            shape.Scale = new Vector3(rWidth, rWidth, rWidth);
-            direct3DControl.AddShape(shape);
-            shape = new Square(Color.Orange);
-            shape.Rotation = new Vector3(-0.5f * (float)Math.PI, 0, 0);
-            shape.Location = new Vector3(1, 1, 1);
-            shape.Scale = new Vector3(rWidth, rWidth, rWidth);
-            //direct3DControl.AddShape(shape);
-            shape = new Square(Color.YellowGreen);
-            shape.Rotation = new Vector3(0, 0, 0.5f * (float)Math.PI);
-            shape.Location = new Vector3(1, 1, 1);
-            shape.Scale = new Vector3(rWidth, rWidth, rWidth);
-            //direct3DControl.AddShape(shape);
+            direct3DControl.SelectedObjectChanged += (o, e) =>
+            {
+				object obj = direct3DControl.SelectedObject;
+				if (obj is Shape)
+				{
+					Shape s = obj as Shape;
+					propertyGrid.SelectedObject = direct3DControl.SelectedObject;
+					textBox1.Text = "" + s;
+				}
+            };
+			Shape shape = ComplexShape.CreateFromFile("C:\\Users\\adrianj\\Documents\\Work\\CAD\\hercules_LORES.stl");
+			if (shape != null)
+			{
+				shape.Rotation = new Vector3(-(float)Math.PI / 2,0,0);
+				shape.Location = new Vector3(0, 0, 5);
+				direct3DControl.Engine.ShapeList.Add(shape);
+			}
 
 
-            // Populate with some cubes
-            shape = new Cube();
-            //shape.Location = new Vector3(1, 1, 1);
-            //shape.Location += new Vector3(4, 0, 2);
-            //shape.Rotation = new Vector3(0, (float)Math.PI / 4, 0);
-            shape.Name = "smallCube";
-            direct3DControl.AddShape(shape);
-
-            shape = new Cube();
-            shape.Location = new Vector3(1, 1, 1);
-            shape.Location += new Vector3(8, 0, 5);
-            shape.Scale = new Vector3(3, 3, 3);
-            shape.Rotation = new Vector3(0, (float)Math.PI / 2, 0);
-            shape.Name = "largeCube";
-            direct3DControl.AddShape(shape);
-
-            // Now for a really small Cube... aka, a line.
-            // This becomes the X-Axis.
-            float lineWidth = 0.02f;
-            shape = new Cube(Color.Black);
-            shape.Scale = new Vector3(1000, lineWidth, lineWidth);
-            direct3DControl.AddShape(shape);
-            // And the Y-Axis
-            shape = new Cube(Color.Black);
-            shape.Scale = new Vector3(lineWidth, 1000, lineWidth);
-            direct3DControl.AddShape(shape);
-            // And the Z-Axis
-            shape = new Cube(Color.Black);
-            shape.Scale = new Vector3(lineWidth, lineWidth, 1000);
-            direct3DControl.AddShape(shape);
-
-            shape = new Triangle();
-            direct3DControl.MouseClick += new MouseEventHandler(direct3DControl_MouseClick);
-
-            MeshShape ms = new MeshShape();
-            ms.Vertices = new[] { new Vertex(0, 0, 0), new Vertex(3, 3, 3), new Vertex(0, 3, 0) };
-            direct3DControl.AddShape(ms);
+			Sphere sp = new Sphere(12,Color.Red);
+			sp.LongLines = 6;
+			sp.LatLines = 7;
+			sp.Location = new Vector3(0, 0, 0);
+			sp.Scale = new Vector3(30, 30, 30);
+			sp.Topology = SlimDX.Direct3D10.PrimitiveTopology.LineStrip;
+			direct3DControl.Engine.ShapeList.Add(sp);
+			
+			direct3DControl.Engine.UpdateShapes();
+             
         }
 
-        void direct3DControl_MouseClick(object sender, MouseEventArgs e)
-        {
-            // Attempt to select an object at the mouse location.
-            IRenderable obj = direct3DControl.PickObjectAt(e.Location);
-            textBox2.Text = "" + obj;
-            if (obj != null)
-                propertyGrid.SelectedObject = obj;
-        }
 
 
         private void PreRenderTest()
         {
-            textBox1.Text = "CamLoc:   " + direct3DControl.CameraView.Location  +
-                ",   Pan: " + direct3DControl.CameraView.Pan + ", Tilt:   " + direct3DControl.CameraView.Tilt
-                 + ", Zoom:   " + direct3DControl.CameraView.Zoom;
+
+			textBox2.Text = "Refresh Rate: " + String.Format("{0:000.00}",direct3DControl.Engine.RefreshRate)
+				+ "\t LightDir: "+direct3DControl.Engine.LightDirection;
         }
 
         public override void Render()
@@ -109,6 +79,35 @@ namespace Direct3DLib
             if(direct3DControl.IsInitialized)
                 direct3DControl.Render();
         }
+
+        private void comboBox1_SelectedValueChanged(object sender, EventArgs e)
+        {
+            Control con = sender as Control;
+            if (con.Focused)
+            {
+                if (sender == comboBox1)
+                    direct3DControl.LeftMouseFunction = (Direct3DControl.MouseOption)comboBox1.SelectedItem;
+                if (sender == comboBox2)
+                    direct3DControl.RightMouseFunction = (Direct3DControl.MouseOption)comboBox2.SelectedItem;
+                if (sender == comboBox3)
+                    direct3DControl.BothMouseFunction = (Direct3DControl.MouseOption)comboBox3.SelectedItem;
+            }
+        }
+
+		private void button1_Click(object sender, EventArgs e)
+		{
+			OpenFileDialog ofd = new OpenFileDialog();
+			if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+			{
+				Shape newShape = ComplexShape.CreateFromFile(ofd.FileName);
+				if (newShape != null)
+				{
+					direct3DControl.Engine.ShapeList.Add(newShape);
+					direct3DControl.Engine.UpdateShapes();
+					direct3DControl.SelectedObject = newShape;
+				}
+			}
+		}
 
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.ComponentModel;
 using SlimDX;
 using SlimDX.DXGI;
 using System.Runtime.InteropServices;
@@ -16,65 +17,78 @@ namespace Direct3DLib
     /// A class that consists of a number of ColoredVertices, and an index buffer specifying
     /// how it is made up of flat triangles.
     /// </summary>
-    public class Shape : Object3D, IRenderable
+    [Serializable]
+    public class Shape : Object3D, IRenderable, IDisposable
     {
-        private bool mPick = true;
-        public bool CanPick { get { return mPick; } set { mPick = value; } }
-        public Vertex[] Vertices { get; set; }
-        public short[] Indices { get; set; }
-        public long VertexSize
-        {
-            get
-            {
-                if (Vertices == null) return 0;
-                return Marshal.SizeOf(typeof(Vertex)) * Vertices.Length;
-            }
-        }
-        private int nElements = 0;
-        public int NumElements { get { return nElements; } }
         
+        private bool mPick = true;
+        public virtual bool CanPick { get { return mPick; } set { mPick = value; } }
+		private Vertex [] mSelectedVerts = new Vertex[3];
+		public Vertex[] SelectedVertices { get { return mSelectedVerts; } set { mSelectedVerts = value; } }
+
+        private VertexList mVList = new VertexList();
+        public VertexList Vertices { get { return mVList; } set { mVList = value; } }
+		public int SelectedVertexIndex { get; set; }
+
+        protected Device mDevice;
+		private Color mSolidColor = Color.Empty;
+		public Color SolidColor { get { return mSolidColor; } set { SetUniformColor(value); mSolidColor = value; Update(); } }
+
+        public virtual PrimitiveTopology Topology { get { return Vertices.Topology; } set { Vertices.Topology = value; AutoGenerateIndices(); Update(); } }
+        
+
+        public void SetUniformColor(Color color)
+        {
+            for (int i = 0; i < Vertices.Count; i++)
+            {
+                Vertex v = Vertices[i];
+				if (color == Color.Empty)
+					v.Color = Vertex.FloatToColor(v.Position);
+				else
+	                v.Color = color;
+                Vertices[i] = v;
+            }
+                
+        }
+
         protected SlimDX.Direct3D10.Buffer vertexBuffer;
         protected SlimDX.Direct3D10.Buffer indexBuffer;
         protected InputLayout vertexLayout;
-        protected Effect effect;
-        protected EffectTechnique effectTechnique;
-        protected EffectPass effectPass;
-        protected EffectMatrixVariable transformVariable;
 
-        public Shape() {
-            Vertices = new Vertex[0];
-            Indices = new short[0];
+		
+
+        public Shape()
+            : base()
+        {
+            Vertices = new VertexList();
         }
         public Shape(Vertex[] vertices)
+            : this()
         {
-            Vertices = vertices;
-            if (vertices != null && vertices.Length > 2)
-            {
-                // Auto-populate the Indices
-                int iLen = (Vertices.Length - 2) * 3;
-                Indices = new short[iLen];
-                for (short i = 0; i < Vertices.Length-2; i++)
-                {
-                    Indices[i*3] = 0;
-                    Indices[i * 3 + 1] = i;
-                    Indices[i * 3 + 2] = (short)(i + 1);
-                }
-            }
+            Vertices = new VertexList(vertices);
         }
 
-        
+        public virtual void AutoGenerateIndices()
+        {
+            Vertices.Indices = null;
+        }
 
+
+		public void Update() { Update(mDevice); }
         public virtual void Update(Device device)
         {
-            // If there are less than 2 vertices then we can't make a line, let alone a shape!
-            if (Vertices == null || Vertices.Length < 2) return;
-
-            nElements = Vertices.Length;
+            if (device == null || device.Disposed) return;
+			
+            mDevice = device;
+            // If there is less than 1 vertex then we can't make a point, let alone a shape!
+            if (Vertices == null || Vertices.Count < 1) return;
 
             // Add Vertices to a datastream.
-            DataStream dataStream = new DataStream(this.VertexSize, true, true);
-            dataStream.WriteRange(this.Vertices);
+            DataStream dataStream = new DataStream(Vertices.NumBytes, true, true);
+            dataStream.WriteRange(this.Vertices.ToArray());
             dataStream.Position = 0;
+
+            
             // Create a new data buffer description and buffer
             BufferDescription desc = new BufferDescription()
             {
@@ -82,153 +96,146 @@ namespace Direct3DLib
                 CpuAccessFlags = CpuAccessFlags.None,
                 OptionFlags = ResourceOptionFlags.None,
                 //SizeInBytes = 3 * Marshal.SizeOf(typeof(ColoredVertex)),
-                SizeInBytes = (int)this.VertexSize,
+                SizeInBytes = Vertices.NumBytes,
                 Usage = ResourceUsage.Default
             };
             vertexBuffer = new SlimDX.Direct3D10.Buffer(device, dataStream, desc);
             dataStream.Close();
 
-            // Get the shader effects.
-            //ShaderBytecode bytecode = ShaderBytecode.CompileFromFile("shaders/SimpleRender.fx", "fx_5_0", ShaderFlags.None, EffectFlags.None);
-            effect = Effect.FromFile(device, "shaders/SimpleRender.fx", "fx_4_0", ShaderFlags.None, EffectFlags.None);
-            //effect = new Effect(device, bytecode);
-            effectTechnique = effect.GetTechniqueByIndex(0);
-            effectPass = effectTechnique.GetPassByIndex(0);
-            transformVariable = effect.GetVariableByName("WorldViewProj").AsMatrix();
+            // Get the shader effects signature
+            Effect effect = Effect.FromString(device, Properties.Resources.RenderWithLighting, "fx_4_0");
+            EffectPass effectPass = effect.GetTechniqueByIndex(0).GetPassByIndex(0);
 
-            // Set the input layout.
-            InputElement[] inputElements = new InputElement[]
-            {
-                new InputElement("POSITION",0,Format.R32G32B32_Float,0,0),
-                new InputElement("COLOR",0,Format.R32G32B32A32_Float,12,0)
-            };
-            vertexLayout = new InputLayout(device, effectPass.Description.Signature, inputElements);
 
-            // Draw Indexed
-            if (this.Indices != null && this.Indices.Length > 0)
+            if (Vertices != null && Vertices.Count > 0)
             {
-                DataStream iStream = new DataStream(sizeof(ushort) * this.Indices.Length, true, true);
-                iStream.WriteRange(this.Indices);
-                iStream.Position = 0;
-                desc = new BufferDescription()
+                // Set the input layout.
+                InputElement[] inputElements = Vertices[0].GetInputElements();
+                vertexLayout = new InputLayout(device, effectPass.Description.Signature, inputElements);
+
+                // Draw Indexed
+                if (Vertices.Indices != null && Vertices.Indices.Count > 0)
                 {
-                    Usage = ResourceUsage.Default,
-                    SizeInBytes = sizeof(ushort) * this.Indices.Length,
-                    BindFlags = BindFlags.IndexBuffer,
-                    CpuAccessFlags = CpuAccessFlags.None,
-                    OptionFlags = ResourceOptionFlags.None
-                };
-                indexBuffer = new Buffer(device, iStream, desc);
-                iStream.Close();
-                nElements = Indices.Length;
+                    DataStream iStream = new DataStream(sizeof(int) * Vertices.Indices.Count, true, true);
+                    iStream.WriteRange(Vertices.Indices.ToArray());
+                    iStream.Position = 0;
+                    desc = new BufferDescription()
+                    {
+                        Usage = ResourceUsage.Default,
+                        SizeInBytes = sizeof(int) * Vertices.Indices.Count,
+                        BindFlags = BindFlags.IndexBuffer,
+                        CpuAccessFlags = CpuAccessFlags.None,
+                        OptionFlags = ResourceOptionFlags.None
+                    };
+                    indexBuffer = new Buffer(device, iStream, desc);
+                    iStream.Close();
+
+                    
+
+                }
+                else
+                {
+                    if (indexBuffer != null) indexBuffer.Dispose();
+                    indexBuffer = null;
+                }
+            }
+            else
+            {
+                if (vertexBuffer != null) vertexBuffer.Dispose();
+                vertexBuffer = null;
             }
         }
 
         //public void Render(DeviceContext context, Matrix worldViewProj)
-            public virtual void Render(Device context, Matrix cameraViewProj)
+        public virtual void Render(Device context, ConstantBufferHelper helper)
         {
-            //context.InputAssembler.InputLayout = vertexLayout;
-            context.InputAssembler.SetInputLayout(vertexLayout);
-            context.InputAssembler.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
-            //context.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            context.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(vertexBuffer, Marshal.SizeOf(typeof(Vertex)), 0));
-            if(this.Indices != null)
-                context.InputAssembler.SetIndexBuffer(indexBuffer, Format.R16_UInt, 0);
-            Matrix wvp = World * cameraViewProj;
-            transformVariable.SetMatrix(wvp);
-            effectPass.Apply();
-            
-            if (this.Indices != null)
-                context.DrawIndexed(this.NumElements, 0, 0);
-            else
-                context.Draw(this.NumElements, 0);
-        }
-
-
-    }
-
-    public class Cube : Shape
-    {
-        public Cube()
-            : base()
-        {
-            Vertices = new Vertex[]
+            if (vertexBuffer != null && Topology != PrimitiveTopology.Undefined)
             {
-                new Vertex(new Vector4(-0.5f, -0.5f, -0.5f,1), Color.Yellow),
-                new Vertex(new Vector4(0.5f, -0.5f, -0.5f,1), Color.Yellow),
-                new Vertex(new Vector4(0.5f, -0.5f, 0.5f,1), Color.Red),
-                new Vertex(new Vector4(-0.5f, -0.5f, 0.5f,1), Color.Red),
-                new Vertex(new Vector4(-0.5f, 0.5f, -0.5f,1), Color.Blue),
-                new Vertex(new Vector4(0.5f,0.5f,-0.5f,1), Color.Blue),
-                new Vertex(new Vector4(0.5f,0.5f,0.5f,1), Color.Green),
-                new Vertex(new Vector4(-0.5f, 0.5f,0.5f,1), Color.Green)
-            };
-            Indices = new short[]
+                context.InputAssembler.SetInputLayout(vertexLayout);
+                context.InputAssembler.SetPrimitiveTopology(Topology);
+                
+                context.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(vertexBuffer, Marshal.SizeOf(typeof(Vertex)), 0));
+                if (indexBuffer != null)
+                    context.InputAssembler.SetIndexBuffer(indexBuffer, Format.R32_UInt, 0);
+
+
+                if (indexBuffer != null)
+                    context.DrawIndexed(Vertices.NumElements, 0, 0);
+                else
+                    context.Draw(Vertices.NumElements, 0);
+            }
+        }
+
+        public virtual bool RayIntersects(Ray ray, out float distance)
+        {
+            distance = float.MaxValue;
+            if (Vertices == null || Vertices.Count < 1) return false;
+			if (!this.CanPick) return false;
+			bool ints = false;
+			bool done = false;
+			if (Vertices.Indices == null || Vertices.Indices.Count < 1)
+			{
+				if (Topology == PrimitiveTopology.TriangleList)
+				{
+					for (int i = 0; i < Vertices.Count-2; i += 3)
+					{
+						Vector3 v1 = Vector3.TransformCoordinate(Vertices[i].Position,World);
+						Vector3 v2 = Vector3.TransformCoordinate(Vertices[i+1].Position,World);
+						Vector3 v3 = Vector3.TransformCoordinate(Vertices[i +2].Position, World);
+						float d = float.MaxValue;
+						bool ii = Ray.Intersects(ray, v1,v2,v3, out d);
+						if (ii && d < distance)
+						{
+							distance = d;
+							ints = true;
+							SelectedVertices[0] = Vertices[i];
+							SelectedVertices[1] = Vertices[i+1];
+							SelectedVertices[2] = Vertices[i+2];
+							SelectedVertexIndex = i;
+						}
+					}
+					done = true;
+				}
+			}
+			
+			// Use default method of a Bounding Box around the maximum extremities of the object if not yet done.
+			if(!done)
+			{
+				BoundingBox bb = GetSurroundingBox(this);
+				ints = Ray.Intersects(ray, bb, out distance);
+			}
+            return ints;
+        }
+        private BoundingBox GetSurroundingBox(IRenderable s)
+        {
+            float maxX = float.MinValue;
+            float maxY = float.MinValue;
+            float maxZ = float.MinValue;
+            float minX = float.MaxValue;
+            float minY = float.MaxValue;
+            float minZ = float.MaxValue;
+            for (int i = 0; i < s.Vertices.Count; i++)
             {
-                4,1,0,4,5,1,
-                5,2,1,5,6,2,
-                6,3,2,6,7,3,
-                7,0,3,7,4,0,
-                7,5,4,7,6,5,
-                2,3,0,2,0,1
-            };
+                Vector3 v = s.Vertices[i].Position;
+                v = Vector3.TransformCoordinate(v, s.World);
+                if (v.X < minX) minX = v.X;
+                if (v.Y < minY) minY = v.Y;
+                if (v.Z < minZ) minZ = v.Z;
+                if (v.X > maxX) maxX = v.X;
+                if (v.Y > maxY) maxY = v.Y;
+                if (v.Z > maxZ) maxZ = v.Z;
+            }
+            return new BoundingBox(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
         }
-        public Cube(Color4 color)
-            : this()
+
+        public override void Dispose()
         {
-            for(int i = 0; i < Vertices.Length; i++)
-                Vertices[i].Color = color;
+            if(vertexBuffer != null) vertexBuffer.Dispose();
+            if(indexBuffer != null) indexBuffer.Dispose();
+            if(vertexLayout != null) vertexLayout.Dispose();
+            base.Dispose();
         }
     }
 
-    public class Triangle : Shape
-    {
-        public Triangle()
-            : base(new Vertex[]{
-                new Vertex( new Vector4(0.0f, 0.5f, 0.5f,1), Color.Red ),
-                new Vertex( new Vector4(0.5f, -0.5f, 0.5f,1), Color.Green),
-                new Vertex( new Vector4(-0.5f, -0.5f, 0.5f,1), Color.Blue )})
-        { }
-        public Triangle(Color4 color)
-            : this()
-        {
-            for (int i = 0; i < Vertices.Length; i++)
-                Vertices[i].Color = color;
-        }
-    }
 
-    /// <summary>
-    /// A flat (Y = 0) square with X and Z = (0=>1).
-    /// </summary>
-    public class Square : Shape
-    {
-        public Square()
-            : base()
-        {
-            Vertices = new[]{
-                new Vertex( new Vector4(0f, 0f, 0f,1), Color.Red ),
-                new Vertex( new Vector4(0f, 0f, 1f,1), Color.Green),
-                new Vertex( new Vector4(1f, 0f, 1f,1), Color.Yellow),
-                new Vertex( new Vector4(1f, 0f, 0f,1), Color.Blue )};
-            Indices = new short[] { 0, 1, 2, 2, 3, 0 };
-        }
-        public Square(Color4 color)
-            : this()
-        {
-            for (int i = 0; i < Vertices.Length; i++)
-                Vertices[i].Color = color;
-
-        }
-    }
-
-    public class XAxis : Shape
-    {
-        public XAxis()
-            : base()
-        {
-            Vertices = new[]{
-                new Vertex(new Vector4(-1000f,0,0,1),Color.Black),
-                new Vertex(new Vector4(1000f,0,0,1),Color.Black)}; 
-        }
-    }
 }

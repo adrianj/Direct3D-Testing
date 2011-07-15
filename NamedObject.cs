@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.ComponentModel;
 
 namespace Direct3DLib
 {
@@ -10,6 +11,7 @@ namespace Direct3DLib
     /// Attempting to name an object the same name as another will automatically
     /// append a number on the end of it.
     /// </summary>
+    [Serializable]
     public class NamedObject
     {
         private static Dictionary<string, NamedObject> AllObjects = new Dictionary<string, NamedObject>();
@@ -53,6 +55,26 @@ namespace Direct3DLib
         public override string ToString()
         {
             return base.ToString() + " {"+Name+"}";
+        }
+
+        public event EventHandler Disposed;
+        public virtual void Dispose()
+        {
+            //There is nothing to clean.
+            if (Disposed != null)
+                Disposed(this, EventArgs.Empty);
+        }
+        private ISite m_curISBNSite;
+        public virtual ISite Site
+        {
+            get
+            {
+                return m_curISBNSite;
+            }
+            set
+            {
+                m_curISBNSite = value;
+            }
         }
     }
 }
