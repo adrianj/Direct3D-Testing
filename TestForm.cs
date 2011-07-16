@@ -43,13 +43,19 @@ namespace Direct3DLib
 					textBox1.Text = "" + s;
 				}
             };
-			Shape shape = ComplexShape.CreateFromFile("C:\\Users\\adrianj\\Documents\\Work\\CAD\\hercules_LORES.stl");
-			if (shape != null)
-			{
-				shape.Rotation = new Vector3(-(float)Math.PI / 2,0,0);
-				shape.Location = new Vector3(0, 0, 5);
-				direct3DControl.Engine.ShapeList.Add(shape);
-			}
+            string filename = "C:\\Users\\adrianj\\Documents\\Work\\CAD\\hercules_LORES.stl";
+            try
+            {
+
+                Shape shape = ComplexShape.CreateFromFile(filename);
+                if (shape != null)
+                {
+                    shape.Rotation = new Vector3(-(float)Math.PI / 2, 0, 0);
+                    shape.Location = new Vector3(0, 0, 5);
+                    direct3DControl.Engine.ShapeList.Add(shape);
+                }
+            }
+            catch (System.IO.IOException) { MessageBox.Show("Create From File: " + filename + " failed"); }
 
 
 			Sphere sp = new Sphere(12,Color.Red);

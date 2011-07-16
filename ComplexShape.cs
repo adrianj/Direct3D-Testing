@@ -25,7 +25,6 @@ namespace Direct3DLib
 		/// <returns></returns>
 		public static Shape CreateFromFile(string filename)
 		{
-			
 			SupportedFileType type = SupportedFileType.Unknown;
 			// Figure out file type from file extension.
 			if (Path.GetExtension(filename).Equals(".stl", StringComparison.InvariantCultureIgnoreCase))
