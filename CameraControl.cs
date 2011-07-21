@@ -34,7 +34,7 @@ namespace Direct3DLib
             }
         }
         
-        private const float MIN_ZOOM = 0.0001f;
+        private const float MIN_ZOOM = 0.01f;
         public float Zoom
         {
             get { return mScale.Z; }

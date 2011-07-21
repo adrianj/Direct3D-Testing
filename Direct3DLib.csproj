@@ -213,7 +213,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CameraControl.cs" />
-    <Compile Include="ComplexShape.cs" />
+    <Compile Include="shapes\ShapeHGT.cs" />
+    <Compile Include="shapes\ComplexShapeFactory.cs" />
     <Compile Include="ConstantBuffer.cs" />
     <Compile Include="Direct3DControl.cs">
       <SubType>UserControl</SubType>
@@ -228,11 +229,14 @@
     <Compile Include="IRenderable.cs" />
     <Compile Include="NamedObject.cs" />
     <Compile Include="Object3D.cs" />
-    <Compile Include="Pipe.cs" />
-    <Compile Include="Shape.cs" />
+    <Compile Include="PictureTile.cs" />
+    <Compile Include="shapes\Pipe.cs" />
+    <Compile Include="ShaderHelper.cs" />
+    <Compile Include="shapes\Shape.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Sphere.cs" />
+    <Compile Include="shapes\ShapeSTL.cs" />
+    <Compile Include="shapes\Sphere.cs" />
     <Compile Include="TestForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -240,6 +244,7 @@
       <DependentUpon>TestForm.cs</DependentUpon>
     </Compile>
     <Compile Include="TextShape.cs" />
+    <Compile Include="TextureHelper.cs" />
     <Compile Include="Vertex.cs" />
     <Compile Include="VertexList.cs" />
     <EmbeddedResource Include="Direct3DControl.resx">
@@ -276,7 +281,11 @@
     <None Include="shaders\RenderWithLighting.fx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="shaders\RenderWithTextures.fx" />
     <None Include="shaders\SimpleRender.fx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="textures\streettexture.dds">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -296,6 +305,23 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="textures\devonport_map.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="textures\flower.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="textures\woomera_12.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GoogleMapAccessor\GoogleMapAccessor.csproj">
+      <Project>{9049EC23-234A-49B2-B935-D224CC6A0F4D}</Project>
+      <Name>GoogleMapAccessor</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

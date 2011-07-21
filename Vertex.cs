@@ -46,7 +46,8 @@ namespace Direct3DLib
         public Color Color { get { return mColor.ToColor(); } set { mColor = new Color4(value); } }
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
         public Vector3 Normal { get { return new Vector3(mNormal.X, mNormal.Y, mNormal.Z); } set { mNormal = new Vector4(value.X, value.Y, value.Z, 1); } }
-        public InputElement[] GetInputElements()
+		public Vector2 TextureCoordinates { get { return new Vector2(mColor.Red, mColor.Green); } set { mColor.Red = value.X; mColor.Green = value.Y; } }
+		public InputElement[] GetInputElements()
         {
             InputElement [] ret = new InputElement[]
             {

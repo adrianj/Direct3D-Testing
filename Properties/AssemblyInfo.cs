@@ -9,9 +9,9 @@ using System.Resources;
 [assembly: AssemblyTitle("Direct3DControl")]
 [assembly: AssemblyDescription("A sample that shows a minimal Direct3D10 program in SlimDX.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("SlimDX Group")]
+[assembly: AssemblyCompany("NZDF Defence Technology Agency")]
 [assembly: AssemblyProduct("Direct3DControl")]
-[assembly: AssemblyCopyright("Copyright © 2007-2011 SlimDX Group")]
+[assembly: AssemblyCopyright("Copyright © 2011")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

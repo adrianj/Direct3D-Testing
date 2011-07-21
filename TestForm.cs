@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using SlimDX;
 
+
 namespace Direct3DLib
 {
     public partial class TestForm : Direct3DForm
@@ -24,58 +25,71 @@ namespace Direct3DLib
             comboBox2.SelectedItem = direct3DControl.RightMouseFunction;
             comboBox3.SelectedItem = direct3DControl.BothMouseFunction;
             
-            if (direct3DControl.IsInitialized)
-            {
+            //if (direct3DControl.IsInitialized)
+            //{
                 InitTest();
-            }
+            //}
         }
 
-
         private void InitTest()
-        {
+		{
             direct3DControl.SelectedObjectChanged += (o, e) =>
             {
 				object obj = direct3DControl.SelectedObject;
 				if (obj is Shape)
 				{
 					Shape s = obj as Shape;
-					propertyGrid.SelectedObject = direct3DControl.SelectedObject;
+					propertyGrid.SelectedObject = s;
 					textBox1.Text = "" + s;
 				}
             };
-            string filename = "C:\\Users\\adrianj\\Documents\\Work\\CAD\\hercules_LORES.stl";
-            try
-            {
-
-                Shape shape = ComplexShape.CreateFromFile(filename);
-                if (shape != null)
-                {
-                    shape.Rotation = new Vector3(-(float)Math.PI / 2, 0, 0);
-                    shape.Location = new Vector3(0, 0, 5);
-                    direct3DControl.Engine.ShapeList.Add(shape);
-                }
-            }
-            catch (System.IO.IOException) { MessageBox.Show("Create From File: " + filename + " failed"); }
-
-
-			Sphere sp = new Sphere(12,Color.Red);
-			sp.LongLines = 6;
-			sp.LatLines = 7;
-			sp.Location = new Vector3(0, 0, 0);
-			sp.Scale = new Vector3(30, 30, 30);
-			sp.Topology = SlimDX.Direct3D10.PrimitiveTopology.LineStrip;
-			direct3DControl.Engine.ShapeList.Add(sp);
-			
+			AddHerc();
+			AddSphere();
+			AddWoomera();
 			direct3DControl.Engine.UpdateShapes();
              
         }
 
+		private void AddHerc()
+		{
+			string filename = "C:\\Users\\adrianj\\Documents\\Work\\CAD\\hercules_LORES.stl";
+			try
+			{
 
+				Shape shape = ComplexShapeFactory.CreateFromFile(filename);
+				if (shape != null)
+				{
+					shape.Rotation = new Vector3(-(float)Math.PI / 2, 0, 0);
+					direct3DControl.Engine.ShapeList.Add(shape);
+				}
+			}
+			catch (System.IO.IOException) { MessageBox.Show("Create From File: " + filename + " failed"); }
+		}
+
+		private void AddSphere()
+		{
+			Sphere sp = new Sphere(24, Color.Black);
+			sp.LongLines = 12;
+			sp.LatLines = 7;
+			sp.Scale = new Vector3(30, 30, 30);
+			sp.Topology = SlimDX.Direct3D10.PrimitiveTopology.LineList;
+			sp.CanPick = false;
+			direct3DControl.Engine.ShapeList.Add(sp);
+		}
+
+		private void AddWoomera()
+		{
+			Shape square = new PictureTile();
+			square.Scale = new Vector3(1000, 0, 1000);
+			square.Location = new Vector3(0, -60, 0);
+			square.TextureIndex = 3;
+			direct3DControl.Engine.ShapeList.Add(square);
+		}
 
         private void PreRenderTest()
         {
 
-			textBox2.Text = "Refresh Rate: " + String.Format("{0:000.00}",direct3DControl.Engine.RefreshRate)
+			textBox2.Text = "Refresh Rate: " + String.Format("{0:#00.00}",direct3DControl.Engine.RefreshRate)
 				+ "\t LightDir: "+direct3DControl.Engine.LightDirection;
         }
 
@@ -103,9 +117,10 @@ namespace Direct3DLib
 		private void button1_Click(object sender, EventArgs e)
 		{
 			OpenFileDialog ofd = new OpenFileDialog();
+			ofd.Filter = ComplexShapeFactory.SupportedFileTypeFilter;
 			if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
 			{
-				Shape newShape = ComplexShape.CreateFromFile(ofd.FileName);
+				Shape newShape = ComplexShapeFactory.CreateFromFile(ofd.FileName);
 				if (newShape != null)
 				{
 					direct3DControl.Engine.ShapeList.Add(newShape);
@@ -113,6 +128,18 @@ namespace Direct3DLib
 					direct3DControl.SelectedObject = newShape;
 				}
 			}
+		}
+
+		private GoogleMapAccessor.GoogleTestForm googleMapForm;
+
+		private void button2_Click(object sender, EventArgs e)
+		{
+			if (googleMapForm == null)
+			{
+				googleMapForm = new GoogleMapAccessor.GoogleTestForm();
+				googleMapForm.FormClosing += (o, ev) => { ev.Cancel = true; googleMapForm.Hide(); };
+			}
+			googleMapForm.Show();
 		}
 
     }

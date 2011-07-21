@@ -16,38 +16,46 @@ namespace Direct3DLib
         private Direct3DEngine engine;
 		public Direct3DEngine Engine { get { return engine; } }
 		public bool IsInitialized { get { if (engine == null) return false; return engine.IsInitialized; } }
+
+		//[DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
+		
+
+		private bool forceRender = true;
         
         public Direct3DControl()
-        {
-            InitializeComponent();
-            InitializeDevice();
+		{
+			InitializeDevice();
+			InitializeComponent();
             InitializeMouse();
             InitializeKeyboard();
         }
+
         private void InitializeDevice()
         {
             engine = new Direct3DEngine(this);
         }
 
 		#region Public Properties
-		[CategoryAttribute("Camera and Lighting")]
+		[CategoryAttribute("Camera, Lighting and Textures")]
 		public float Tilt { get { return engine.Camera.Tilt; } set { engine.Camera.Tilt = value; } }
-		[CategoryAttribute("Camera and Lighting")]
+		[CategoryAttribute("Camera, Lighting and Textures")]
 		public float Pan { get { return engine.Camera.Pan; } set { engine.Camera.Pan = value; } }
-		[CategoryAttribute("Camera and Lighting")]
+		[CategoryAttribute("Camera, Lighting and Textures")]
 		public Vector3 Target { get { return engine.Camera.Location; } set { engine.Camera.Location = value; } }
-		[CategoryAttribute("Camera and Lighting")]
+		[CategoryAttribute("Camera, Lighting and Textures")]
 		public float Zoom { get { return engine.Camera.Zoom; } set { engine.Camera.Zoom = value; } }
-		[CategoryAttribute("Camera and Lighting")]
+		[CategoryAttribute("Camera, Lighting and Textures")]
 		public float ZClipNear { get { return engine.Camera.ZClipNear; } set { engine.Camera.ZClipNear = value; } }
-		[CategoryAttribute("Camera and Lighting")]
+		[CategoryAttribute("Camera, Lighting and Textures")]
 		public float ZClipFar { get { return engine.Camera.ZClipFar; } set { engine.Camera.ZClipFar = value; } }
-		[CategoryAttribute("Camera and Lighting")]
+		[CategoryAttribute("Camera, Lighting and Textures")]
 		public Vector3 LightDirection { get { return engine.LightDirection; } set { engine.LightDirection = value; } }
-		[CategoryAttribute("Camera and Lighting")]
+		[CategoryAttribute("Camera, Lighting and Textures")]
 		public float LightDirectionalIntensity { get { return engine.LightDirectionalIntensity; } set { engine.LightDirectionalIntensity = value; } }
-		[CategoryAttribute("Camera and Lighting")]
+		[CategoryAttribute("Camera, Lighting and Textures")]
 		public float LightAmbientIntensity { get { return engine.LightAmbientIntensity; } set { engine.LightAmbientIntensity = value; } }
+		[CategoryAttribute("Camera, Lighting and Textures")]
+		public string[] TextureImageFilenames { get { return engine.Shader.TextureImageFiles; } set { engine.Shader.TextureImageFiles = value; } }
 		#endregion
 
 		#region Events
@@ -66,19 +74,30 @@ namespace Direct3DLib
         }
         #endregion
 
+		/// <summary>
+		/// Forces the control to render the scene. Otherwise, the scene is only rendered when the top level form
+		/// is the currently active form.
+		/// </summary>
+		public void ForceRender()
+		{
+			forceRender = true;
+		}
 
         public void Render()
         {
-			// Only render if the Engine is initialized and this application is the active form.
-			if (IsInitialized && Form.ActiveForm != null)
+			// Only render if the Engine is initialized and this application is the active form, or user forces it to.
+			if (IsInitialized && (Form.ActiveForm != null || forceRender))
 			{
 				engine.Render();
+				forceRender = false;
 			}
 		
         }
 
         public IRenderable PickObjectAt(Point screenLocation)
-        { return engine.PickObjectAt(screenLocation); }
+        { 
+			return engine.PickObjectAt(screenLocation); 
+		}
 
         #region Mouse Clicks
         public enum MouseOption { None, Select, Rotate, CameraTranslateXZ, Zoom };
@@ -86,22 +105,27 @@ namespace Direct3DLib
         /// <summary>
         /// Function to perform when the left mouse button is clicked.
         /// </summary>
-        [CategoryAttribute("Mouse Functions")]
+        [CategoryAttribute("Mouse and Keyboard Functions")]
         public MouseOption LeftMouseFunction { get { return mLeftMouse; } set { mLeftMouse = value; } }
         private MouseOption mRightMouse = MouseOption.Rotate;
         /// <summary>
         /// Function to pertorm when the right mouse button is clicked.
         /// </summary>
-        [CategoryAttribute("Mouse Functions")]
+		[CategoryAttribute("Mouse and Keyboard Functions")]
         public MouseOption RightMouseFunction { get { return mRightMouse; } set { mRightMouse = value; } }
         private MouseOption mBothMouse = MouseOption.CameraTranslateXZ;
         /// <summary>
         /// Function to perform when both mouse buttons are held down. NOTE: Select function does not work correctly
         /// for both mouse buttons.
         /// </summary>
-        [CategoryAttribute("Mouse Functions")]
+		[CategoryAttribute("Mouse and Keyboard Functions")]
         public MouseOption BothMouseFunction { get { return mBothMouse; } set { mBothMouse = value; } }
         private Point mouseDownPoint;
+
+		private float mouseSpeed = 50;
+		[CategoryAttribute("Mouse and Keyboard Functions")]
+		public float MouseMovementSpeed { get { return mouseSpeed; } set { mouseSpeed = value; } }
+
         private void InitializeMouse()
         {
             this.MouseMove += new MouseEventHandler(this_MouseMove);
@@ -144,14 +168,16 @@ namespace Direct3DLib
                     || (e.Button == MouseButtons.Right && RightMouseFunction == MouseOption.Rotate)
                     || (e.Button == (MouseButtons.Left | MouseButtons.Right) && BothMouseFunction == MouseOption.Rotate))
                 {
-                    engine.Camera.Pan -= xDiff / 80;
-                    engine.Camera.Tilt -= yDiff / 20;
+					float panChange = xDiff / 100f;
+					float tiltChange = yDiff / 30f;
+					engine.Camera.Pan -= panChange;
+					engine.Camera.Tilt -= tiltChange;
                 }
                 else if ((e.Button == MouseButtons.Left && LeftMouseFunction == MouseOption.CameraTranslateXZ)
                     || (e.Button == MouseButtons.Right && RightMouseFunction == MouseOption.CameraTranslateXZ)
                     || (e.Button == (MouseButtons.Left | MouseButtons.Right) && BothMouseFunction == MouseOption.CameraTranslateXZ))
                 {
-                    engine.Camera.Translate(xDiff/50*Zoom, 0, yDiff/50*Zoom);
+					engine.Camera.Translate(xDiff / 50 * mouseSpeed, 0, yDiff / 50 * mouseSpeed);
                 }
                 else if ((e.Button == MouseButtons.Left && LeftMouseFunction == MouseOption.Zoom)
                     || (e.Button == MouseButtons.Right && RightMouseFunction == MouseOption.Zoom)
@@ -171,6 +197,10 @@ namespace Direct3DLib
         private List<Keys> keysOfInterest = new List<Keys>() { Keys.W, Keys.A, Keys.S, Keys.D, Keys.Q,Keys.E, Keys.Delete };
         private Timer keyMoveTimer = new Timer();
         private bool keyShift = false;
+
+		private float keySpeed = 50;
+		[CategoryAttribute("Mouse and Keyboard Functions")]
+		public float KeyboardMovementSpeed { get { return keySpeed; } set { keySpeed = value; } }
 
         private void InitializeKeyboard()
         {
@@ -205,7 +235,7 @@ namespace Direct3DLib
             }
             else
             {
-                engine.Camera.Translate(-keyAD*Zoom, keyQE*Zoom, keyWS*Zoom);
+                engine.Camera.Translate(-keyAD*keySpeed, keyQE*keySpeed, keyWS*keySpeed);
             }
         }
 

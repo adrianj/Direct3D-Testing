@@ -19,14 +19,14 @@ namespace Direct3DLib
         /// <param name="device">The prepared 3D Graphics device</param>
         /// <param name="cameraViewProj">The current view*projection of 
         /// the camera.</param>
-        void Render(Device device, ConstantBufferHelper helper);
+        void Render(Device device, ShaderHelper helper);
 
         /// <summary>
         /// Prepares the object in Graphics memory.
         /// Typically this includes adding the Vertices to the device's input buffer
         /// </summary>
         /// <param name="device"></param>
-        void Update(Device device);
+        void Update(Device device, Effect effect);
 
 
         /// <summary>
@@ -41,6 +41,11 @@ namespace Direct3DLib
         /// </summary>
         Matrix World { get; }
 
+		/// <summary>
+		/// The Index of the texture to apply to this shape.
+		/// Set to -1 to use a simple diffuse color instead of a texture.
+		/// </summary>
+		int TextureIndex { get; }
 
         /// <summary>
         /// Is this object available for Pick selection.

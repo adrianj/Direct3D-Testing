@@ -37,6 +37,8 @@ namespace Direct3DLib
         public void Dispose()
         {
 			foreach (Shape s in shapeList) s.Dispose();
+			if (shaderEffect != null) shaderEffect.Dispose();
+			if (shaderHelper != null) shaderHelper.Dispose();
             if(device != null) device.Dispose();
             if (swapChain != null) swapChain.Dispose();
         }
@@ -50,9 +52,22 @@ namespace Direct3DLib
 		private CameraControl camera;
 		public CameraControl Camera { get { return camera; } set { camera = value; } }
 
-		public Vector3 LightDirection { get { return constantHelper.LightDirection; } set { constantHelper.LightDirection = value; } }
-		public float LightDirectionalIntensity { get { return constantHelper.LightDirectionalIntensity; } set { constantHelper.LightDirectionalIntensity = value; } }
-		public float LightAmbientIntensity { get { return constantHelper.LightAmbientIntensity; } set { constantHelper.LightAmbientIntensity = value; } }
+		public Vector3 LightDirection
+		{
+			get { return shaderHelper.ConstantBufferSet.LightDirection; }
+			set { shaderHelper.ConstantBufferSet.LightDirection = value; }
+		}
+
+		public float LightDirectionalIntensity
+		{
+			get { return shaderHelper.ConstantBufferSet.LightDirectionalIntensity; }
+			set { shaderHelper.ConstantBufferSet.LightDirectionalIntensity = value; }
+		}
+		public float LightAmbientIntensity
+		{
+			get { return shaderHelper.ConstantBufferSet.LightAmbientIntensity; }
+			set { shaderHelper.ConstantBufferSet.LightAmbientIntensity = value; }
+		}
 
 		private List<IRenderable> shapeList = new List<IRenderable>();
 		public List<IRenderable> ShapeList { get { return shapeList; }  }
@@ -61,6 +76,8 @@ namespace Direct3DLib
 		private long prevTick2 = 99;
 		private double refreshRate = 100;
 		public double RefreshRate { get { return refreshRate; } }
+
+		public ShaderHelper Shader { get { return shaderHelper; } }
 
         #endregion
 
@@ -71,7 +88,8 @@ namespace Direct3DLib
         private RenderTargetView renderView;
         private DepthStencilView renderDepth;
         private Viewport viewPort;
-		private ConstantBufferHelper constantHelper;
+		private ShaderHelper shaderHelper;
+		private Effect shaderEffect;
 
 		#endregion
 
@@ -79,7 +97,7 @@ namespace Direct3DLib
 		public void UpdateShapes()
 		{
 			foreach (IRenderable s in shapeList)
-				s.Update(device);
+				s.Update(device,shaderEffect);
 		}
 
         public IRenderable PickObjectAt(Point screenLocation)
@@ -151,15 +169,15 @@ namespace Direct3DLib
                 Device.CreateWithSwapChain(fact.GetAdapter(0), DriverType.Hardware, DeviceCreationFlags.None, desc, out device, out swapChain);
                 Device context = device;
 
-				constantHelper = new ConstantBufferHelper();
-				constantHelper.Update(device);
+				shaderEffect = Effect.FromString(device, Properties.Resources.RenderWithLighting, "fx_4_0");
+				shaderHelper = new ShaderHelper(device,shaderEffect);
 
                 // Scale the buffers appropriately to the size of the parent control.
                 isInitialized = true;
                 ResizeBuffers();
             }
-            catch (Direct3D10Exception ex) { MessageBox.Show("" + ex.Message + "\n\n" + ex.ResultCode.Code.ToString("X")); return; }
-            catch (Exception) { throw; }
+            catch (Direct3D10Exception ex) { MessageBox.Show("" + ex.Message + "\n\n" + ex.ResultCode.Code.ToString("X")
+				+"\n\n"+ex.StackTrace); return; }
             this.Render();
         }
 
@@ -227,16 +245,12 @@ namespace Direct3DLib
                 context.ClearRenderTargetView(renderView, new Color4(mParent.BackColor));
                 context.ClearDepthStencilView(renderDepth, DepthStencilClearFlags.Depth, 1, 0);
 
-				constantHelper.ViewProj = Camera.World;
-				//constantHelper.Apply();
-				//constantHelper.ApplyGlobals();
+				shaderHelper.ConstantBufferSet.ViewProj = Camera.World;
+
                 // Call the Render method of each shape.
 				foreach (Shape shape in shapeList)
 				{
-					constantHelper.World = shape.World;
-					constantHelper.LocalRotation = shape.RotationMatrix;
-					constantHelper.Apply();
-					shape.Render(context, constantHelper);
+					shape.Render(context, shaderHelper);
 				}
 
                 // Present!
