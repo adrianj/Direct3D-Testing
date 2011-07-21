@@ -14,21 +14,33 @@ namespace Direct3DLib
 	/// </summary>
 	public class ComplexShapeFactory
 	{
+		private delegate Shape CreateShapeFromFile(string filename);
 		public enum SupportedFileType { Unknown, STL, DXF, HGT }
-		private static Dictionary<SupportedFileType,string> TypeDictionary = new Dictionary<SupportedFileType,string>
+		private static Dictionary<CreateShapeFromFile, string> TypeDictionary = new Dictionary<CreateShapeFromFile, string>
 		{
-			{SupportedFileType.Unknown,"unknown"},
-			{SupportedFileType.DXF,".dxf"},
-			{SupportedFileType.HGT,".hgt"},
-			{SupportedFileType.STL,".stl"}
+			{ComplexShapeFactory.CreateFromUnknownFile,"unknown"},
+			{ComplexShapeFactory.CreateFromDxfFile,".dxf"},
+			{ShapeHGT.CreateFromFile,".hgt"},
+			{ShapeSTL.CreateFromFile,".stl"}
 		};
 
 		public static string SupportedFileTypeFilter
 		{
 			get
 			{
-				string ret = "All Files (*.*)|*.*";
-				return ret;
+				string fileNames = "3D Model Files";
+				string fileExts = "|";
+				bool first = true;
+				foreach (string ext in TypeDictionary.Values)
+				{
+					if (ext.Substring(0, 1).Equals("."))
+					{
+						if (!first) fileExts += ";"; first = false;
+						fileExts += "*" + ext;
+					}
+				}
+				string allFiles = "|All Files|*.*";
+				return fileNames + fileExts + allFiles;
 			}
 		}
 
@@ -41,29 +53,36 @@ namespace Direct3DLib
 		/// <returns></returns>
 		public static Shape CreateFromFile(string filename)
 		{
-			SupportedFileType type = DetermineFileType(filename);
-
-			Shape retShape = null;
-			// Call the appropriate method to read the file.
-			if (type == SupportedFileType.STL)
-				retShape = ShapeSTL.CreateFromFile(filename);
-			
+			CreateShapeFromFile functionDelegate = DetermineFileType(filename);
+			Shape retShape = functionDelegate(filename);
 			return retShape;
 		}
 
-		private static SupportedFileType DetermineFileType(string filename)
+		private static CreateShapeFromFile DetermineFileType(string filename)
 		{
-			SupportedFileType type = SupportedFileType.Unknown;
 			// Figure out file type from file extension.
-			if (IsGivenFileExtension(".stl", filename))
+			foreach (KeyValuePair<CreateShapeFromFile, string> keyPair in TypeDictionary)
 			{
-				type = SupportedFileType.STL;
+				if (IsGivenFileExtension(keyPair.Value, filename))
+				{
+					return keyPair.Key;
+				}
 			}
-			else if (IsGivenFileExtension(".dxf", filename))
-			{
-				type = SupportedFileType.DXF;
-			}
-			return type;
+			return ComplexShapeFactory.CreateFromUnknownFile;
+		}
+
+		private static Shape CreateFromUnknownFile(string filename)
+		{
+			return null;
+		}
+
+		private static Shape CreateFromKnownFileType(SupportedFileType type, string filename)
+		{
+			if (type == SupportedFileType.Unknown) return null;
+			if (type == SupportedFileType.STL) return ShapeSTL.CreateFromFile(filename);
+			if (type == SupportedFileType.DXF) return ShapeSTL.CreateFromFile(filename);
+			if (type == SupportedFileType.HGT) return ShapeSTL.CreateFromFile(filename);
+			return null;
 		}
 
 		private static bool IsGivenFileExtension(string extension, string filename)
