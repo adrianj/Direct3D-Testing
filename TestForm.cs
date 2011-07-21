@@ -53,17 +53,14 @@ namespace Direct3DLib
 		private void AddHerc()
 		{
 			string filename = "C:\\Users\\adrianj\\Documents\\Work\\CAD\\hercules_LORES.stl";
-			try
+			Shape shape = OpenShapeFromFile(filename);
+			if (shape != null)
 			{
-
-				Shape shape = ComplexShapeFactory.CreateFromFile(filename);
-				if (shape != null)
-				{
-					shape.Rotation = new Vector3(-(float)Math.PI / 2, 0, 0);
-					direct3DControl.Engine.ShapeList.Add(shape);
-				}
+				shape.Rotation = new Vector3(-(float)Math.PI / 2, 0, 0);
+				shape.Location = new Vector3(0, 20.0f, 0);
+				shape.Scale = new Vector3(0.01f, 0.01f, 0.01f);
+				direct3DControl.Engine.ShapeList.Add(shape);
 			}
-			catch (System.IO.IOException) { MessageBox.Show("Create From File: " + filename + " failed"); }
 		}
 
 		private void AddSphere()
@@ -72,6 +69,7 @@ namespace Direct3DLib
 			sp.LongLines = 12;
 			sp.LatLines = 7;
 			sp.Scale = new Vector3(30, 30, 30);
+			sp.Location = new Vector3(0, 20.0f, 0);
 			sp.Topology = SlimDX.Direct3D10.PrimitiveTopology.LineList;
 			sp.CanPick = false;
 			direct3DControl.Engine.ShapeList.Add(sp);
@@ -79,18 +77,39 @@ namespace Direct3DLib
 
 		private void AddWoomera()
 		{
-			Shape square = new PictureTile();
-			square.Scale = new Vector3(1000, 0, 1000);
-			square.Location = new Vector3(0, -60, 0);
-			square.TextureIndex = 3;
-			direct3DControl.Engine.ShapeList.Add(square);
+			string filename = "C:\\Users\\adrianj\\Documents\\Work\\CAD\\WebGIS_SRTM3\\Auckland.hgt";
+			Shape shape = OpenShapeFromFile(filename);
+			if (shape != null)
+			{
+				shape.Scale = new Vector3(0.01f, 0.1f, 0.01f);
+				shape.Location = new Vector3(0, 0, 0);
+				shape.TextureIndex = 3;
+				direct3DControl.Engine.ShapeList.Add(shape);
+			}
+		}
+
+		private Shape OpenShapeFromFile(string filename)
+		{
+			Shape shape = null;
+			try
+			{
+				shape = ComplexShapeFactory.CreateFromFile(filename);
+			}
+			catch (System.IO.IOException)
+			{
+				MessageBox.Show("Create From File: " + filename + " failed");
+			}
+			return shape;
 		}
 
         private void PreRenderTest()
         {
 
 			textBox2.Text = "Refresh Rate: " + String.Format("{0:#00.00}",direct3DControl.Engine.RefreshRate)
-				+ "\t LightDir: "+direct3DControl.Engine.LightDirection;
+				+ "\tLightDir: "+direct3DControl.Engine.LightDirection
+				+ "\tCamTarget: "+direct3DControl.Target
+				+ "\tCamTilt: " + direct3DControl.Tilt
+				+ "\tCamPan: " + direct3DControl.Pan;
         }
 
         public override void Render()

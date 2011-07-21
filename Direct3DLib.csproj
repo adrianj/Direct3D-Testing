@@ -216,7 +216,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CameraControl.cs" />
-    <Compile Include="shapes\ShapeHGT.cs" />
+    <Compile Include="shapes\ShapeHGTFactory.cs" />
     <Compile Include="shapes\ComplexShapeFactory.cs" />
     <Compile Include="ConstantBuffer.cs" />
     <Compile Include="Direct3DControl.cs">
@@ -238,7 +238,7 @@
     <Compile Include="shapes\Shape.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="shapes\ShapeSTL.cs" />
+    <Compile Include="shapes\ShapeSTLFactory.cs" />
     <Compile Include="shapes\Sphere.cs" />
     <Compile Include="TestForm.cs">
       <SubType>Form</SubType>
@@ -310,6 +310,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="textures\auckland_13.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="textures\devonport_map.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

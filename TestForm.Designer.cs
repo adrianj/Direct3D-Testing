@@ -167,18 +167,18 @@
 			this.direct3DControl.Location = new System.Drawing.Point(12, 81);
 			this.direct3DControl.MouseMovementSpeed = 50F;
 			this.direct3DControl.Name = "direct3DControl";
-			this.direct3DControl.Pan = 0.7853982F;
+			this.direct3DControl.Pan = 3.213F;
 			this.direct3DControl.RightMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Rotate;
 			this.direct3DControl.SelectedObject = null;
 			this.direct3DControl.Size = new System.Drawing.Size(774, 570);
 			this.direct3DControl.TabIndex = 15;
-			this.direct3DControl.Target = new SlimDX.Vector3(-30F, 30F, -30F);
+			this.direct3DControl.Target = new SlimDX.Vector3(167F, 17F, 216F);
 			this.direct3DControl.TextureImageFilenames = new string[] {
         "textures\\flower.jpg",
         "textures\\devonport_map.png",
         "textures\\streettexture.dds",
-        "textures\\woomera_12.png"};
-			this.direct3DControl.Tilt = -1.570796F;
+        "textures\\auckland_13.png"};
+			this.direct3DControl.Tilt = -0.97F;
 			this.direct3DControl.ZClipFar = 2000F;
 			this.direct3DControl.ZClipNear = 0.1F;
 			this.direct3DControl.Zoom = 0.1F;
