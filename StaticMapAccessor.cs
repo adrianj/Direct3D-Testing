@@ -20,6 +20,9 @@ namespace Direct3DLib
 		public const string CODE_MAPTYPE = "maptype=";
 		public const int MAX_TILE_RES = 4;
 		public const int DEFAULT_ZOOM_LEVEL = 10;
+        public static double X_SCALE = 140;
+        public static double Y_SCALE = 112.5;
+        public static double debug = 0.5;
 
 		private Image nullImage;
 
@@ -124,8 +127,8 @@ namespace Direct3DLib
 
 		private RectangleF CalculateBounds(Image ret)
 		{
-			double xScale = 100.0 / 140.63;
-			double yScale = 100.0 / 112.5;
+			double xScale = 100.0 / (X_SCALE - debug*TileResolution);
+			double yScale = 100.0 / Y_SCALE;
 			double xOffset = (1.0 - xScale) / 2.0;
 			double yOffset = (1.0 - yScale) / 2.0;
 			float left = (float)(xOffset * (double)ret.Width);

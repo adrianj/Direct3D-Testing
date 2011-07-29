@@ -147,9 +147,9 @@ namespace Direct3DLib
 				{
 					LatLong latLong = earthTiles.ConvertCameraLocationToLatLong(CameraLocation);
 					latLong = earthTiles.CalculateNearestLatLongAtCurrentDelta(latLong);
-					//earthTiles.InitializeAtCameraLocation(CameraLocation);
 					debugString = "" + latLong + "," + CameraLocation.Y;
 					earthTiles.CameraLocationChanged(CameraLocation);
+                    debugString += earthTiles.currentTiles[0, 0];
 				}
 			}
 			previousCameraLocation = CameraLocation;

@@ -39,7 +39,7 @@ namespace Direct3DLib
 					textBox1.Text = "" + s;
 				}
             };
-			AddHerc();
+			//AddHerc();
 			AddSphere();
 			//AddWoomera();
 			earth3DControl.UpdateShapes();
