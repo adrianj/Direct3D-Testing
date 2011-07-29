@@ -11,7 +11,7 @@ namespace Direct3DLib
 		private static CombinedMapDataFactory factorySingleton;
 		private ShapeHGTFactory shapeFactory = new ShapeHGTFactory();
 		private MapTextureFactory textureFactory = MapTextureFactory.Instance;
-		private List<CombinedMapData> previouslyCreatedMaps = new List<CombinedMapData>();
+		private List<CombinedMapData> previouslyCreatedTerrain = new List<CombinedMapData>();
 
 		public double Delta
 		{
@@ -25,9 +25,9 @@ namespace Direct3DLib
 		}
 		public double UnitsPerDegreeLatitude { get { return shapeFactory.UnitsPerDegreeLatitude; } set { shapeFactory.UnitsPerDegreeLatitude = value; } }
 
-		public double Elevation { get { return textureFactory.Elevation; } set { textureFactory.Elevation = value; } }
+		//public double Elevation { get { return textureFactory.Elevation; } set { textureFactory.Elevation = value; } }
 
-		private CombinedMapData newMap;
+		//private CombinedMapData newMap;
 
 		#region Static Folder Initialization and Singleton Constructor
 		public static void SetSourceFolders()
@@ -71,11 +71,6 @@ namespace Direct3DLib
 		}
 		#endregion
 		
-		public CombinedMapData CreateCombinedMapData()
-		{
-			newMap = CreateEmptyMapAtLocation(BottomLeftLocation, Elevation, Delta);
-			return RetrieveOrCreateMap(newMap);
-		}
 
 		public CombinedMapData CreateEmptyMapAtLocation(LatLong location, double elevation, double delta)
 		{
@@ -87,28 +82,28 @@ namespace Direct3DLib
 		}
 
 
-		private CombinedMapData RetrieveOrCreateMap(CombinedMapData newMap)
+		public void RetrieveOrUpdateMapTerrain(CombinedMapData newMap)
 		{
-			CombinedMapData foundInList = previouslyCreatedMaps.Find(newMap.IsSameShape);
+			CombinedMapData foundInList = previouslyCreatedTerrain.Find(newMap.IsSameShape);
 			if (foundInList != null)
-				return foundInList;
+			{
+				newMap.TerrainShape = foundInList.TerrainShape;
+			}
 			else
 			{
 				UpdateMapTerrain(newMap);
-				UpdateMapTexture(newMap);
-				previouslyCreatedMaps.Add(newMap);
-				return newMap;
+				previouslyCreatedTerrain.Add(newMap);
 			}
 		}
 
-		public void UpdateMapTexture(CombinedMapData mapToUpdate)
+		public void UpdateMapTexture(CombinedMapData mapToUpdate, double elevation)
 		{
 			if(!textureFactory.FactoryBusy)
-				textureFactory.GetMap(mapToUpdate);
+				textureFactory.GetMap(mapToUpdate, elevation);
 		}
 
 
-		private void UpdateMapTerrain(CombinedMapData mapToUpdate)
+		public void UpdateMapTerrain(CombinedMapData mapToUpdate)
 		{
 			string filename = ShapeHGTFactory.CalculateFilenameFromLatLong(BottomLeftLocation);
 			shapeFactory.Filename = filename;

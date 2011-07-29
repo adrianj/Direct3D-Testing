@@ -53,7 +53,7 @@ namespace Direct3DLib
 	
 		private double shapeDelta = 0.125;
 		public double ShapeDelta { get { return shapeDelta; } set { shapeDelta = value; } }
-		private int tileRes = 0;
+		private int tileRes = -2;
 		public int TileResolution { get { return tileRes; } set { tileRes = value; } }
 		private Shape terrainShape;
 		public Shape TerrainShape

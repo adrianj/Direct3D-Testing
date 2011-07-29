@@ -27,64 +27,32 @@ namespace Direct3DLib
 		#endregion
 
 		private StaticMapAccessor googleAccessor = new StaticMapAccessor();
-		private string imageFilename = "";
-		public CombinedMapData MapToAccess {get;set;}
-		private double elevation = 2000;
 		private int zoomLevel { get { return googleAccessor.ZoomLevel; } set { googleAccessor.ZoomLevel = value; } }
-		public double Elevation { get { return elevation; } set { elevation = value; zoomLevel = GetZoomFromElevation(value); } }
 		private List<CombinedMapData> workerQueue = new List<CombinedMapData>();
 		private BackgroundWorker worker = new BackgroundWorker();
 		public bool FactoryBusy { get { return worker.IsBusy; } }
 
-		public void GetMap(CombinedMapData mapToUpdate)
+		public void GetMap(CombinedMapData mapToUpdate, double elevation)
 		{
-			//MapToAccess = mapToUpdate;
-			GetMapInSeperateThread(mapToUpdate);
-		}
-
-		private void GetMapInSeperateThread(CombinedMapData mapToUpdate)
-		{
-			if (AlreadyProcessingThisMap(mapToUpdate)) return;
-			MapToAccess = mapToUpdate;
-			worker.DoWork += (o, e) =>
-			{
-				Console.WriteLine("queue count: " + workerQueue.Count);
-				int tileRes = CalculateTileResolution();
-				MapToAccess.TileResolution = tileRes;
-				Image image = GetImage();
-				MapToAccess.TextureImage = image;
-				Console.WriteLine("new queue count: " + workerQueue.Count);
-			};
-			if (!worker.IsBusy)
-				worker.RunWorkerAsync();
-		}
-
-		private bool AlreadyProcessingThisMap(CombinedMapData mapToUpdate)
-		{
-			if (MapToAccess == null) return false;
-			Console.Write(MapToAccess.IsSameTexture(mapToUpdate)+", ");
-			Console.WriteLine(mapToUpdate.IsSameTexture(MapToAccess));
-			if (!worker.IsBusy) return false;
-			if (mapToUpdate.IsSameTexture(MapToAccess)) return true;
-			return false;
+			int tileRes = CalculateTileResolution(mapToUpdate.ShapeDelta, elevation);
+			mapToUpdate.TileResolution = tileRes;
+			Image image = GetImage(mapToUpdate);
+			mapToUpdate.TextureImage = image;
 		}
 
 
-		private Image GetImage()
+		private Image GetImage(CombinedMapData mapToUpdate)
 		{
-			CalculateFilename();
+			string filename = CalculateFilename(mapToUpdate);
 			Image ret = null;
-			//ret = GetImageFromFile();
 			if (ret != null)
 				return ret;
-			ret = GetImageFromGoogle();
+			ret = GetImageFromGoogle(mapToUpdate);
 			return ret;
 		}
 
 		public int CalculateTileResolution(double delta, double elevation)
 		{
-			int tileRes = googleAccessor.TileResolution;
-			double logDelta = Math.Log(delta, 2.0);
 			int elevationZoom = GetZoomFromElevation(elevation) - 8;
 			if (elevationZoom > EarthTiles.MAX_ELEVATION_ZOOM) elevationZoom = EarthTiles.MAX_ELEVATION_ZOOM;
 			int shapeZoom = (int)Math.Log(delta, 2.0);
@@ -92,38 +60,33 @@ namespace Direct3DLib
 			if (final > StaticMapAccessor.MAX_TILE_RES) final = StaticMapAccessor.MAX_TILE_RES;
 			return final;
 		}
-		private int CalculateTileResolution()
-		{
-			return CalculateTileResolution(MapToAccess.ShapeDelta, Elevation);
-		}
 
-		private void CalculateFilename()
+		private string CalculateFilename(CombinedMapData mapToUpdate)
 		{
 			string folder = Properties.Settings.Default.MapTextureFolder + Path.DirectorySeparatorChar +
-				"" + MapToAccess.ShapeDelta + "_" + zoomLevel;
+				"" + mapToUpdate.ShapeDelta + "_" + zoomLevel;
 			if (!Directory.Exists(folder))
 				Directory.CreateDirectory(folder);
-			imageFilename = folder+Path.DirectorySeparatorChar+
-				"latlong_"+MapToAccess.BottomLeftPosition+".jpg";
+			string imageFilename = folder+Path.DirectorySeparatorChar+
+				"latlong_" + mapToUpdate.BottomLeftPosition + ".jpg";
+			return imageFilename;
 		}
 
-		private Image GetImageFromFile()
+		private Image GetImageFromFile(string filename)
 		{
-			if (File.Exists(imageFilename))
-				return Bitmap.FromFile(imageFilename);
+			if (File.Exists(filename))
+				return Bitmap.FromFile(filename);
 			return null;
 		}
 
-		private Image GetImageFromGoogle()
+		private Image GetImageFromGoogle(CombinedMapData mapToUpdate)
 		{
-			googleAccessor.ZoomLevel = StaticMapAccessor.ConvertDeltaToZoomLevel(MapToAccess.ShapeDelta);
-			googleAccessor.TileResolution = MapToAccess.TileResolution;
-			LatLong centre = CalculateCentreLatLong(MapToAccess.BottomLeftPosition, MapToAccess.ShapeDelta);
-			Console.WriteLine("Image Centre: " + centre+", Zoom: "+googleAccessor.ZoomLevel);
+			googleAccessor.ZoomLevel = StaticMapAccessor.ConvertDeltaToZoomLevel(mapToUpdate.ShapeDelta);
+			googleAccessor.TileResolution = mapToUpdate.TileResolution;
+			LatLong centre = CalculateCentreLatLong(mapToUpdate.BottomLeftPosition, mapToUpdate.ShapeDelta);
 			googleAccessor.CentreLatitude = centre.latitude;
 			googleAccessor.CentreLongitude = centre.longitude;
 			Image ret = googleAccessor.DownloadImageSet();
-			//ret.Save(imageFilename);
 			return ret;
 		}
 

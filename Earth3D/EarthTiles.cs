@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
+using System.ComponentModel;
 
 namespace Direct3DLib
 {
@@ -10,17 +11,20 @@ namespace Direct3DLib
 	{
 		public const int TILE_ROWS = 2;
 		public const int TILE_COLUMNS = 2;
-		public const int MAX_ELEVATION_ZOOM = 4;
+		public const int MAX_ELEVATION_ZOOM = 5;
 		private CombinedMapDataFactory mapFactory = CombinedMapDataFactory.Instance;
 		private CombinedMapData[,] currentTiles = new CombinedMapData[TILE_ROWS,TILE_COLUMNS];
 		private double delta = 0.125;
 		public double Delta { get { return delta; } set { delta = value; } }
-		private Float3 previousCameraLocation = new Float3();
+		private double previousElevation = -1000;
+		private LatLong previousLocation = new LatLong(-1000, -1000);
 
 		private List<IRenderable> engineShapeList;
 		public List<IRenderable> EngineShapeList { set { engineShapeList = value; } }
 
-		private double elevation { get { return mapFactory.Elevation; } set { mapFactory.Elevation = value; } }
+		private BackgroundWorker textureWorker = new BackgroundWorker();
+
+		//private double elevation { get { return mapFactory.Elevation; } set { mapFactory.Elevation = value; } }
 
 		public event EventHandler MapChanged;
 
@@ -33,38 +37,48 @@ namespace Direct3DLib
 		public EarthTiles()
 		{
 			mapFactory.UnitsPerDegreeLatitude = 100000;
+			textureWorker.WorkerSupportsCancellation = true;
+			textureWorker.DoWork += new DoWorkEventHandler(textureWorker_DoWork);
 		}
+
 		
 
 		public void InitializeAtGivenLatLongElevation(LatLong pos, double elevation)
 		{
 			mapFactory.Delta = delta;
-			mapFactory.Elevation = elevation;
+			pos = CalculateNearestLatLongAtCurrentDelta(pos);
 			for (int i = 0; i < TILE_ROWS; i++)
 			{
 				for (int k = 0; k < TILE_COLUMNS; k++)
 				{
-					LatLong newPos = new  LatLong(pos.latitude + delta * i, pos.longitude + delta * k);
-					newPos = CalculateNearestLatLongAtCurrentDelta(newPos);
+					LatLong newPos = new  LatLong(pos.latitude - delta * i, pos.longitude - delta * k);
 					mapFactory.BottomLeftLocation = newPos;
-					CombinedMapData tile = mapFactory.CreateCombinedMapData();
-					tile.TerrainShape.Scale = new SlimDX.Vector3(1, 3, 1);
-					AddTileToArray(tile, i, k);
+					CombinedMapData expectedMap = mapFactory.CreateEmptyMapAtLocation(newPos,elevation,delta);
+					if (TerrainUpdateRequired(currentTiles[i, k], expectedMap))
+					{
+						textureWorker.CancelAsync();
+						previousElevation = -1000;
+						mapFactory.RetrieveOrUpdateMapTerrain(expectedMap);
+						expectedMap.TerrainShape.Scale = new SlimDX.Vector3(1, 3, 1);
+						AddTileToArray(expectedMap, i, k);
+					}
 				}
 			}
 		}
 
-		public LatLong CalculateNearestLatLongAtCurrentDelta(LatLong latLong)
+		private bool TerrainUpdateRequired(CombinedMapData currentMap, CombinedMapData expectedMap)
 		{
-			long lat = Convert.ToInt64(Math.Floor(latLong.latitude / delta));
-			long lng = Convert.ToInt64(Math.Floor(latLong.longitude / delta));
-			LatLong ret = new LatLong((double)lat * delta, (double)lng * delta);
-			return ret;
+			if (currentMap == null) return true;
+			if (expectedMap.IsSameShape(currentMap)) return false;
+			return true;
 		}
 
-		private int CalculateApproxZoomLevel(double delta)
+		public LatLong CalculateNearestLatLongAtCurrentDelta(LatLong latLong)
 		{
-			return (int)(1.0 / delta) + 4;
+			long lat = Convert.ToInt64(latLong.latitude / delta);
+			long lng = Convert.ToInt64(latLong.longitude / delta);
+			LatLong ret = new LatLong((double)lat * delta, (double)lng * delta);
+			return ret;
 		}
 
 		private void AddTileToArray(CombinedMapData tile, int row, int column)
@@ -95,19 +109,41 @@ namespace Direct3DLib
 
 		public void CameraLocationChanged(Float3 newCameraLocation)
 		{
-			UpdateMapTextures(newCameraLocation.Y);
+			LatLong location = ConvertCameraLocationToLatLong(newCameraLocation);
+			UpdateMapTerrain(location, newCameraLocation.Y);
+			UpdateMapTextures(location, newCameraLocation.Y);
+		}
+
+		private void UpdateMapTerrain(LatLong location, double elevation)
+		{
+			InitializeAtGivenLatLongElevation(location, elevation);
+		}
+
+		private void UpdateMapTextures(LatLong location, double elevation)
+		{
+			if (textureWorker.IsBusy) return;
+			if(elevation != previousElevation)
+				textureWorker.RunWorkerAsync(elevation);
+			previousElevation = elevation;
 		}
 
 
-		private void UpdateMapTextures(double elevation)
+		void textureWorker_DoWork(object sender, DoWorkEventArgs e)
 		{
-			mapFactory.Elevation = elevation;
+			double elevation = (double)e.Argument;
+			UpdateMapTexturesThread(elevation);
+		}
+
+		private void UpdateMapTexturesThread(double elevation)
+		{
 			foreach (CombinedMapData mapToUpdate in currentTiles)
 			{
+				if (textureWorker.CancellationPending) return;
 				CombinedMapData expectedMap = mapFactory.CreateEmptyMapAtLocation(mapToUpdate.BottomLeftPosition, elevation, delta);
-				if(!expectedMap.IsSameTexture(mapToUpdate))
-					mapFactory.UpdateMapTexture(mapToUpdate);
-				
+				if (!expectedMap.IsSameTexture(mapToUpdate))
+				{
+					mapFactory.UpdateMapTexture(mapToUpdate, elevation);
+				}
 			}
 		}
 

@@ -147,7 +147,7 @@ namespace Direct3DLib
 				{
 					LatLong latLong = earthTiles.ConvertCameraLocationToLatLong(CameraLocation);
 					latLong = earthTiles.CalculateNearestLatLongAtCurrentDelta(latLong);
-					earthTiles.InitializeAtCameraLocation(CameraLocation);
+					//earthTiles.InitializeAtCameraLocation(CameraLocation);
 					debugString = "" + latLong + "," + CameraLocation.Y;
 					earthTiles.CameraLocationChanged(CameraLocation);
 				}
@@ -159,10 +159,15 @@ namespace Direct3DLib
 		{
 			Float3 loc = CameraLocation;
 			if (loc.Y < -100)
+			{
 				loc.Y = -100;
+				engine.CameraLocation = loc.AsVector3();
+			}
 			if (loc.Y > 12000)
+			{
 				loc.Y = 12000;
-			engine.CameraLocation = loc.AsVector3();
+				engine.CameraLocation = loc.AsVector3();
+			}
 		}
 
 		private void SetCameraLocation(Float3 camLoc)
@@ -174,10 +179,8 @@ namespace Direct3DLib
 		{
 			if (this.isInitialized)
 			{
-				this.CurrentLatLong = new LatLong(-36.827, 174.812);
-				earthTiles.InitializeAtGivenLatLongElevation(CurrentLatLong, CurrentElevation);
-				engine.Engine.UpdateShapes();
 				earthTiles.MapChanged += (o, ev) => { engine.Engine.UpdateShapes(); };
+				this.CurrentLatLong = new LatLong(-36.827, 174.812);
 			}
 		}
 	}
