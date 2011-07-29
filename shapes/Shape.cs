@@ -17,7 +17,7 @@ namespace Direct3DLib
     /// A class that consists of a number of ColoredVertices, and an index buffer specifying
     /// how it is made up of flat triangles.
     /// </summary>
-    [Serializable]
+    [TypeConverter(typeof(GenericTypeConverter<Shape>))]
     public class Shape : Object3D, IRenderable, IDisposable
     {
         
@@ -151,16 +151,16 @@ namespace Direct3DLib
         }
 
         //public void Render(DeviceContext context, Matrix worldViewProj)
-        public virtual void Render(Device context, ShaderHelper shaderHelper)
+        public virtual void Render(Device device, ShaderHelper shaderHelper)
         {
             if (vertexBuffer != null && Topology != PrimitiveTopology.Undefined)
             {
-                context.InputAssembler.SetInputLayout(vertexLayout);
-                context.InputAssembler.SetPrimitiveTopology(Topology);
+                device.InputAssembler.SetInputLayout(vertexLayout);
+                device.InputAssembler.SetPrimitiveTopology(Topology);
                 
-                context.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(vertexBuffer, Marshal.SizeOf(typeof(Vertex)), 0));
+                device.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(vertexBuffer, Marshal.SizeOf(typeof(Vertex)), 0));
                 if (indexBuffer != null)
-                    context.InputAssembler.SetIndexBuffer(indexBuffer, Format.R32_UInt, 0);
+                    device.InputAssembler.SetIndexBuffer(indexBuffer, Format.R32_UInt, 0);
 
 
 				shaderHelper.ConstantBufferSet.World = World;
@@ -168,10 +168,12 @@ namespace Direct3DLib
 				shaderHelper.ConstantBufferSet.TextureIndex = TextureIndex;
 				shaderHelper.ApplyEffects();
 
-                if (indexBuffer != null)
-                    context.DrawIndexed(Vertices.NumElements, 0, 0);
-                else
-                    context.Draw(Vertices.NumElements, 0);
+				if (indexBuffer != null)
+					device.DrawIndexed(Vertices.NumElements, 0, 0);
+				else
+				{
+					device.Draw(Vertices.NumElements, 0);
+				}
             }
         }
 
@@ -198,8 +200,11 @@ namespace Direct3DLib
 							distance = d;
 							ints = true;
 							SelectedVertices[0] = Vertices[i];
+							SelectedVertices[0].Position = v1;
 							SelectedVertices[1] = Vertices[i+1];
+							SelectedVertices[1].Position = v2;
 							SelectedVertices[2] = Vertices[i+2];
+							SelectedVertices[2].Position = v3;
 							SelectedVertexIndex = i;
 						}
 					}
@@ -237,12 +242,11 @@ namespace Direct3DLib
             return new BoundingBox(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
             if(vertexBuffer != null) vertexBuffer.Dispose();
             if(indexBuffer != null) indexBuffer.Dispose();
             if(vertexLayout != null) vertexLayout.Dispose();
-            base.Dispose();
         }
     }
 

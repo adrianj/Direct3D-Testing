@@ -25,6 +25,7 @@ namespace Direct3DLib
         public static void NewDirect3DControlCode()
         {
             Direct3DForm form = new TestForm();
+			//Direct3DForm form = new BasicForm();
             form.Text = "SlimDX - Direct3DLib";
             MessagePump.Run(form, form.Render);
         }

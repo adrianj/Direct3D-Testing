@@ -19,6 +19,18 @@ Texture2D <float4> Texture_0;
 Texture2D <float4> Texture_1;
 Texture2D <float4> Texture_2;
 Texture2D <float4> Texture_3;
+Texture2D <float4> Texture_4;
+Texture2D <float4> Texture_5;
+Texture2D <float4> Texture_6;
+Texture2D <float4> Texture_7;
+Texture2D <float4> Texture_8;
+Texture2D <float4> Texture_9;
+Texture2D <float4> Texture_10;
+Texture2D <float4> Texture_11;
+Texture2D <float4> Texture_12;
+Texture2D <float4> Texture_13;
+Texture2D <float4> Texture_14;
+Texture2D <float4> Texture_15;
 
 SamplerState TextureSampler
 {
@@ -51,7 +63,8 @@ PS_IN VS(float4 inPos : POSITION, float4 inNorm : NORMAL, float4 inColor : COLOR
 {
 	PS_IN output = (PS_IN)0;
 	output.pos = TransformPosition(inPos);
-	output.norm = TransformNormal(inNorm);
+	//output.norm = TransformNormal(inNorm);
+	output.norm = inNorm;
 	output.col = inColor;
 	
 	return output;
@@ -67,10 +80,9 @@ float CalculateIntensity(float4 inNorm)
 
 float4 CalculateColor(float4 inColor)
 {
-	float4 color;
-	if(TextureIndex < 0)
-		color = inColor;
-	else
+	float4 color = inColor;
+
+	if(TextureIndex >= 0)
 	{
 		float2 texCoord = float2(inColor.x,inColor.y);
 		
@@ -84,6 +96,30 @@ float4 CalculateColor(float4 inColor)
 			color = Texture_2.Sample(TextureSampler,texCoord );
 		else if(TextureIndex == 3)
 			color = Texture_3.Sample(TextureSampler,texCoord );
+		else if(TextureIndex == 4)
+			color = Texture_4.Sample(TextureSampler,texCoord );
+		else if(TextureIndex == 5)
+			color = Texture_5.Sample(TextureSampler,texCoord );
+		else if(TextureIndex == 6)
+			color = Texture_6.Sample(TextureSampler,texCoord );
+		else if(TextureIndex == 7)
+			color = Texture_7.Sample(TextureSampler,texCoord );
+		else if(TextureIndex == 8)
+			color = Texture_8.Sample(TextureSampler,texCoord );
+		else if(TextureIndex == 9)
+			color = Texture_9.Sample(TextureSampler,texCoord );
+		else if(TextureIndex == 10)
+			color = Texture_10.Sample(TextureSampler,texCoord );
+		else if(TextureIndex == 11)
+			color = Texture_11.Sample(TextureSampler,texCoord );
+		else if(TextureIndex == 12)
+			color = Texture_12.Sample(TextureSampler,texCoord );
+		else if(TextureIndex == 13)
+			color = Texture_13.Sample(TextureSampler,texCoord );
+		else if(TextureIndex == 14)
+			color = Texture_14.Sample(TextureSampler,texCoord );
+		else if(TextureIndex == 15)
+			color = Texture_15.Sample(TextureSampler,texCoord );
 	}
 	return color;
 }
@@ -91,11 +127,12 @@ float4 CalculateColor(float4 inColor)
  
 float4 PS( PS_IN input ) : SV_Target
 {
+	float4 final;
 	float4 color = CalculateColor(input.col);
 	float finalIntensity = CalculateIntensity(input.norm);
-	//finalIntensity = 1;
+	final =  finalIntensity*color;
 
-	return finalIntensity*color;
+	return final;
 }
  
 technique10 Render

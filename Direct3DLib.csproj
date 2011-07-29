@@ -215,7 +215,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BasicForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BasicForm.Designer.cs">
+      <DependentUpon>BasicForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="CameraControl.cs" />
+    <Compile Include="Earth3D\CombinedMapData.cs" />
+    <Compile Include="Earth3D\CombinedMapDataFactory.cs" />
+    <Compile Include="Earth3D\Earth3DControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Earth3D\Earth3DControl.Designer.cs">
+      <DependentUpon>Earth3DControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Earth3D\EarthTiles.cs" />
+    <Compile Include="Earth3D\Float3.cs" />
+    <Compile Include="Earth3D\LatLong.cs" />
+    <Compile Include="Earth3D\MapTextureFactory.cs" />
+    <Compile Include="GenericTypeConverter.cs" />
+    <Compile Include="ImageConverter.cs" />
     <Compile Include="shapes\ShapeHGTFactory.cs" />
     <Compile Include="shapes\ComplexShapeFactory.cs" />
     <Compile Include="ConstantBuffer.cs" />
@@ -229,10 +249,10 @@
     <Compile Include="Direct3DForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="IRenderable.cs" />
-    <Compile Include="NamedObject.cs" />
-    <Compile Include="Object3D.cs" />
-    <Compile Include="PictureTile.cs" />
+    <Compile Include="shapes\IRenderable.cs" />
+    <Compile Include="shapes\NamedObject.cs" />
+    <Compile Include="shapes\Object3D.cs" />
+    <Compile Include="shapes\PictureTile.cs" />
     <Compile Include="shapes\Pipe.cs" />
     <Compile Include="ShaderHelper.cs" />
     <Compile Include="shapes\Shape.cs" />
@@ -240,6 +260,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="shapes\ShapeSTLFactory.cs" />
     <Compile Include="shapes\Sphere.cs" />
+    <Compile Include="StaticMapAccessor.cs" />
     <Compile Include="TestForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -250,11 +271,17 @@
     <Compile Include="TextureHelper.cs" />
     <Compile Include="Vertex.cs" />
     <Compile Include="VertexList.cs" />
+    <EmbeddedResource Include="BasicForm.resx">
+      <DependentUpon>BasicForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Direct3DControl.resx">
       <DependentUpon>Direct3DControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Direct3DForm.resx">
       <DependentUpon>Direct3DForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Earth3D\Earth3DControl.resx">
+      <DependentUpon>Earth3DControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -313,22 +340,23 @@
     <Content Include="textures\auckland_13.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="textures\devonport_map.png">
+    <Content Include="textures\auckland_4x4.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="textures\devonport_map.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="textures\flower.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="textures\NoTexture.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="textures\woomera_12.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\GoogleMapAccessor\GoogleMapAccessor.csproj">
-      <Project>{9049EC23-234A-49B2-B935-D224CC6A0F4D}</Project>
-      <Name>GoogleMapAccessor</Name>
-    </ProjectReference>
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

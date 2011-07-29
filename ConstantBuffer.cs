@@ -18,7 +18,8 @@ namespace Direct3DLib
 		private Matrix matVal;
 		private Vector3 vecVal;
 		private bool requiresUpdate = true;
-		private object objVar;
+		private EffectVariable effectVar;
+		private string variableName;
 		public Matrix AsMatrix
 		{
 			get { return (Matrix)matVal; }
@@ -71,38 +72,49 @@ namespace Direct3DLib
 				}
 			}
 		}
-		public ConstantBuffer(string variableName, Effect effect, float initialValue)
+		public ConstantBuffer(string variableName,float initialValue)
 		{
 			type = typeof(float);
-			EffectVariable var = effect.GetVariableByName(variableName); 
+			this.variableName = variableName;
+			//EffectVariable var = effect.GetVariableByName(variableName); 
 			floVal = (float)initialValue; 
-			objVar = var.AsScalar();
+			//objVar = var.AsScalar();
 			requiresUpdate = true;
 		}
-		public ConstantBuffer(string variableName, Effect effect, int initialValue)
+		public ConstantBuffer(string variableName, int initialValue)
 		{
 			type = typeof(int);
-			EffectVariable var = effect.GetVariableByName(variableName);
+			this.variableName = variableName;
+			//EffectVariable var = effect.GetVariableByName(variableName);
 			intVal = initialValue;
-			objVar = var.AsScalar();
+			//objVar = var.AsScalar();
 			requiresUpdate = true;
 		}
-		public ConstantBuffer(string variableName, Effect effect, Matrix initialValue)
+		public ConstantBuffer(string variableName, Matrix initialValue)
 		{
 			type = typeof(Matrix);
-			EffectVariable var = effect.GetVariableByName(variableName);
+			this.variableName = variableName;
+			//EffectVariable var = effect.GetVariableByName(variableName);
 			matVal = (Matrix)initialValue;
-			objVar = var.AsMatrix();
+			//objVar = var.AsMatrix();
 			requiresUpdate = true;
 		}
-		public ConstantBuffer(string variableName, Effect effect, Vector3 initialValue)
+		public ConstantBuffer(string variableName, Vector3 initialValue)
 		{
 			type = typeof(Vector3);
-			EffectVariable var = effect.GetVariableByName(variableName);
+			this.variableName = variableName;
+			//EffectVariable var = effect.GetVariableByName(variableName);
 			vecVal = (Vector3)initialValue;
-			objVar = var.AsVector();
+			//objVar = var.AsVector();
 			requiresUpdate = true;
 		}
+
+		public void Initialize(Effect effect)
+		{
+			effectVar = effect.GetVariableByName(variableName);
+			requiresUpdate = true;
+		}
+
 		/// <summary>
 		/// Writes the variable to the Graphics card if it has changed (ie, requiresUpdate = true)
 		/// </summary>
@@ -111,16 +123,16 @@ namespace Direct3DLib
 		{
 			if (requiresUpdate)
 			{
-				if (objVar != null)
+				if (effectVar != null)
 				{
 					if (type == typeof(float))
-						(objVar as EffectScalarVariable).Set(AsFloat);
+						effectVar.AsScalar().Set(AsFloat);
 					if (type == typeof(int))
-						(objVar as EffectScalarVariable).Set(AsInt);
+						effectVar.AsScalar().Set(AsInt);
 					if (type == typeof(Matrix))
-						(objVar as EffectMatrixVariable).SetMatrix(AsMatrix);
+						effectVar.AsMatrix().SetMatrix(AsMatrix);
 					if (type == typeof(Vector3))
-						(objVar as EffectVectorVariable).Set(AsVector3);
+						effectVar.AsVector().Set(AsVector3);
 					requiresUpdate = false;
 					return true;
 				}
@@ -150,35 +162,37 @@ namespace Direct3DLib
 		public float LightAmbientIntensity { get { return lightAmbInt.AsFloat; } set { lightAmbInt.AsFloat = value; } }
 		public int TextureIndex { get { return textureIndex.AsInt; } set { textureIndex.AsInt = value; } }
 
-		public ConstantBufferHelper(Effect effect)
-		{
-			Update(effect);
-		}
-
-		public void Update(Effect effect)
-		{
-			this.effect = effect;
-			Update();
-		}
-
-		public void Update()
+		public ConstantBufferHelper()
 		{
 			allBuffers.Clear();
-			world = new ConstantBuffer("World", effect, Matrix.Identity);
+			world = new ConstantBuffer("World", Matrix.Identity);
 			allBuffers.Add(world);
-			lightDir = new ConstantBuffer("LightDir", effect, new Vector3(1, 1, 1));
+			lightDir = new ConstantBuffer("LightDir", new Vector3(1, 1, 1));
 			allBuffers.Add(lightDir);
-			localRot = new ConstantBuffer("LocalRotation", effect, Matrix.Identity);
+			localRot = new ConstantBuffer("LocalRotation", Matrix.Identity);
 			allBuffers.Add(localRot);
-			viewProj = new ConstantBuffer("ViewProj", effect, Matrix.Identity);
+			viewProj = new ConstantBuffer("ViewProj", Matrix.Identity);
 			allBuffers.Add(viewProj);
-			lightAmbInt = new ConstantBuffer("AmbientIntensity", effect, 0.3f);
+			lightAmbInt = new ConstantBuffer("AmbientIntensity", 0.3f);
 			allBuffers.Add(lightAmbInt);
-			lightDirInt = new ConstantBuffer("DirectionalIntensity", effect, 0.7f);
+			lightDirInt = new ConstantBuffer("DirectionalIntensity", 0.7f);
 			allBuffers.Add(lightDirInt);
-			textureIndex = new ConstantBuffer("TextureIndex", effect, (int)0);
+			textureIndex = new ConstantBuffer("TextureIndex", (int)0);
 			allBuffers.Add(textureIndex);
 		}
+
+		public void Initialize(Effect effect)
+		{
+			this.effect = effect;
+			foreach (ConstantBuffer cb in allBuffers)
+				cb.Initialize(effect);
+		}
+		/*
+		public void Update()
+		{
+			
+		}
+		 */
 
 		public bool ApplyEffects()
 		{

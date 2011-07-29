@@ -4,13 +4,15 @@ using System.Linq;
 using System.Text;
 using SlimDX;
 using SlimDX.Direct3D10;
+using System.Drawing;
 
 namespace Direct3DLib
 {
 
 	public class ShaderHelper : IDisposable
 	{
-		public const int MAX_TEXTURES = 4;
+		public const int MAX_TEXTURES = 16;
+		public const string DEFAULT_IMAGE_FILENAME = "textures\\NoTexture.png";
 
 		private Device device;
 		private Effect effect;
@@ -20,21 +22,21 @@ namespace Direct3DLib
 		private EffectPass effectPass;
 		public EffectPass ShaderEffectPass { get { return effectPass; } }
 
-		private ConstantBufferHelper constantBuffer;
+		private ConstantBufferHelper constantBuffer = new ConstantBufferHelper();
 		public ConstantBufferHelper ConstantBufferSet { get { return constantBuffer; } }
 
 		private TextureHelper [] textureHelper = new TextureHelper[MAX_TEXTURES];
 		public TextureHelper [] TextureSet { get { return textureHelper; } }
 
-		public string[] TextureImageFiles
+		public Texture2D[] TextureImages
 		{
 			get
 			{
-				string[] ret = new string[MAX_TEXTURES];
+				Texture2D[] ret = new Texture2D[MAX_TEXTURES];
 				for (int i = 0; i < MAX_TEXTURES; i++)
 				{
-					if (textureHelper[i] == null) ret[i] = "";
-					else ret[i] = textureHelper[i].ImageFilename;
+					if (textureHelper[i] == null) ret[i] = null;
+					else ret[i] = textureHelper[i].TextureImage;
 				}
 				return ret;
 			}
@@ -45,12 +47,18 @@ namespace Direct3DLib
 				{
 					if (value.Length <= i) return;
 					if (textureHelper[i] == null) continue;
-					textureHelper[i].ImageFilename = value[i];
+					textureHelper[i].TextureImage = value[i];
 				}
 			}
 		}
 
-		public ShaderHelper(Device device, Effect effect)
+		public ShaderHelper()
+		{
+			for (int i = 0; i < textureHelper.Length; i++)
+				textureHelper[i] = new TextureHelper(i);
+		}
+
+		public void Initialize(Device device, Effect effect)
 		{
 			this.device = device;
 			this.effect = effect;
@@ -64,9 +72,9 @@ namespace Direct3DLib
 				// Get the shader effects.
 				effectTechnique = effect.GetTechniqueByIndex(0);
 				effectPass = effectTechnique.GetPassByIndex(0);
-				constantBuffer = new ConstantBufferHelper(effect);
+				constantBuffer.Initialize(effect);
 				for(int i = 0; i < textureHelper.Length; i++)
-					textureHelper[i] = new TextureHelper(device, effect,i);
+					textureHelper[i].Initialize(device, effect);
 			}
 		}
 

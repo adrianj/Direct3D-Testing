@@ -8,12 +8,8 @@ using System.ComponentModel;
 using SlimDX;
 using SlimDX.Direct3D10;
 using SlimDX.DXGI;
-//using SlimDX.DXGI;
-//using SlimDX.Windows;
-//using SlimDX.D3DCompiler;
 using Device = SlimDX.Direct3D10.Device;
-//using Buffer = SlimDX.Direct3D10.Buffer;
-//using System.Runtime.InteropServices;
+using Vector3 = SlimDX.Vector3;
 
 namespace Direct3DLib
 {
@@ -26,7 +22,7 @@ namespace Direct3DLib
         public Direct3DEngine(Control con)
         {
             mParent = con;
-            InitializeDevice();
+            //InitializeDevice();
             mParent.Disposed += (o, e) => { this.Dispose(); };
             mParent.SizeChanged += (o, e) => { this.ResizeBuffers(); };
         }
@@ -37,6 +33,7 @@ namespace Direct3DLib
         public void Dispose()
         {
 			foreach (Shape s in shapeList) s.Dispose();
+			shapeList.Clear();
 			if (shaderEffect != null) shaderEffect.Dispose();
 			if (shaderHelper != null) shaderHelper.Dispose();
             if(device != null) device.Dispose();
@@ -49,7 +46,7 @@ namespace Direct3DLib
 		private bool isInitialized = false;
 		public bool IsInitialized { get { return isInitialized; } }
 
-		private CameraControl camera;
+		private CameraControl camera = new CameraControl();
 		public CameraControl Camera { get { return camera; } set { camera = value; } }
 
 		public Vector3 LightDirection
@@ -70,7 +67,7 @@ namespace Direct3DLib
 		}
 
 		private List<IRenderable> shapeList = new List<IRenderable>();
-		public List<IRenderable> ShapeList { get { return shapeList; }  }
+		public List<IRenderable> ShapeList { get { return shapeList; } set { shapeList = value; } }
 
 		private long prevTick1 = 100;
 		private long prevTick2 = 99;
@@ -78,6 +75,25 @@ namespace Direct3DLib
 		public double RefreshRate { get { return refreshRate; } }
 
 		public ShaderHelper Shader { get { return shaderHelper; } }
+
+		private string[] imageFilenames;
+		public string[] ImageFilenames
+		{
+			get
+			{
+				if (imageFilenames == null)
+				{
+					imageFilenames = new string[ShaderHelper.MAX_TEXTURES];
+					for (int i = 0; i < ShaderHelper.MAX_TEXTURES; i++)
+						imageFilenames[i] = ShaderHelper.DEFAULT_IMAGE_FILENAME;
+				}
+				return imageFilenames;
+			}
+			set
+			{
+				imageFilenames = value;
+			}
+		}
 
         #endregion
 
@@ -88,7 +104,7 @@ namespace Direct3DLib
         private RenderTargetView renderView;
         private DepthStencilView renderDepth;
         private Viewport viewPort;
-		private ShaderHelper shaderHelper;
+		private ShaderHelper shaderHelper = new ShaderHelper();
 		private Effect shaderEffect;
 
 		#endregion
@@ -148,12 +164,11 @@ namespace Direct3DLib
 
 
 
-        private void InitializeDevice()
+        public void InitializeDevice()
         {
             isInitialized = false;
             try
             {
-                camera = new CameraControl(mParent);
                 // Declare and create the Device and SwapChain.
                 var desc = new SwapChainDescription()
                 {
@@ -170,15 +185,19 @@ namespace Direct3DLib
                 Device context = device;
 
 				shaderEffect = Effect.FromString(device, Properties.Resources.RenderWithLighting, "fx_4_0");
-				shaderHelper = new ShaderHelper(device,shaderEffect);
+				shaderHelper.Initialize(device,shaderEffect);
 
                 // Scale the buffers appropriately to the size of the parent control.
                 isInitialized = true;
                 ResizeBuffers();
+
+				for (int i = 0; i < Math.Min(imageFilenames.Length, ShaderHelper.MAX_TEXTURES); i++)
+					shaderHelper.TextureSet[i].TextureImage = ImageConverter.ConvertImageFileToTexture2D(device, imageFilenames[i]);
+
+				UpdateShapes();
             }
             catch (Direct3D10Exception ex) { MessageBox.Show("" + ex.Message + "\n\n" + ex.ResultCode.Code.ToString("X")
 				+"\n\n"+ex.StackTrace); return; }
-            this.Render();
         }
 
         /// <summary>
@@ -220,7 +239,8 @@ namespace Direct3DLib
                 renderDepth = new DepthStencilView(device, dBuf);
 
                 device.OutputMerger.SetTargets(renderDepth, renderView);
-                Camera.Pan = Camera.Pan;
+				Camera.ViewHeight = mParent.Height;
+				Camera.ViewWidth = mParent.Width;
                 isInitialized = true;
             }
         }
@@ -248,7 +268,7 @@ namespace Direct3DLib
 				shaderHelper.ConstantBufferSet.ViewProj = Camera.World;
 
                 // Call the Render method of each shape.
-				foreach (Shape shape in shapeList)
+				foreach (IRenderable shape in shapeList)
 				{
 					shape.Render(context, shaderHelper);
 				}

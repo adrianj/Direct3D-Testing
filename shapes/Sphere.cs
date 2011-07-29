@@ -152,7 +152,6 @@ namespace Direct3DLib
 						inds.Add(z*6 + 3);
 						inds.Add(z*6 + 5);
 					}
-					Console.WriteLine();
 				}
 
 				Vertices.Indices = inds;

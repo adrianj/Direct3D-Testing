@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+			Direct3DLib.Float3 float31 = new Direct3DLib.Float3();
 			this.textBox1 = new System.Windows.Forms.TextBox();
 			this.textBox2 = new System.Windows.Forms.TextBox();
 			this.propertyGrid = new System.Windows.Forms.PropertyGrid();
@@ -39,7 +40,7 @@
 			this.label3 = new System.Windows.Forms.Label();
 			this.button1 = new System.Windows.Forms.Button();
 			this.button2 = new System.Windows.Forms.Button();
-			this.direct3DControl = new Direct3DLib.Direct3DControl();
+			this.earth3DControl = new Direct3DLib.Earth3DControl();
 			this.SuspendLayout();
 			// 
 			// textBox1
@@ -57,8 +58,9 @@
 			this.textBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
 						| System.Windows.Forms.AnchorStyles.Right)));
 			this.textBox2.Location = new System.Drawing.Point(12, 55);
+			this.textBox2.Multiline = true;
 			this.textBox2.Name = "textBox2";
-			this.textBox2.Size = new System.Drawing.Size(774, 20);
+			this.textBox2.Size = new System.Drawing.Size(774, 53);
 			this.textBox2.TabIndex = 3;
 			// 
 			// propertyGrid
@@ -152,43 +154,38 @@
 			this.button2.UseVisualStyleBackColor = true;
 			this.button2.Click += new System.EventHandler(this.button2_Click);
 			// 
-			// direct3DControl
+			// earth3DControl
 			// 
-			this.direct3DControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
-			this.direct3DControl.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-			this.direct3DControl.BothMouseFunction = Direct3DLib.Direct3DControl.MouseOption.CameraTranslateXZ;
-			this.direct3DControl.KeyboardMovementSpeed = 50F;
-			this.direct3DControl.LeftMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Select;
-			this.direct3DControl.LightAmbientIntensity = 0.3F;
-			this.direct3DControl.LightDirection = new SlimDX.Vector3(1F, 1F, 1F);
-			this.direct3DControl.LightDirectionalIntensity = 0.7F;
-			this.direct3DControl.Location = new System.Drawing.Point(12, 81);
-			this.direct3DControl.MouseMovementSpeed = 50F;
-			this.direct3DControl.Name = "direct3DControl";
-			this.direct3DControl.Pan = 3.213F;
-			this.direct3DControl.RightMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Rotate;
-			this.direct3DControl.SelectedObject = null;
-			this.direct3DControl.Size = new System.Drawing.Size(774, 570);
-			this.direct3DControl.TabIndex = 15;
-			this.direct3DControl.Target = new SlimDX.Vector3(167F, 17F, 216F);
-			this.direct3DControl.TextureImageFilenames = new string[] {
-        "textures\\flower.jpg",
-        "textures\\devonport_map.png",
-        "textures\\streettexture.dds",
-        "textures\\auckland_13.png"};
-			this.direct3DControl.Tilt = -0.97F;
-			this.direct3DControl.ZClipFar = 2000F;
-			this.direct3DControl.ZClipNear = 0.1F;
-			this.direct3DControl.Zoom = 0.1F;
+			this.earth3DControl.BackColor = System.Drawing.SystemColors.ActiveBorder;
+			this.earth3DControl.BothMouseFunction = Direct3DLib.Direct3DControl.MouseOption.CameraTranslateXZ;
+			this.earth3DControl.CameraPan = 0.7853982F;
+			this.earth3DControl.CameraTilt = -1.570796F;
+			this.earth3DControl.CurrentElevation = 12000D;
+			this.earth3DControl.KeyboardMovementSpeed = 5000F;
+			this.earth3DControl.LeftMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Select;
+			this.earth3DControl.LightAmbientIntensity = 0.3F;
+			float31.X = 1F;
+			float31.Y = 1F;
+			float31.Z = 1F;
+			this.earth3DControl.LightDirection = float31;
+			this.earth3DControl.LightDirectionalIntensity = 0.7F;
+			this.earth3DControl.Location = new System.Drawing.Point(12, 114);
+			this.earth3DControl.MouseMovementSpeed = 5000F;
+			this.earth3DControl.Name = "earth3DControl";
+			this.earth3DControl.RightMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Rotate;
+			this.earth3DControl.SelectedObject = null;
+			this.earth3DControl.Size = new System.Drawing.Size(774, 532);
+			this.earth3DControl.TabIndex = 15;
+			this.earth3DControl.TextureImageFilenames = new string[0];
+			this.earth3DControl.ZClipFar = 100000F;
+			this.earth3DControl.ZClipNear = 5F;
 			// 
 			// TestForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(1143, 658);
-			this.Controls.Add(this.direct3DControl);
+			this.Controls.Add(this.earth3DControl);
 			this.Controls.Add(this.button2);
 			this.Controls.Add(this.button1);
 			this.Controls.Add(this.label3);
@@ -221,6 +218,6 @@
 		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.Button button1;
 		private System.Windows.Forms.Button button2;
-		private Direct3DControl direct3DControl;
+		private Earth3DControl earth3DControl;
     }
 }

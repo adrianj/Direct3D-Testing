@@ -72,6 +72,11 @@ namespace Direct3DLib
             return Color.FromArgb(ri%256, gi%256, bi%256);
         }
 
+		public override string ToString()
+		{
+			return "" + mPosition;
+		}
+
     }
 
 

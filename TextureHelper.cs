@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-
+using System.Drawing;
 using SlimDX;
 using SlimDX.Direct3D10;
 
@@ -11,7 +11,6 @@ namespace Direct3DLib
 {
 	public class TextureHelper : IDisposable
 	{
-
 		private Device device;
 		private Effect effect;
 		private int textureIndex = 0;
@@ -19,15 +18,15 @@ namespace Direct3DLib
 
 		private bool updateRequired = true;
 
-		private string imageFilename = "textures\\streettexture.dds";
-		public string ImageFilename
+		private Texture2D image;
+		public Texture2D TextureImage
 		{
-			get { return imageFilename; }
+			get { return image; }
 			set
 			{
-				if (value != null && !value.Equals(imageFilename))
+				if (value != null && !value.Equals(image))
 				{
-					imageFilename = value;
+					image = value;
 					updateRequired = true;
 				}
 			}
@@ -35,26 +34,29 @@ namespace Direct3DLib
 		private EffectResourceVariable textureResource;
 		private ShaderResourceView textureResourceView;
 
-		public TextureHelper(Device device, Effect effect, int textureIndex)
+		public TextureHelper(int textureIndex)
 		{
 			this.textureIndex = textureIndex;
+		}
+
+		public void Initialize(Device device, Effect effect)
+		{
 			this.device = device;
 			this.effect = effect;
+			image = ImageConverter.GetNullTexture(device);
 			Update();
 		}
 
 		public void Update()
 		{
+			updateRequired = false;
 			if (device == null || effect == null)
 			{
 				updateRequired = true;
 				return;
 			}
-			if (!System.IO.File.Exists(ImageFilename))
-				return;
-			Texture2D texture = Texture2D.FromFile(device, ImageFilename);
+			Texture2D texture = image;
 			textureResourceView = new ShaderResourceView(device, texture);
-
 			textureResource = effect.GetVariableByName("Texture_" + textureIndex).AsResource();
 			device.PixelShader.SetShaderResource(textureResourceView, 0);
 			textureResource.SetResource(textureResourceView);
@@ -77,7 +79,6 @@ namespace Direct3DLib
 		{
 			if (updateRequired)
 			{
-				updateRequired = false;
 				Update();
 				return true;
 			}
@@ -88,6 +89,7 @@ namespace Direct3DLib
 		{
 			if (textureResourceView != null) textureResourceView.Dispose();
 		}
+
 
 	}
 }

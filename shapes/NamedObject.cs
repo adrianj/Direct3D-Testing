@@ -57,24 +57,5 @@ namespace Direct3DLib
             return base.ToString() + " {"+Name+"}";
         }
 
-        public event EventHandler Disposed;
-        public virtual void Dispose()
-        {
-            //There is nothing to clean.
-            if (Disposed != null)
-                Disposed(this, EventArgs.Empty);
-        }
-        private ISite m_curISBNSite;
-        public virtual ISite Site
-        {
-            get
-            {
-                return m_curISBNSite;
-            }
-            set
-            {
-                m_curISBNSite = value;
-            }
-        }
     }
 }

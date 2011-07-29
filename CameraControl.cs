@@ -18,6 +18,13 @@ namespace Direct3DLib
 
         public float Pan { get { return mRotation.Y; } set { mRotation.Y = UnwrapPhase(value); updateWorld(); } }
 
+		public bool IsFirstPerson { get; set; }
+
+		private int viewWidth = 640;
+		public int ViewWidth { get { return viewWidth; } set { viewWidth = value; } }
+		private int viewHeight = 480;
+		public int ViewHeight { get { return viewHeight; } set { viewHeight = value; } }
+
         public Matrix View { get; set; }
         public Matrix Proj { get; set; }
 
@@ -46,14 +53,6 @@ namespace Direct3DLib
             }
         }
 
-        public void Initialize()
-        {
-            Pan = (float)Math.PI / 4;
-            Tilt = -(float)Math.PI/2;
-            Zoom = 5.0f;
-            mLocation = new Vector3(0, 0, 0);
-            updateWorld();
-        }
 
         public void Translate(float x, float y, float z)
         {
@@ -65,12 +64,14 @@ namespace Direct3DLib
             updateWorld();
         }
 
-        private Control mParent;
-        public CameraControl(Control con) : base()
+        //private Control mParent;
+        public CameraControl() : base()
         {
-            mParent = con;
-            this.Name = "Camera";
-            Initialize();
+			Zoom = 5.0f;
+			Pan = (float)Math.PI / 2;
+			Tilt = -(float)Math.PI / 2;
+			mLocation = new Vector3(-2, 2, -2);
+			updateWorld();
         }
 
         
@@ -90,12 +91,20 @@ namespace Direct3DLib
             float y = -(float)Math.Sin(Tilt / 2);
             float x = -(float)Math.Cos(Pan) * (float)Math.Cos(Tilt / 2);
             float z = -(float)Math.Sin(Pan) * (float)Math.Cos(Tilt / 2);
-            Vector3 eye = new Vector3(x * Zoom, y * Zoom, z * Zoom) + Location;
-            View = Matrix.LookAtLH(eye, Location, new Vector3(0, 1, 0));
+			if (!IsFirstPerson)
+			{
+				Vector3 eye = new Vector3(x * Zoom, y * Zoom, z * Zoom) + Location;
+				View = Matrix.LookAtLH(eye, Location, new Vector3(0, 1, 0));
+			}
+			else
+			{
+				Vector3 eye = new Vector3(-x * 100000, -y * 100000, -z * 100000) + Location;
+				View = Matrix.LookAtLH(Location, eye, new Vector3(0, 1, 0));
+			}
 
             Proj = Matrix.PerspectiveFovLH(
                 (float)Math.PI * 0.5f,
-                (float)mParent.Width / (float)mParent.Height,
+                (float)ViewWidth / (float)ViewHeight,
                 ZClipNear, ZClipFar);
             m = m * View;
             m = m * Proj;
@@ -106,6 +115,9 @@ namespace Direct3DLib
             }
         }
 
-        
+		public override string ToString()
+		{
+			return "Camera: Location: " + Location + ", Pan: " + Pan + ", Tilt: " + Tilt;
+		}
     }
 }

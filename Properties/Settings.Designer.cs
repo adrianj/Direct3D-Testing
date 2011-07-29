@@ -22,5 +22,29 @@ namespace Direct3DLib.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("g")]
+        public string MapTextureFolder {
+            get {
+                return ((string)(this["MapTextureFolder"]));
+            }
+            set {
+                this["MapTextureFolder"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("g")]
+        public string MapTerrainFolder {
+            get {
+                return ((string)(this["MapTerrainFolder"]));
+            }
+            set {
+                this["MapTerrainFolder"] = value;
+            }
+        }
     }
 }

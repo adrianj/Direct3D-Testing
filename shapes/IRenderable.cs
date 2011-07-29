@@ -11,7 +11,7 @@ namespace Direct3DLib
     {
         /// <summary>
         /// Draws the object to the screen.
-        /// Typically this includes multiplying the object's World matrixs
+        /// Typically this includes multiplying the object's World matrix
         /// with the provided cameraViewProj matrix and setting this in the
         /// device's "WorldViewProj" constant TransformVariable. Next are 
         /// multiple calls to device.Draw or Draw variants.
