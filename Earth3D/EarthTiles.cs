@@ -11,7 +11,7 @@ namespace Direct3DLib
 	{
 		public const int TILE_ROWS = 2;
 		public const int TILE_COLUMNS = 2;
-		public const int MAX_ELEVATION_ZOOM = 6;
+		public const int MAX_ELEVATION_ZOOM = 5;
 		private CombinedMapDataFactory mapFactory = CombinedMapDataFactory.Instance;
 		public CombinedMapData[,] currentTiles = new CombinedMapData[TILE_ROWS,TILE_COLUMNS];
 		private double delta = 0.125;
