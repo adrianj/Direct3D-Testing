@@ -260,7 +260,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="shapes\ShapeSTLFactory.cs" />
     <Compile Include="shapes\Sphere.cs" />
-    <Compile Include="StaticMapAccessor.cs" />
+    <Compile Include="Earth3D\StaticMapAccessor.cs" />
     <Compile Include="TestForm.cs">
       <SubType>Form</SubType>
     </Compile>
