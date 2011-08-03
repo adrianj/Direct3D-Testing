@@ -39,13 +39,21 @@ namespace Direct3DLib
         public VertexList() : this(64) { }
         public VertexList(int capacity) : base(capacity) { }
 
-        /// <summary>
-        /// Returns a list of vertices in a LIST order. Ie, for TriangleList then it is simply an iteration through
-        /// the Indices, and the Vertices are provided in trios. The same applies for LineList and providing vertices
-        /// as pairs.  TriangleStrip and LineStrip are not yet implemented.
-        /// </summary>
-        /// <returns></returns>
-        public void UpdateNormals()
+		public Vector3[] GetVertexPositions()
+		{
+			Vector3[] vects = new Vector3[this.Count];
+			for (int i = 0; i < vects.Length; i++)
+				vects[i] = this[i].Position;
+			return vects;
+		}
+
+		/// <summary>
+		/// Returns a list of vertices in a LIST order. Ie, for TriangleList then it is simply an iteration through
+		/// the Indices, and the Vertices are provided in trios. The same applies for LineList and providing vertices
+		/// as pairs.  TriangleStrip and LineStrip are not yet implemented.
+		/// </summary>
+		/// <returns></returns>
+		public void UpdateNormals()
         {
             if (Topology == PrimitiveTopology.TriangleList && Indices != null)
             {

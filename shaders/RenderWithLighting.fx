@@ -73,8 +73,8 @@ PS_IN VS(float4 inPos : POSITION, float4 inNorm : NORMAL, float4 inColor : COLOR
 float CalculateIntensity(float4 inNorm)
 {
 	// Added the +1 so that normals kind of behind the object also get some light.
-	float dotProd = dot((float3)inNorm,(float3)LightDir)+1;
-	float directionalIntensity = dotProd * DirectionalIntensity/2;
+	float dotProd = dot((float3)inNorm,(float3)LightDir);
+	float directionalIntensity = dotProd * DirectionalIntensity;
 	return saturate(AmbientIntensity + directionalIntensity);
 }
 

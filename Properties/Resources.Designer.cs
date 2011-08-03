@@ -61,82 +61,28 @@ namespace Direct3DLib.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to float4x4 WorldViewProj : WorldViewProjection;
-        ///float4 LightDir : LightDir;
-        ///float4 LightColor : LightColor;
-        ///
-        ///struct VS_IN
-        ///{
-        ///	float4 pos : POSITION;
-        ///	float4 col : COLOR0;
-        ///};
-        /// 
-        ///struct PS_IN
-        ///{
-        ///	float4 pos : SV_POSITION;
-        ///	float4 col : COLOR0;
-        ///};
-        ///
+        ///   Looks up a localized string similar to //
+        ///// Global Variables
+        /////
+        ///float4x4 ViewProj;
+        ///float4x4 World;
+        ///float4x4 LocalRotation;
+        ///float4 LightDir = (1,1,1,1);
+        ///float AmbientIntensity = 0.9f;
+        ///float DirectionalIntensity = 0.1f;
         ///
         /////
-        ///// Vertex Shader
+        ///// Textures.
+        ///// I&apos;m writing an app where simple diffuse colored objects appear in the same scene as textured ones,
+        ///// so I&apos;m using the first two fields of the COLOR vector as the TEXCOORDs, and an int indicating which index to use
+        ///// (-1 or anything less than zero to use diffuse color)
         /////
-        ///PS_IN VS(VS_IN input)
-        ///{
-        ///	PS_IN output = (PS_IN)0;
-        ///	output.pos = input.pos;
-        ///	output.pos = mul(output.pos, WorldViewProj);
-        ///	output.col = input.col;
-        /// 
-        ///	return output;
-        ///}
-        /// 
-        /////
-        ///// Pixel Shader
-        /////
-        ///float4 PS( PS_IN input ) : SV_Target
-        ///{
-        ///	float4 finalColor [rest of string was truncated]&quot;;.
+        ///int TextureIndex;
+        ///Tex [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RenderWithLighting {
             get {
                 return ResourceManager.GetString("RenderWithLighting", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to     float4x4 WorldViewProj : WorldViewProjection;
-        ///    float4 Opacity : Opacity = (0,1,1,1);
-        ///
-        ///    struct VS_IN
-        ///    {
-        ///		float4 pos : POSITION;
-        ///		float4 col : COLOR0;
-        ///    };
-        ///     
-        ///    struct PS_IN
-        ///    {
-        ///		float4 pos : SV_POSITION;
-        ///		float4 col : COLOR0;
-        ///    };
-        ///     
-        ///    PS_IN VS(VS_IN input)
-        ///    {
-        ///		PS_IN output = (PS_IN)0;
-        ///		output.pos = input.pos;
-        ///		output.pos = mul(output.pos, WorldViewProj);
-        ///		output.col = input.col;
-        ///     
-        ///		return output;
-        ///    }
-        ///     
-        ///    float4 PS( PS_IN input ) : SV_Target
-        ///    {
-        ///		return [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string SimpleRender {
-            get {
-                return ResourceManager.GetString("SimpleRender", resourceCulture);
             }
         }
     }

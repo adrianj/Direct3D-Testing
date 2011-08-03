@@ -39,6 +39,8 @@ namespace Direct3DLib
 		private int textureIndex = -1;
 		public int TextureIndex { get { return textureIndex; } set { textureIndex = value; } }
 
+		private BoundingBox preWorldTransformBox;
+
         public void SetUniformColor(Color color)
         {
             for (int i = 0; i < Vertices.Count; i++)
@@ -85,6 +87,8 @@ namespace Direct3DLib
             mDevice = device;
             // If there is less than 1 vertex then we can't make a point, let alone a shape!
             if (Vertices == null || Vertices.Count < 1) return;
+
+			CalculatePreTransformBoundingBox();
 
             // Add Vertices to a datastream.
             DataStream dataStream = new DataStream(Vertices.NumBytes, true, true);
@@ -150,17 +154,34 @@ namespace Direct3DLib
             }
         }
 
-        //public void Render(DeviceContext context, Matrix worldViewProj)
-        public virtual void Render(Device device, ShaderHelper shaderHelper)
-        {
-            if (vertexBuffer != null && Topology != PrimitiveTopology.Undefined)
-            {
-                device.InputAssembler.SetInputLayout(vertexLayout);
-                device.InputAssembler.SetPrimitiveTopology(Topology);
-                
-                device.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(vertexBuffer, Marshal.SizeOf(typeof(Vertex)), 0));
-                if (indexBuffer != null)
-                    device.InputAssembler.SetIndexBuffer(indexBuffer, Format.R32_UInt, 0);
+
+
+
+		private Vector3 GetMaxVector(Vector3[] vects)
+		{
+			Vector3 max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+			foreach (Vector3 v in vects)
+				max = Vector3.Maximize(max, v);
+			return max;
+		}
+		private Vector3 GetMinVector(Vector3[] vects)
+		{
+			Vector3 min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+			foreach (Vector3 v in vects)
+				min = Vector3.Minimize(min, v);
+			return min;
+		}
+
+		public virtual void Render(Device device, ShaderHelper shaderHelper)
+		{
+			if (vertexBuffer != null && Topology != PrimitiveTopology.Undefined)
+			{
+				device.InputAssembler.SetInputLayout(vertexLayout);
+				device.InputAssembler.SetPrimitiveTopology(Topology);
+
+				device.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(vertexBuffer, Marshal.SizeOf(typeof(Vertex)), 0));
+				if (indexBuffer != null)
+					device.InputAssembler.SetIndexBuffer(indexBuffer, Format.R32_UInt, 0);
 
 
 				shaderHelper.ConstantBufferSet.World = World;
@@ -174,73 +195,76 @@ namespace Direct3DLib
 				{
 					device.Draw(Vertices.NumElements, 0);
 				}
-            }
-        }
+			}
+
+		}
 
         public virtual bool RayIntersects(Ray ray, out float distance)
         {
             distance = float.MaxValue;
             if (Vertices == null || Vertices.Count < 1) return false;
 			if (!this.CanPick) return false;
+			if (!RayIntersectsBounds(ray, out distance)) return false;
+			bool ints = RayIntersectsShape(ray, out distance);
+            return ints;
+        }
+
+		private bool RayIntersectsShape(Ray ray, out float distance)
+		{
+			distance = float.MaxValue;
 			bool ints = false;
-			bool done = false;
+
 			if (Vertices.Indices == null || Vertices.Indices.Count < 1)
 			{
 				if (Topology == PrimitiveTopology.TriangleList)
 				{
-					for (int i = 0; i < Vertices.Count-2; i += 3)
+					for (int i = 0; i < Vertices.Count - 2; i += 3)
 					{
-						Vector3 v1 = Vector3.TransformCoordinate(Vertices[i].Position,World);
-						Vector3 v2 = Vector3.TransformCoordinate(Vertices[i+1].Position,World);
-						Vector3 v3 = Vector3.TransformCoordinate(Vertices[i +2].Position, World);
+						Vector3 v1 = Vector3.TransformCoordinate(Vertices[i].Position, World);
+						Vector3 v2 = Vector3.TransformCoordinate(Vertices[i + 1].Position, World);
+						Vector3 v3 = Vector3.TransformCoordinate(Vertices[i + 2].Position, World);
 						float d = float.MaxValue;
-						bool ii = Ray.Intersects(ray, v1,v2,v3, out d);
+						bool ii = Ray.Intersects(ray, v1, v2, v3, out d);
 						if (ii && d < distance)
 						{
 							distance = d;
 							ints = true;
 							SelectedVertices[0] = Vertices[i];
 							SelectedVertices[0].Position = v1;
-							SelectedVertices[1] = Vertices[i+1];
+							SelectedVertices[1] = Vertices[i + 1];
 							SelectedVertices[1].Position = v2;
-							SelectedVertices[2] = Vertices[i+2];
+							SelectedVertices[2] = Vertices[i + 2];
 							SelectedVertices[2].Position = v3;
 							SelectedVertexIndex = i;
 						}
 					}
-					done = true;
 				}
 			}
-			
-			// Use default method of a Bounding Box around the maximum extremities of the object if not yet done.
-			if(!done)
-			{
-				BoundingBox bb = GetSurroundingBox(this);
-				ints = Ray.Intersects(ray, bb, out distance);
-			}
-            return ints;
-        }
-        private BoundingBox GetSurroundingBox(IRenderable s)
+			return ints;
+		}
+
+		private bool RayIntersectsBounds(Ray ray, out float distance)
+		{
+			distance = float.MaxValue;
+			BoundingBox bb = Direct3DEngine.BoundingBoxMultiplyMatrix(this.MaxBoundingBox, World);
+			return Ray.Intersects(ray, bb, out distance);
+		}
+
+		private void CalculatePreTransformBoundingBox()
+		{
+			Vector3[] vects = Vertices.GetVertexPositions();
+			preWorldTransformBox = BoundingBox.FromPoints(vects);
+		}
+
+        public BoundingBox MaxBoundingBox
         {
-            float maxX = float.MinValue;
-            float maxY = float.MinValue;
-            float maxZ = float.MinValue;
-            float minX = float.MaxValue;
-            float minY = float.MaxValue;
-            float minZ = float.MaxValue;
-            for (int i = 0; i < s.Vertices.Count; i++)
-            {
-                Vector3 v = s.Vertices[i].Position;
-                v = Vector3.TransformCoordinate(v, s.World);
-                if (v.X < minX) minX = v.X;
-                if (v.Y < minY) minY = v.Y;
-                if (v.Z < minZ) minZ = v.Z;
-                if (v.X > maxX) maxX = v.X;
-                if (v.Y > maxY) maxY = v.Y;
-                if (v.Z > maxZ) maxZ = v.Z;
-            }
-            return new BoundingBox(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
+			get { return preWorldTransformBox;}
         }
+
+		~Shape()
+		{
+			Dispose();
+		}
 
         public void Dispose()
         {

@@ -14,12 +14,13 @@ namespace Direct3DLib
 	public partial class Earth3DControl : UserControl
 	{
 		#region Private Fields
-		public const int TEXTURE_OFFSET = ShaderHelper.MAX_TEXTURES / 2;
+		public const int TEXTURE_OFFSET = ShaderHelper.MAX_TEXTURES - (EarthTiles.TILE_COLUMNS * EarthTiles.TILE_ROWS);
 		private List<string> localTextureFilenames = new List<string>();
 		private List<string> externalTextureFilenames = new List<string>();
 		private EarthTiles earthTiles = new EarthTiles();
 		private Float3 previousCameraLocation = new Float3();
 		private bool isInitialized { get { return engine.Engine.IsInitialized; } }
+		private EarthControlOptionsForm optionsForm = new EarthControlOptionsForm();
 		#endregion
 
 		public string debugString = "";
@@ -68,8 +69,6 @@ namespace Direct3DLib
 
 		#endregion
 
-
-
 		#region Events
 		public event EventHandler CameraChanged
 		{
@@ -88,18 +87,28 @@ namespace Direct3DLib
 		public void Render() { engine.Render(); }
 		#endregion
 		#endregion
-
+		private double currentLat;
+		private double currentLong;
+		private double currentEle;
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public LatLong CurrentLatLong
 		{
-			get { return earthTiles.ConvertCameraLocationToLatLong(CameraLocation); }
-			set { SetCameraLocation(earthTiles.ConvertLatLongElevationToCameraLocation(value, CurrentElevation)); }
+			get { return new LatLong(currentLat,currentLong); }
+			set
+			{
+				currentLat = value.Latitude; currentLong = value.Longitude;
+				SetCameraLocation(earthTiles.ConvertLatLongElevationToCameraLocation(value, CurrentElevation));
+			}
 		}
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public double CurrentElevation
 		{
-			get { return CameraLocation.Y; }
-			set { SetCameraLocation(earthTiles.ConvertLatLongElevationToCameraLocation(CurrentLatLong, value)); }
+			get { return currentEle; }
+			set
+			{
+				currentEle = value;
+				SetCameraLocation(earthTiles.ConvertLatLongElevationToCameraLocation(CurrentLatLong, value));
+			}
 		}
 		
 
@@ -134,8 +143,20 @@ namespace Direct3DLib
 		public Earth3DControl()
 		{
 			InitializeComponent();
+			InitializeOthers();
 			engine.Engine.Camera.IsFirstPerson = true;
 			earthTiles.EngineShapeList = engine.Engine.ShapeList;
+		}
+
+		private void InitializeOthers()
+		{
+			engine.DoubleClick += Earth3DControl_DoubleClick;
+			optionsForm.FormClosing += (o, ev) =>
+			{
+				optionsForm.Hide();
+				ev.Cancel = true;
+			};
+			optionsForm.OptionsChanged += (o, ev) => { UpdateControlFromOptions(); };
 		}
 
 		private void engine_CameraChanged(object sender, EventArgs e)
@@ -146,13 +167,55 @@ namespace Direct3DLib
 				if (previousCameraLocation.X != CameraLocation.X || previousCameraLocation.Z != CameraLocation.Z || previousCameraLocation.Y != CameraLocation.Y)
 				{
 					LatLong latLong = earthTiles.ConvertCameraLocationToLatLong(CameraLocation);
-					latLong = earthTiles.CalculateNearestLatLongAtCurrentDelta(latLong);
-					debugString = "" + latLong + "," + CameraLocation.Y;
+					latLong = MercatorProjection.CalculateNearestLatLongAtDelta(latLong, earthTiles.Delta);
 					earthTiles.CameraLocationChanged(CameraLocation);
-                    debugString += earthTiles.currentTiles[0, 0];
+                    //debugString += earthTiles.currentTiles[0, 0];
 				}
+				UpdateDebugString();
 			}
 			previousCameraLocation = CameraLocation;
+		}
+
+		private void UpdateDebugString()
+		{
+			if (SelectedObject != null)
+			{
+				IRenderable shape = SelectedObject as IRenderable;
+				Matrix wvp = shape.World * engine.CameraView * engine.CameraProjection;
+				BoundingBox newBB = shape.MaxBoundingBox;
+				newBB = Direct3DEngine.BoundingBoxMultiplyMatrix(newBB, wvp);
+				BoundingBox bbCam = new BoundingBox(new Vector3(-1.0f, -1.0f, 0), new Vector3(1.0f, 1.0f, 1.0f));
+				bool onScreen = BoundingBox.Intersects(newBB, bbCam);
+				debugString = printCorners(newBB)
+					+ Environment.NewLine + BoundingBox.Intersects(newBB, bbCam);
+			}
+		}
+
+
+
+		private string printCorners(Vector3[] corners)
+		{
+			string ret = printVector3(corners[0]);
+			for (int i = 1; i < corners.Length; i ++)
+			{
+				ret += Environment.NewLine + printVector3(corners[i]);
+			}
+			return ret;
+		}
+
+		private string printCorners(BoundingBox bb)
+		{
+			Vector3[] corners = bb.GetCorners();
+			return printCorners(corners);
+		}
+
+		private string printVector3(Vector3 vec)
+		{
+			string ret = "";
+			ret += "" + vec.X.ToString("G8") + " ";
+			ret += "" + vec.Y.ToString("G8") + " ";
+			ret += "" + vec.Z.ToString("G8");
+			return ret;
 		}
 
 		private void RestrictCameraElevation()
@@ -163,9 +226,9 @@ namespace Direct3DLib
 				loc.Y = -100;
 				engine.CameraLocation = loc.AsVector3();
 			}
-			if (loc.Y > 12000)
+			if (loc.Y > (float)EarthTiles.MAX_ELEVATION)
 			{
-				loc.Y = 12000;
+				loc.Y = (float)EarthTiles.MAX_ELEVATION;
 				engine.CameraLocation = loc.AsVector3();
 			}
 		}
@@ -180,8 +243,33 @@ namespace Direct3DLib
 			if (this.isInitialized)
 			{
 				earthTiles.MapChanged += (o, ev) => { engine.Engine.UpdateShapes(); };
-				this.CurrentLatLong = new LatLong(-36.827, 174.812);
+				earthTiles.InitializeAtCameraLocation(CameraLocation);
 			}
+		}
+
+		private void Earth3DControl_DoubleClick(object sender, EventArgs e)
+		{
+			UpdateOptionsFromControl();
+			optionsForm.Show();
+		}
+
+		private void UpdateControlFromOptions()
+		{
+			CurrentLatLong = optionsForm.GotoLatLong;
+			CurrentElevation = optionsForm.GotoElevation;
+			EarthTiles.MaxGoogleZoom = optionsForm.MaxGoogleZoom;
+			Properties.Settings.Default.MapTerrainFolder = optionsForm.TerrainFolder;
+			Properties.Settings.Default.MapTextureFolder = optionsForm.TextureFolder;
+			Properties.Settings.Default.Save();
+			UpdateOptionsFromControl();
+		}
+		private void UpdateOptionsFromControl()
+		{
+			optionsForm.GotoLatLong = CurrentLatLong;
+			optionsForm.GotoElevation = CurrentElevation;
+			optionsForm.MaxGoogleZoom = EarthTiles.MaxGoogleZoom;
+			optionsForm.TerrainFolder = Properties.Settings.Default.MapTerrainFolder;
+			optionsForm.TextureFolder = Properties.Settings.Default.MapTextureFolder;
 		}
 	}
 }

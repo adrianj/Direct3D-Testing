@@ -39,8 +39,9 @@ namespace Direct3DLib
 					textBox1.Text = "" + s;
 				}
             };
+			propertyGrid.SelectedObject = earth3DControl;
 			//AddHerc();
-			AddSphere();
+			//AddSphere();
 			//AddWoomera();
 			earth3DControl.UpdateShapes();
         }
@@ -76,8 +77,6 @@ namespace Direct3DLib
 
 		private void AddWoomera()
 		{
-			CombinedMapDataFactory.SetMapTerrainFolder("C:\\Users\\adrianj\\Documents\\Work\\CAD\\WebGIS_SRTM3");
-			CombinedMapDataFactory.SetMapTextureFolder("C:\\Users\\adrianj\\Pictures\\Mapping\\GoogleTextures");
 			Shape shape = ShapeHGTFactory.CreateFromCoordinates(-37.1, 174.1, 0.25, 0.25);
 			if (shape != null)
 			{
@@ -105,7 +104,7 @@ namespace Direct3DLib
         private void PreRenderTest()
         {
 			textBox1.Text = earth3DControl.debugString;
-			textBox2.Text = "Refresh Rate: " + String.Format("{0:#00.00}", earth3DControl.RefreshRate)
+			textBox2.Text = "Refresh Rate: " + String.Format("{0:#00}", earth3DControl.RefreshRate)
 				+ "\tLightDir: " + earth3DControl.LightDirection
 				+ "\tCamTarget: " + earth3DControl.CameraLocation
 				+ "\tCamTilt: " + earth3DControl.CameraTilt

@@ -26,13 +26,17 @@ namespace Direct3DLib
             mParent.Disposed += (o, e) => { this.Dispose(); };
             mParent.SizeChanged += (o, e) => { this.ResizeBuffers(); };
         }
+		~Direct3DEngine()
+		{
+			Dispose();
+		}
         #endregion
 
 
         #region Dispose Method
         public void Dispose()
         {
-			foreach (Shape s in shapeList) s.Dispose();
+			foreach (IRenderable s in shapeList) s.Dispose();
 			shapeList.Clear();
 			if (shaderEffect != null) shaderEffect.Dispose();
 			if (shaderHelper != null) shaderHelper.Dispose();
@@ -118,30 +122,7 @@ namespace Direct3DLib
 
         public IRenderable PickObjectAt(Point screenLocation)
         {
-            Point p = screenLocation;
-            
-            Vector3 nearClick = new Vector3(p.X, p.Y, camera.ZClipNear);
-            Vector3 farClick = new Vector3(p.X, p.Y, camera.ZClipFar);
-            Vector3 v = new Vector3(0, 0, 0);
-            float h = mParent.Height;
-            float w = mParent.Width;
-            Matrix iProj = camera.Proj;
-            v.X = (((2.0f * p.X) / w) - 1) / iProj.M11;
-            v.Y = -(((2.0f * p.Y) / h) - 1) / iProj.M22;
-            v.Z = 1;
-            //Plane pl = new Plane();
-           
-            Matrix m = Matrix.Invert(camera.View);
-            Vector3 rayDir = new Vector3();
-            rayDir.X = v.X * m.M11 + v.Y * m.M21 + v.Z * m.M31;
-            rayDir.Y = v.X * m.M12 + v.Y * m.M22 + v.Z * m.M32;
-            rayDir.Z = v.X * m.M13 + v.Y * m.M23 + v.Z * m.M33;
-            rayDir = Vector3.Normalize(rayDir);
-            Vector3 rayOrigin = new Vector3();
-            rayOrigin.X = m.M41;
-            rayOrigin.Y = m.M42;
-            rayOrigin.Z = m.M43;
-            Ray ray = new Ray(rayOrigin,rayDir);
+			Ray ray = GetRayFromScreenPoint(screenLocation);
             IRenderable ret = null;
             double minZ = float.MaxValue;
             foreach (IRenderable s in shapeList)
@@ -158,13 +139,41 @@ namespace Direct3DLib
                 }
             }
 
-            Vector3 vv = Vector3.Project(new Vector3(0,0,0), 0, 0, mParent.Width, mParent.Height, 0.1f, 100, camera.World);
             return ret;
         }
 
 
+		public Ray GetRayFromScreenPoint(Point screenLocation)
+		{
+			Point p = screenLocation;
 
-        public void InitializeDevice()
+			Vector3 nearClick = new Vector3(p.X, p.Y, camera.ZClipNear);
+			Vector3 farClick = new Vector3(p.X, p.Y, camera.ZClipFar);
+			Vector3 v = new Vector3(0, 0, 0);
+			float h = mParent.Height;
+			float w = mParent.Width;
+			Matrix iProj = camera.Proj;
+			v.X = (((2.0f * p.X) / w) - 1) / iProj.M11;
+			v.Y = -(((2.0f * p.Y) / h) - 1) / iProj.M22;
+			v.Z = 1;
+
+			Matrix m = Matrix.Invert(camera.View);
+			Vector3 rayDir = new Vector3();
+			rayDir.X = v.X * m.M11 + v.Y * m.M21 + v.Z * m.M31;
+			rayDir.Y = v.X * m.M12 + v.Y * m.M22 + v.Z * m.M32;
+			rayDir.Z = v.X * m.M13 + v.Y * m.M23 + v.Z * m.M33;
+			rayDir = Vector3.Normalize(rayDir);
+			Vector3 rayOrigin = new Vector3();
+			rayOrigin.X = m.M41;
+			rayOrigin.Y = m.M42;
+			rayOrigin.Z = m.M43;
+			Ray ray = new Ray(rayOrigin, rayDir);
+			return ray;
+		}
+
+
+
+		public void InitializeDevice()
         {
             isInitialized = false;
             try
@@ -247,6 +256,57 @@ namespace Direct3DLib
 
         public void Render()
         {
+			UpdateRefreshRate();
+            if (IsInitialized)
+            {
+                // Clear the view, resetting to the background colour.
+                device.ClearRenderTargetView(renderView, new Color4(mParent.BackColor));
+                device.ClearDepthStencilView(renderDepth, DepthStencilClearFlags.Depth, 1, 0);
+				shaderHelper.ConstantBufferSet.ViewProj = Camera.World;
+				RenderAllShapes();
+                // Present!
+                swapChain.Present(0, PresentFlags.None);
+            }
+        }
+
+		private void RenderAllShapes()
+		{
+			foreach (IRenderable shape in shapeList)
+			{
+				BoundingBox bbInWorld = Direct3DEngine.BoundingBoxMultiplyMatrix(shape.MaxBoundingBox, shape.World); 
+				bool onScreen = BoundingBoxOnScreenFine(bbInWorld);
+				if(!onScreen)
+					onScreen = BoundingBoxOnScreenCoarse(bbInWorld);
+				if (onScreen)
+				{
+					shape.Render(device, shaderHelper);
+				}
+			}
+		}
+
+		private bool BoundingBoxOnScreenCoarse(BoundingBox bb)
+		{
+			int s = 3;
+			for (int i = 0; i < s; i++)
+				for (int k = 0; k < s; k++)
+				{
+					Point p = new Point(i * mParent.Width / (s-1), k * mParent.Height / (s - 1));
+					Ray ray = GetRayFromScreenPoint(p);
+					float f = 0;
+					if (Ray.Intersects(ray, bb, out f))
+						return true;
+				}
+			return false;
+		}
+
+		private bool BoundingBoxOnScreenFine(BoundingBox bb)
+		{
+			BoundingBox newBB = Direct3DEngine.BoundingBoxMultiplyMatrix(bb, Camera.World); 
+			BoundingBox bbCam = new BoundingBox(new Vector3(-1.0f, -1.0f, 0), new Vector3(1.0f, 1.0f, 1.0f));
+			return BoundingBox.Intersects(newBB, bbCam);
+		}
+		private void UpdateRefreshRate()
+		{
 			prevTick2 = prevTick1;
 			prevTick1 = DateTime.Now.Ticks;
 			double newRef = 0;
@@ -254,29 +314,21 @@ namespace Direct3DLib
 			else
 			{
 				long diff = prevTick1 - prevTick2;
-				newRef = Math.Round(1000000.0 / (double)(diff),2);
+				newRef = Math.Round(1000000.0 / (double)(diff), 2);
 			}
-			refreshRate = (refreshRate * 0.7) + (0.3 * newRef);
-            if (IsInitialized)
-            {
-                Device context = device;
-                // Clear the view, resetting to the background colour.
-                
-                context.ClearRenderTargetView(renderView, new Color4(mParent.BackColor));
-                context.ClearDepthStencilView(renderDepth, DepthStencilClearFlags.Depth, 1, 0);
+			refreshRate = (refreshRate * 0.9) + (0.1 * newRef);
+		}
 
-				shaderHelper.ConstantBufferSet.ViewProj = Camera.World;
+		public static BoundingBox BoundingBoxMultiplyMatrix(BoundingBox bb, Matrix m)
+		{
+			Vector3 []corners = bb.GetCorners();
+			for (int i = 0; i < corners.Length; i++)
+			{
+				corners[i] = Vector3.TransformCoordinate(corners[i], m);
+			}
 
-                // Call the Render method of each shape.
-				foreach (IRenderable shape in shapeList)
-				{
-					shape.Render(context, shaderHelper);
-				}
-
-                // Present!
-                swapChain.Present(0, PresentFlags.None);
-            }
-        }
+			return BoundingBox.FromPoints(corners);// BoundingBoxFromVertices(corners);
+		}
     }
 	
 	public class EngineTypeConverter : System.ComponentModel.TypeConverter

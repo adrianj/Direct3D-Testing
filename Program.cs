@@ -28,6 +28,8 @@ namespace Direct3DLib
 			//Direct3DForm form = new BasicForm();
             form.Text = "SlimDX - Direct3DLib";
             MessagePump.Run(form, form.Render);
+			Console.WriteLine("Press a key to exit");
+			//Console.ReadKey();
         }
 
     }

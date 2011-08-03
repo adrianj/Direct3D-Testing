@@ -11,10 +11,12 @@ namespace Direct3DLib
 	{
 		public const int TILE_ROWS = 2;
 		public const int TILE_COLUMNS = 2;
-		public const int MAX_ELEVATION_ZOOM = 5;
+		public const double MAX_ELEVATION = 2100000;
+		public static int MaxGoogleZoom = 13;
 		private CombinedMapDataFactory mapFactory = CombinedMapDataFactory.Instance;
 		public CombinedMapData[,] currentTiles = new CombinedMapData[TILE_ROWS,TILE_COLUMNS];
-		private double delta = 0.125;
+		public bool UseTerrainData { get { return mapFactory.UseTerrainData; } set { mapFactory.UseTerrainData = value; } }
+		private double delta = 0.0625;
 		public double Delta { get { return delta; } set { delta = value; } }
 		private double previousElevation = -1000;
 		private LatLong previousLocation = new LatLong(-1000, -1000);
@@ -24,7 +26,6 @@ namespace Direct3DLib
 
 		private BackgroundWorker textureWorker = new BackgroundWorker();
 
-		//private double elevation { get { return mapFactory.Elevation; } set { mapFactory.Elevation = value; } }
 
 		public event EventHandler MapChanged;
 
@@ -36,6 +37,7 @@ namespace Direct3DLib
 		
 		public EarthTiles()
 		{
+			UseTerrainData = false;
 			mapFactory.UnitsPerDegreeLatitude = 100000;
 			textureWorker.WorkerSupportsCancellation = true;
 			textureWorker.DoWork += new DoWorkEventHandler(textureWorker_DoWork);
@@ -43,15 +45,15 @@ namespace Direct3DLib
 
 		
 
-		public void InitializeAtGivenLatLongElevation(LatLong pos, double elevation)
+		private void InitializeAtGivenLatLongElevation(LatLong pos, double elevation)
 		{
 			mapFactory.Delta = delta;
-			pos = CalculateNearestLatLongAtCurrentDelta(pos);
+			pos = MercatorProjection.CalculateNearestLatLongAtDelta(pos,delta);
 			for (int i = 0; i < TILE_ROWS; i++)
 			{
 				for (int k = 0; k < TILE_COLUMNS; k++)
 				{
-					LatLong newPos = new  LatLong(pos.latitude - delta * i, pos.longitude - delta * k);
+					LatLong newPos = new  LatLong(pos.Latitude - delta * i, pos.Longitude - delta * k);
 					mapFactory.BottomLeftLocation = newPos;
 					CombinedMapData expectedMap = mapFactory.CreateEmptyMapAtLocation(newPos,elevation,delta);
 					if (TerrainUpdateRequired(currentTiles[i, k], expectedMap))
@@ -64,6 +66,7 @@ namespace Direct3DLib
 					}
 				}
 			}
+			UpdateMapTextures(pos, elevation);
 		}
 
 		private bool TerrainUpdateRequired(CombinedMapData currentMap, CombinedMapData expectedMap)
@@ -73,13 +76,7 @@ namespace Direct3DLib
 			return true;
 		}
 
-		public LatLong CalculateNearestLatLongAtCurrentDelta(LatLong latLong)
-		{
-			long lat = Convert.ToInt64(latLong.latitude / delta);
-			long lng = Convert.ToInt64(latLong.longitude / delta);
-			LatLong ret = new LatLong((double)lat * delta, (double)lng * delta);
-			return ret;
-		}
+
 
 		private void AddTileToArray(CombinedMapData tile, int row, int column)
 		{
@@ -114,7 +111,7 @@ namespace Direct3DLib
 			UpdateMapTextures(location, newCameraLocation.Y);
 		}
 
-		private void UpdateMapTerrain(LatLong location, double elevation)
+		public void UpdateMapTerrain(LatLong location, double elevation)
 		{
 			InitializeAtGivenLatLongElevation(location, elevation);
 		}
@@ -158,7 +155,7 @@ namespace Direct3DLib
 		public Float3 ConvertLatLongElevationToCameraLocation(LatLong latLong, double elevation)
 		{
 			float units = (float)mapFactory.UnitsPerDegreeLatitude;
-			return new Float3((float)latLong.longitude * units, (float)elevation, (float)latLong.latitude * units);
+			return new Float3((float)latLong.Longitude * units, (float)elevation, (float)latLong.Latitude * units);
 		}
 		 
 	}

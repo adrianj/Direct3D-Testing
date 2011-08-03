@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+			Direct3DLib.LatLong latLong1 = new Direct3DLib.LatLong();
 			Direct3DLib.Float3 float31 = new Direct3DLib.Float3();
 			this.textBox1 = new System.Windows.Forms.TextBox();
 			this.textBox2 = new System.Windows.Forms.TextBox();
@@ -50,17 +51,17 @@
 			this.textBox1.Location = new System.Drawing.Point(12, 6);
 			this.textBox1.Multiline = true;
 			this.textBox1.Name = "textBox1";
-			this.textBox1.Size = new System.Drawing.Size(774, 42);
+			this.textBox1.Size = new System.Drawing.Size(774, 157);
 			this.textBox1.TabIndex = 1;
 			// 
 			// textBox2
 			// 
 			this.textBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
 						| System.Windows.Forms.AnchorStyles.Right)));
-			this.textBox2.Location = new System.Drawing.Point(12, 55);
+			this.textBox2.Location = new System.Drawing.Point(12, 169);
 			this.textBox2.Multiline = true;
 			this.textBox2.Name = "textBox2";
-			this.textBox2.Size = new System.Drawing.Size(774, 53);
+			this.textBox2.Size = new System.Drawing.Size(774, 39);
 			this.textBox2.TabIndex = 3;
 			// 
 			// propertyGrid
@@ -156,28 +157,35 @@
 			// 
 			// earth3DControl
 			// 
-			this.earth3DControl.BackColor = System.Drawing.SystemColors.ActiveBorder;
+			this.earth3DControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+						| System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.earth3DControl.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+			this.earth3DControl.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 			this.earth3DControl.BothMouseFunction = Direct3DLib.Direct3DControl.MouseOption.CameraTranslateXZ;
-			this.earth3DControl.CameraPan = 0.7853982F;
-			this.earth3DControl.CameraTilt = -1.570796F;
+			this.earth3DControl.CameraPan = 1.5F;
+			this.earth3DControl.CameraTilt = -2.570796F;
 			this.earth3DControl.CurrentElevation = 12000D;
+			latLong1.Latitude = -36.82D;
+			latLong1.Longitude = 174.795D;
+			this.earth3DControl.CurrentLatLong = latLong1;
 			this.earth3DControl.KeyboardMovementSpeed = 5000F;
 			this.earth3DControl.LeftMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Select;
-			this.earth3DControl.LightAmbientIntensity = 0.3F;
-			float31.X = 1F;
+			this.earth3DControl.LightAmbientIntensity = 0.7F;
+			float31.X = 0F;
 			float31.Y = 1F;
 			float31.Z = 1F;
 			this.earth3DControl.LightDirection = float31;
-			this.earth3DControl.LightDirectionalIntensity = 0.7F;
-			this.earth3DControl.Location = new System.Drawing.Point(12, 114);
+			this.earth3DControl.LightDirectionalIntensity = 0.3F;
+			this.earth3DControl.Location = new System.Drawing.Point(12, 214);
 			this.earth3DControl.MouseMovementSpeed = 5000F;
 			this.earth3DControl.Name = "earth3DControl";
 			this.earth3DControl.RightMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Rotate;
 			this.earth3DControl.SelectedObject = null;
-			this.earth3DControl.Size = new System.Drawing.Size(774, 532);
+			this.earth3DControl.Size = new System.Drawing.Size(774, 432);
 			this.earth3DControl.TabIndex = 15;
 			this.earth3DControl.TextureImageFilenames = new string[0];
-			this.earth3DControl.ZClipFar = 100000F;
+			this.earth3DControl.ZClipFar = 1E+07F;
 			this.earth3DControl.ZClipNear = 5F;
 			// 
 			// TestForm

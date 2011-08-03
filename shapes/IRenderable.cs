@@ -7,7 +7,7 @@ using SlimDX;
 
 namespace Direct3DLib
 {
-    public interface IRenderable
+    public interface IRenderable : IDisposable
     {
         /// <summary>
         /// Draws the object to the screen.
@@ -41,11 +41,20 @@ namespace Direct3DLib
         /// </summary>
         Matrix World { get; }
 
+		//bool IsOnScreen(Matrix viewProj);
+
 		/// <summary>
 		/// The Index of the texture to apply to this shape.
 		/// Set to -1 to use a simple diffuse color instead of a texture.
 		/// </summary>
 		int TextureIndex { get; }
+
+		/// <summary>
+		/// Gets a BoundingBox that encompasses all the Shape's vertices BEFORE any
+		/// transformations have been applied.
+		/// </summary>
+		/// <returns></returns>
+		BoundingBox MaxBoundingBox { get; }
 
         /// <summary>
         /// Is this object available for Pick selection.

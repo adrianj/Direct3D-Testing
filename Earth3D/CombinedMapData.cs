@@ -46,6 +46,8 @@ namespace Direct3DLib
 				terrainShape.Render(device, helper);
 			}
 		}
+		public SlimDX.BoundingBox MaxBoundingBox { get { return terrainShape.MaxBoundingBox; } }
+		//public bool IsOnScreen(SlimDX.Matrix viewProj) { return terrainShape.IsOnScreen(viewProj); }
 		#endregion
 		private bool updateRequired = true;
 		private LatLong bottomLeft = new LatLong();
@@ -138,6 +140,10 @@ namespace Direct3DLib
 			worker.RunWorkerAsync();
 		}
 
+		public void Dispose()
+		{
+			if (terrainShape != null) terrainShape.Dispose();
+		}
 	}
 
 }

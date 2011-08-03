@@ -46,6 +46,7 @@ namespace Direct3DLib
 		private Shape shape;
 		private int currentRow = 0;
 		private int[] previousRow = null;
+		private int previousInt = 0;
 		private int currentColumn = 0;
 
 		public static Shape CreateFromFile(string filename)
@@ -74,11 +75,11 @@ namespace Direct3DLib
 
 		public static string CalculateFilenameFromLatLong(LatLong latLong)
 		{
-			int latitude = (int)latLong.latitude;
-			int longitude = (int)latLong.longitude;
-			if (latitude < 1 && latLong.latitude % 1 != 0)
+			int latitude = (int)latLong.Latitude;
+			int longitude = (int)latLong.Longitude;
+			if (latitude < 1 && latLong.Latitude % 1 != 0)
 				latitude -= 1;
-			if (longitude < 1 && latLong.longitude % 1 != 0)
+			if (longitude < 1 && latLong.Longitude % 1 != 0)
 				longitude -= 1;
 			string ret = LatLongToString(latitude, longitude);
 			return Properties.Settings.Default.MapTerrainFolder + "\\" + ret + ".hgt";
@@ -197,15 +198,26 @@ namespace Direct3DLib
 
 		private int[] ReadNextRowOfInts()
 		{
-			//SkipToStartOfColumn();
 			currentRow++;
 			int[] row = new int[nColumnsToRead];
 			int[] read = new int[COLUMNS_PER_FILE + 1];
 			for (int i = 0; i < COLUMNS_PER_FILE + 1; i++)
-				read[i] = reader.ReadInt16();
+			{
+				read[i] = ReadAndCheckInt();
+			}
 			Array.Copy(read, startCol, row, 0, nColumnsToRead);
 			return row;
 		}
+
+		private int ReadAndCheckInt()
+		{
+			int read = reader.ReadInt16();
+			if (read == -0x8000)
+				read = previousInt;
+			previousInt = read;
+			return read;
+		}
+
 
 		private void SkipToStartRow()
 		{
@@ -216,8 +228,6 @@ namespace Direct3DLib
 		private Vertex[] CreateSquare(int topLeftHeight, int topRightHeight, int bottomLeftHeight, int bottomRightHeight)
 		{
 			float row = (float)(nRowsToRead - currentRow + 1);
-			//float row = (float)currentRow-2;
-			//float col = (float)(nColumnsToRead - currentColumn);
 			float col = (float)currentColumn;
 			float[] z = new float[] { (row) * horizontalScale, (row+1) * horizontalScale };
 			float[] x = new float[] { (col) * horizontalScale, (col+1) * horizontalScale };
@@ -248,7 +258,7 @@ namespace Direct3DLib
 
 		private Color4 GetColorFromVertex(Vertex vertex)
 		{
-			float xScale = 1 / (nColumnsToRead * horizontalScale);
+			float xScale = 1 / ((nColumnsToRead-1) * horizontalScale);
 			float yScale = 1 / 1000.0f;
 			float zScale = 1 / (nRowsToRead * horizontalScale);
 			Color4 col = new Color4(1-vertex.Position.X * xScale, vertex.Position.Z * zScale, vertex.Position.Y*yScale);

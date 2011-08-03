@@ -4,12 +4,72 @@ using System.Linq;
 using System.Text;
 using System.ComponentModel;
 using System.Reflection;
+using System.Windows.Forms;
 
 namespace Direct3DLib
 {
-
-	public class GenericTypeConverter<T> : TypeConverter
+	public class GenericTypeConverter<T> : GenericTypeConverter
 	{
+		public override Type cType
+		{
+			get { return typeof(T); }
+		}
+	}
+
+	public abstract class GenericTypeConverter : TypeConverter
+	{
+		public abstract Type cType { get; }
+
+		public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
+		{
+			if (sourceType.Equals(typeof(string)))
+				return true;
+			return false;
+		}
+
+		public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
+		{
+			if(destinationType.Equals(typeof(string)))
+				return true;
+			return false;
+		}
+
+		public override object CreateInstance(ITypeDescriptorContext context, System.Collections.IDictionary propertyValues)
+		{
+			object value = Activator.CreateInstance(cType);
+			foreach (KeyValuePair<object, object> pair in propertyValues)
+			{
+				MethodInfo setMethod = cType.GetProperty((string)pair.Key).GetSetMethod();
+				if (setMethod != null)
+					setMethod.Invoke(value, new object[] { pair.Value });
+			}
+			return value;
+		}
+
+		public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)
+		{
+			object t = Activator.CreateInstance(cType);
+			if (value.GetType() == typeof(string))
+			{
+				MethodInfo tryParse = GetTryParseMethod(cType);
+				object[] paras = new object[] { value, t };
+				bool parseSucceeded = (bool)tryParse.Invoke(t, paras);
+				if (parseSucceeded)
+				{
+					return paras[1];
+				}
+			}
+			throw new ArgumentException("Could not convert '" + value + "' to type '" + cType + "'");
+
+		}
+
+		public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
+		{
+			//LatLong thisVal = value as LatLong;
+			if (destinationType == typeof(string))
+				return "" + value;
+			throw new FormatException("Could not convert from '" + value + "' to LatLong");
+		}
 		public override bool GetPropertiesSupported(ITypeDescriptorContext context)
 		{
 			return true;
@@ -17,64 +77,13 @@ namespace Direct3DLib
 
 		public override PropertyDescriptorCollection GetProperties(ITypeDescriptorContext context, object value, Attribute[] attributes)
 		{
-			return TypeDescriptor.GetProperties(typeof(T));
-		}
-
-		public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
-		{
-			if (sourceType.Equals(typeof(T)))
-				return true;
-			if (sourceType.Equals(typeof(string)))
-			{
-				MethodInfo parseMethod = GetTryParseMethod(typeof(T));
-				if(parseMethod != null)
-					return true;
-			}
-			return false;
-		}
-
-		public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)
-		{
-			if(!CanConvertFrom(context,value.GetType())) return base.ConvertFrom(context,culture,value);
-			if (value.GetType() == typeof(T))
-				return value;
-			T t = default(T);
-			if (value.GetType() == typeof(string))
-			{
-				MethodInfo tryParse = GetTryParseMethod(typeof(T)); 
-				//System.Windows.Forms.MessageBox.Show("Can convert "+value+" to "+typeof(T)+"?");
-				object [] paras = new object[]{value,t};
-				bool parseSucceeded = (bool)tryParse.Invoke(null, paras);
-				if (parseSucceeded)
-					return paras[1];
-			}
-			
-			throw new ArgumentException("Could not convert '" + value + "' to type '" + typeof(T) + "'");
-		}
-
-
-		public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
-		{
-			if (destinationType == typeof(T)) return true;
-			if (destinationType == typeof(string)) return true;
-			return false;
-		}
-
-		public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
-		{
-			if(destinationType == typeof(T))
-				return value;
-			if (destinationType == typeof(string))
-				return value.ToString();
-			throw new ArgumentException("Could not convert ("+typeof(T)+") '" + value + "' to type '" + destinationType + "'");
+			return TypeDescriptor.GetProperties(cType);
 		}
 
 		public static MethodInfo GetTryParseMethod(Type typeWithMethods)
 		{
 			MethodInfo method = typeWithMethods.GetMethod("TryParse", BindingFlags.Static | BindingFlags.Public);
-			//System.Windows.Forms.MessageBox.Show("found a method to convert " + typeWithMethods + " : " + method);
 			if (method == null) return null;
-			//Console.WriteLine("got a method!" + method);
 			if (method.ReturnType != typeof(bool)) return null;
 			return method;
 		}

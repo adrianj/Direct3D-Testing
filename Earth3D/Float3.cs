@@ -38,43 +38,32 @@ namespace Direct3DLib
 		}
 	}
 
-	public class Float3TypeConverter : TypeConverter
+	public class Float3TypeConverter : GenericTypeConverter
 	{
+		public override Type cType
+		{
+			get { return typeof(Float3); }
+		}
+		
 		public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
 		{
 			if (sourceType.Equals(typeof(SlimDX.Vector3)))
 				return true;
-			if (sourceType.Equals(typeof(string)))
-				return true;
-			return false;
+			return base.CanConvertFrom(context,sourceType);
 		}
 
 		public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
 		{
 			if (destinationType.Equals(typeof(SlimDX.Vector3)))
 				return true;
-			if(destinationType.Equals(typeof(string)))
-				return true;
-			return false;
-		}
-
-		public override object CreateInstance(ITypeDescriptorContext context, System.Collections.IDictionary propertyValues)
-		{
-			Float3 value = new Float3();
-			value.X = (float)propertyValues["X"];
-			value.Y = (float)propertyValues["Y"];
-			value.Z = (float)propertyValues["Z"];
-			return value;
+			return base.CanConvertTo(context,destinationType);
 		}
 
 		public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)
 		{
 			if(value is SlimDX.Vector3)
 				return new Float3((SlimDX.Vector3)value);
-			Float3 ret = new Float3();
-			if (!Float3.TryParse(value as string, out ret))
-				throw new FormatException("Could not convert from string '" + value + "' to Float3");
-			return ret;
+			return base.ConvertFrom(context,culture,value);
 		}
 
 		public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
@@ -85,16 +74,8 @@ namespace Direct3DLib
 				return new SlimDX.Vector3(thisVal.X, thisVal.Y, thisVal.Z);
 			}
 			else
-				return "" + thisVal;
-		}
-		public override bool GetPropertiesSupported(ITypeDescriptorContext context)
-		{
-			return true;
+				return base.ConvertTo(context,culture,value,destinationType);
 		}
 
-		public override PropertyDescriptorCollection GetProperties(ITypeDescriptorContext context, object value, Attribute[] attributes)
-		{
-			return TypeDescriptor.GetProperties(typeof(Float3));
-		}
 	}
 }

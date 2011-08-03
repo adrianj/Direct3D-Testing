@@ -21,9 +21,9 @@ namespace Direct3DLib
 		public bool IsFirstPerson { get; set; }
 
 		private int viewWidth = 640;
-		public int ViewWidth { get { return viewWidth; } set { viewWidth = value; } }
+		public int ViewWidth { get { return viewWidth; } set { viewWidth = value; updateWorld(); } }
 		private int viewHeight = 480;
-		public int ViewHeight { get { return viewHeight; } set { viewHeight = value; } }
+		public int ViewHeight { get { return viewHeight; } set { viewHeight = value; updateWorld(); } }
 
         public Matrix View { get; set; }
         public Matrix Proj { get; set; }

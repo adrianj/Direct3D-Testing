@@ -109,5 +109,16 @@ namespace Direct3DLib
 			}
 			return bmp;
 		}
+
+
+		public static Image CropImage(Image image, RectangleF rect)
+		{
+			Bitmap bmp = new Bitmap(image);
+			if (rect.Width > image.Width) rect.Width = image.Width;
+			if (rect.X < 0) rect.X = 0;
+			if (rect.Height > image.Height) rect.Height = image.Height;
+			if (rect.Y < 0) rect.Y = 0;
+			return bmp.Clone(rect, bmp.PixelFormat);
+		}
 	}
 }

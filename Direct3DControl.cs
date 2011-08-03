@@ -17,10 +17,6 @@ namespace Direct3DLib
 		public Direct3DEngine Engine { get { return engine; } }
 		public bool IsInitialized { get { if (engine == null) return false; return engine.IsInitialized; } }
 		private bool designTime = false;
-
-		//[DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-
-
 		private bool forceRender = true;
 
 		public Direct3DControl()
@@ -60,6 +56,10 @@ namespace Direct3DLib
 		public float ZClipNear { get { return engine.Camera.ZClipNear; } set { engine.Camera.ZClipNear = value; } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public float ZClipFar { get { return engine.Camera.ZClipFar; } set { engine.Camera.ZClipFar = value; } }
+		[CategoryAttribute("Camera, Lighting and Textures")]
+		public Matrix CameraView { get { return engine.Camera.View; } }
+		[CategoryAttribute("Camera, Lighting and Textures")]
+		public Matrix CameraProjection { get { return engine.Camera.Proj; } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public Vector3 LightDirection { get { return engine.LightDirection; } set { engine.LightDirection = value; } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
@@ -141,7 +141,6 @@ namespace Direct3DLib
 		private void InitializeMouse()
 		{
 			this.MouseMove += new MouseEventHandler(this_MouseMove);
-			//this.MouseDoubleClick += new MouseEventHandler(this_MouseDoubleClick);
 			this.MouseUp += new MouseEventHandler(this_MouseUp);
 			this.Leave += new EventHandler(Direct3DControl_Leave);
 		}
@@ -163,11 +162,6 @@ namespace Direct3DLib
 				if (obj != null)
 					SelectedObject = obj;
 			}
-		}
-
-		void this_MouseDoubleClick(object sender, MouseEventArgs e)
-		{
-
 		}
 
 		void this_MouseMove(object sender, MouseEventArgs e)
@@ -281,7 +275,6 @@ namespace Direct3DLib
 			}
 		}
 		#endregion
-
 
 
 	}

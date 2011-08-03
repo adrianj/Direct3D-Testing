@@ -8,6 +8,8 @@ namespace Direct3DLib
 {
 	public class CombinedMapDataFactory
 	{
+		public bool UseTerrainData = true;
+
 		private static CombinedMapDataFactory factorySingleton;
 		private ShapeHGTFactory shapeFactory = new ShapeHGTFactory();
 		private MapTextureFactory textureFactory = MapTextureFactory.Instance;
@@ -21,41 +23,11 @@ namespace Direct3DLib
 		public LatLong BottomLeftLocation
 		{
 			get { return new LatLong(shapeFactory.BottomLeftLatitude, shapeFactory.BottomLeftLongitude); }
-			set { shapeFactory.BottomLeftLatitude = value.latitude; shapeFactory.BottomLeftLongitude = value.longitude; }
+			set { shapeFactory.BottomLeftLatitude = value.Latitude; shapeFactory.BottomLeftLongitude = value.Longitude; }
 		}
 		public double UnitsPerDegreeLatitude { get { return shapeFactory.UnitsPerDegreeLatitude; } set { shapeFactory.UnitsPerDegreeLatitude = value; } }
 
-		//public double Elevation { get { return textureFactory.Elevation; } set { textureFactory.Elevation = value; } }
-
-		//private CombinedMapData newMap;
-
 		#region Static Folder Initialization and Singleton Constructor
-		public static void SetSourceFolders()
-		{
-			SetMapTerrainFolder(AskForFolder("Please provide folder with terrain data (.hgt files)",Properties.Settings.Default.MapTerrainFolder));
-			SetMapTextureFolder(AskForFolder("Please provide folder with terrain texture images (.jpg files)", Properties.Settings.Default.MapTextureFolder));
-		}
-
-		public static void SetMapTerrainFolder(string folderPath)
-		{
-			Properties.Settings.Default.MapTerrainFolder = folderPath;
-			Properties.Settings.Default.Save();
-		}
-
-		public static void SetMapTextureFolder(string folderPath)
-		{
-			Properties.Settings.Default.MapTextureFolder = folderPath;
-			Properties.Settings.Default.Save();
-		}
-
-		private static string AskForFolder(string requestMessage, string rootPath)
-		{
-			System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
-			fbd.Description = requestMessage;
-			fbd.SelectedPath = rootPath;
-			fbd.ShowDialog();
-			return fbd.SelectedPath;
-		}
 
 		public static CombinedMapDataFactory Instance
 		{
@@ -67,6 +39,16 @@ namespace Direct3DLib
 					//SetSourceFolders();
 				}
 				return factorySingleton;
+			}
+		}
+		~CombinedMapDataFactory()
+		{
+			foreach (CombinedMapData cmd in previouslyCreatedTerrain)
+			{
+				if (cmd != null && cmd.TerrainShape != null)
+				{
+					cmd.TerrainShape.Dispose();
+				}
 			}
 		}
 		#endregion
@@ -105,18 +87,23 @@ namespace Direct3DLib
 
 		public void UpdateMapTerrain(CombinedMapData mapToUpdate)
 		{
-			string filename = ShapeHGTFactory.CalculateFilenameFromLatLong(BottomLeftLocation);
-			shapeFactory.Filename = filename;
 			Shape shape = null;
-			try
-			{
-				shape = shapeFactory.ReadShapeFromFile();
-			}
-			catch (System.IO.FileNotFoundException)
-			{
+			if (!UseTerrainData)
 				shape = shapeFactory.GenerateNullShape();
+			else
+			{
+				string filename = ShapeHGTFactory.CalculateFilenameFromLatLong(BottomLeftLocation);
+				shapeFactory.Filename = filename;
+				try
+				{
+					shape = shapeFactory.ReadShapeFromFile();
+				}
+				catch (System.IO.FileNotFoundException)
+				{
+					shape = shapeFactory.GenerateNullShape();
+				}
 			}
-			Float3 location = new Float3((float)(BottomLeftLocation.longitude * UnitsPerDegreeLatitude), 0, (float)(BottomLeftLocation.latitude * UnitsPerDegreeLatitude));
+			Float3 location = new Float3((float)(BottomLeftLocation.Longitude * UnitsPerDegreeLatitude), 0, (float)(BottomLeftLocation.Latitude * UnitsPerDegreeLatitude));
 			shape.Location = location.AsVector3();
 			mapToUpdate.TerrainShape = shape;
 		}

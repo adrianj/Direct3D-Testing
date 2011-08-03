@@ -38,9 +38,9 @@
 			this.engine.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.engine.KeyboardMovementSpeed = 5000F;
 			this.engine.LeftMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Select;
-			this.engine.LightAmbientIntensity = 0.3F;
-			this.engine.LightDirection = new SlimDX.Vector3(1F, 1F, 1F);
-			this.engine.LightDirectionalIntensity = 0.7F;
+			this.engine.LightAmbientIntensity = 0.1F;
+			this.engine.LightDirection = new SlimDX.Vector3(0.1F, 1F, 0F);
+			this.engine.LightDirectionalIntensity = 0.9F;
 			this.engine.Location = new System.Drawing.Point(0, 0);
 			this.engine.MouseMovementSpeed = 5000F;
 			this.engine.Name = "engine";
@@ -52,7 +52,7 @@
 			this.engine.TextureImageFilenames = new string[0];
 			this.engine.Tilt = -1.570796F;
 			this.engine.ZClipFar = 100000F;
-			this.engine.ZClipNear = 5F;
+			this.engine.ZClipNear = 0.01F;
 			this.engine.Zoom = 5F;
 			this.engine.CameraChanged += new System.EventHandler(this.engine_CameraChanged);
 			// 

@@ -26,7 +26,8 @@ namespace Direct3DLib
 		private MapTextureFactory() { }
 		#endregion
 
-		private StaticMapAccessor googleAccessor = new StaticMapAccessor();
+		private MapWebAccessor googleAccessor = new MapWebAccessor();
+		private StaticMapFactory mapFactory = StaticMapFactory.Instance;
 		private int zoomLevel { get { return googleAccessor.ZoomLevel; } set { googleAccessor.ZoomLevel = value; } }
 		private List<CombinedMapData> workerQueue = new List<CombinedMapData>();
 		private BackgroundWorker worker = new BackgroundWorker();
@@ -36,29 +37,34 @@ namespace Direct3DLib
 		{
 			int tileRes = CalculateTileResolution(mapToUpdate.ShapeDelta, elevation);
 			mapToUpdate.TileResolution = tileRes;
-			Image image = GetImage(mapToUpdate);
+			//Image image = GetImage(mapToUpdate);
+			int logDelta = (int)Math.Log(mapToUpdate.ShapeDelta, 2.0);
+			Image image = mapFactory.GetTiledImage(mapToUpdate.BottomLeftPosition, GetZoomFromElevation(elevation), logDelta);
 			mapToUpdate.TextureImage = image;
 		}
 
 
 		private Image GetImage(CombinedMapData mapToUpdate)
 		{
+			return mapFactory.GetTiledImage(mapToUpdate.BottomLeftPosition, 12, -3);
+			/*
 			string filename = CalculateFilename(mapToUpdate);
 			Image ret = null;
 			if (ret != null)
 				return ret;
 			ret = GetImageFromGoogle(mapToUpdate);
 			return ret;
+			 */
 		}
 
 		public int CalculateTileResolution(double delta, double elevation)
 		{
-			int elevationZoom = GetZoomFromElevation(elevation) - 8;
-			if (elevationZoom > EarthTiles.MAX_ELEVATION_ZOOM) elevationZoom = EarthTiles.MAX_ELEVATION_ZOOM;
+			int elevationZoom = GetZoomFromElevation(elevation);
+			if (elevationZoom > EarthTiles.MaxGoogleZoom) elevationZoom = EarthTiles.MaxGoogleZoom;
 			int shapeZoom = (int)Math.Log(delta, 2.0);
-			int final = shapeZoom + elevationZoom;
-			if (final > StaticMapAccessor.MAX_TILE_RES) final = StaticMapAccessor.MAX_TILE_RES;
-			return final;
+			int tileRes = shapeZoom + elevationZoom - 8;
+			if (tileRes > MapWebAccessor.MAX_TILE_RES) tileRes = MapWebAccessor.MAX_TILE_RES;
+			return tileRes;
 		}
 
 		private string CalculateFilename(CombinedMapData mapToUpdate)
@@ -81,18 +87,20 @@ namespace Direct3DLib
 
 		private Image GetImageFromGoogle(CombinedMapData mapToUpdate)
 		{
-			googleAccessor.ZoomLevel = StaticMapAccessor.ConvertDeltaToZoomLevel(mapToUpdate.ShapeDelta);
+			googleAccessor.ZoomLevel = MapWebAccessor.ConvertDeltaToZoomLevel(mapToUpdate.ShapeDelta);
 			googleAccessor.TileResolution = mapToUpdate.TileResolution;
 			LatLong centre = CalculateCentreLatLong(mapToUpdate.BottomLeftPosition, mapToUpdate.ShapeDelta);
-			googleAccessor.CentreLatitude = centre.latitude;
-			googleAccessor.CentreLongitude = centre.longitude;
+			googleAccessor.CentreLatitude = centre.Latitude;
+			googleAccessor.CentreLongitude = centre.Longitude;
 			Image ret = googleAccessor.DownloadImageSet();
 			return ret;
 		}
 
 		public static int GetZoomFromElevation(double elevation)
 		{
-			double zoom = 24.0 - Math.Log(elevation, 2.0);
+			if (elevation <= 0)
+				return EarthTiles.MaxGoogleZoom;
+			double zoom = 25.0 - Math.Log(elevation, 2.0);
 			int z = (int)zoom;
 			return z;
 		}
@@ -100,8 +108,8 @@ namespace Direct3DLib
 		private LatLong CalculateCentreLatLong(LatLong bottomLeft, double delta)
 		{
 			LatLong ret = new LatLong();
-			ret.latitude = bottomLeft.latitude + delta / 2;
-			ret.longitude = bottomLeft.longitude + delta / 2;
+			ret.Latitude = bottomLeft.Latitude + delta / 2;
+			ret.Longitude = bottomLeft.Longitude + delta / 2;
 			return ret;
 		}
 
