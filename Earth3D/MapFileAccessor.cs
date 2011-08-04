@@ -11,7 +11,7 @@ namespace Direct3DLib
 	{
 		public Image GetImage(MapDescriptor descriptor)
 		{
-			string filename = CalculateFilename(descriptor);
+			string filename = descriptor.CalculateFilename();
 			if (File.Exists(filename))
 			{
 				descriptor.MapState = MapDescriptor.MapImageState.Correct;
@@ -21,14 +21,5 @@ namespace Direct3DLib
 			return null;
 		}
 
-		private string CalculateFilename(MapDescriptor descriptor)
-		{
-			string folder = Properties.Settings.Default.MapTextureFolder + Path.DirectorySeparatorChar
-			+ "zoom=" + descriptor.ZoomLevel;
-			if (!Directory.Exists(folder))
-				Directory.CreateDirectory(folder);
-			string filename = folder + Path.DirectorySeparatorChar + descriptor;
-			return filename;
-		}
 	}
 }

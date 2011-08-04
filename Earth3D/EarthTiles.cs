@@ -16,6 +16,7 @@ namespace Direct3DLib
 		private CombinedMapDataFactory mapFactory = CombinedMapDataFactory.Instance;
 		public CombinedMapData[,] currentTiles = new CombinedMapData[TILE_ROWS,TILE_COLUMNS];
 		public bool UseTerrainData { get { return mapFactory.UseTerrainData; } set { mapFactory.UseTerrainData = value; } }
+		public bool AutomaticallyDownloadMaps { get { return mapFactory.AutomaticallyDownloadMaps; } set { mapFactory.AutomaticallyDownloadMaps = value; } }
 		private double delta = 0.0625;
 		public double Delta { get { return delta; } set { delta = value; } }
 		private double previousElevation = -1000;
@@ -48,7 +49,7 @@ namespace Direct3DLib
 		private void InitializeAtGivenLatLongElevation(LatLong pos, double elevation)
 		{
 			mapFactory.Delta = delta;
-			pos = MercatorProjection.CalculateNearestLatLongAtDelta(pos,delta);
+			pos = EarthProjection.CalculateNearestLatLongAtDelta(pos,delta);
 			for (int i = 0; i < TILE_ROWS; i++)
 			{
 				for (int k = 0; k < TILE_COLUMNS; k++)

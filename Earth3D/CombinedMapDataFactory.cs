@@ -8,12 +8,15 @@ namespace Direct3DLib
 {
 	public class CombinedMapDataFactory
 	{
-		public bool UseTerrainData = true;
 
 		private static CombinedMapDataFactory factorySingleton;
 		private ShapeHGTFactory shapeFactory = new ShapeHGTFactory();
-		private MapTextureFactory textureFactory = MapTextureFactory.Instance;
+		private StaticMapFactory textureFactory = StaticMapFactory.Instance;
 		private List<CombinedMapData> previouslyCreatedTerrain = new List<CombinedMapData>();
+		
+		public bool UseTerrainData = true;
+		public bool AutomaticallyDownloadMaps { get { return textureFactory.AutomaticallyDownloadMaps; } set {
+			textureFactory.AutomaticallyDownloadMaps = value; } }
 
 		public double Delta
 		{
@@ -36,7 +39,6 @@ namespace Direct3DLib
 				if (factorySingleton == null)
 				{
 					factorySingleton = new CombinedMapDataFactory();
-					//SetSourceFolders();
 				}
 				return factorySingleton;
 			}
@@ -59,7 +61,7 @@ namespace Direct3DLib
 			CombinedMapData newMap = new CombinedMapData();
 			newMap.ShapeDelta = delta;
 			newMap.BottomLeftPosition = location;
-			newMap.TileResolution = textureFactory.CalculateTileResolution(delta, elevation);
+			newMap.ZoomLevel = EarthProjection.GetZoomFromElevation(elevation);
 			return newMap;
 		}
 
@@ -80,8 +82,13 @@ namespace Direct3DLib
 
 		public void UpdateMapTexture(CombinedMapData mapToUpdate, double elevation)
 		{
-			if(!textureFactory.FactoryBusy)
-				textureFactory.GetMap(mapToUpdate, elevation);
+			int zoomLevel = EarthProjection.GetZoomFromElevation(elevation);
+			if (zoomLevel > EarthTiles.MaxGoogleZoom) zoomLevel = EarthTiles.MaxGoogleZoom;
+			mapToUpdate.ZoomLevel = zoomLevel;
+			int logDelta = (int)Math.Log(mapToUpdate.ShapeDelta, 2.0);
+			mapToUpdate.TextureImage = textureFactory.GetTiledImage(mapToUpdate.BottomLeftPosition, mapToUpdate.ZoomLevel, logDelta);
+			//if(!textureFactory.FactoryBusy)
+			//	textureFactory.GetMap(mapToUpdate, elevation);
 		}
 
 

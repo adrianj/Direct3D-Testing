@@ -4,6 +4,7 @@ using System.Linq;
 using System.Drawing;
 using System.Text;
 
+
 namespace Direct3DLib
 {
 	public class StaticMapFactory
@@ -15,7 +16,10 @@ namespace Direct3DLib
 		{
 			get
 			{
-				if (instance == null) instance = new StaticMapFactory();
+				if (instance == null)
+				{
+					instance = new StaticMapFactory();
+				}
 				return instance;
 			}
 		}
@@ -25,16 +29,29 @@ namespace Direct3DLib
 		private MapFileAccessor fileAccessor = new MapFileAccessor();
 		private NullImage nullImage = new NullImage();
 
+		private int initialZoomLevel = 0;
+
 		private string nullString = "";
+		private bool automaticallyDownloadMaps = false;
+		public bool AutomaticallyDownloadMaps
+		{
+			get { return automaticallyDownloadMaps; }
+			set { automaticallyDownloadMaps = value; }
+		}
 
 		public Image GetTiledImage(LatLong bottomLeftLocation, int desiredZoomLevel, int logDelta)
 		{
+			initialZoomLevel = desiredZoomLevel;
 			nullString = "bottomLeft: " + bottomLeftLocation + "\ndesiredZoom: " + desiredZoomLevel;
-			return RecurseivelyGetTiledImage(bottomLeftLocation, desiredZoomLevel, logDelta);
+			return RecursivelyGetTiledImage(bottomLeftLocation, desiredZoomLevel, logDelta);
 		}
 
-		public Image RecurseivelyGetTiledImage(LatLong bottomLeftLocation, int desiredZoomLevel, int logDelta)
+		private Image RecursivelyGetTiledImage(LatLong bottomLeftLocation, int desiredZoomLevel, int logDelta)
 		{
+			if (desiredZoomLevel < 0)
+			{
+				return nullImage.ImageClone;
+			}
 			int minZoomLevel = CalculateZoomFromLogDelta(logDelta);
 			if (minZoomLevel == desiredZoomLevel)
 			{
@@ -53,11 +70,14 @@ namespace Direct3DLib
 
 		private Image CropFromLargerImage(LatLong bottomLeftLocation, int desiredZoomLevel, int logDelta)
 		{
+			int MinTextureSize = 8;
 			double delta = Math.Pow(2.0,logDelta+1);
-			LatLong newLocation = MercatorProjection.CalculateNearestLatLongAtDelta(bottomLeftLocation, delta,false);
-			Image image = RecurseivelyGetTiledImage(newLocation, desiredZoomLevel, logDelta+1);
+			LatLong newLocation = EarthProjection.CalculateNearestLatLongAtDelta(bottomLeftLocation, delta,false);
+			Image image = RecursivelyGetTiledImage(newLocation, desiredZoomLevel, logDelta+1);
 			float width = image.Width / 2;
+			if (width < MinTextureSize) width = MinTextureSize;
 			float height = image.Height / 2;
+			if (height < MinTextureSize) height = MinTextureSize;
 			float yOffset = height;
 			if (bottomLeftLocation.Latitude > newLocation.Latitude) yOffset = 0;
 			float xOffset = 0;
@@ -76,7 +96,7 @@ namespace Direct3DLib
 				for (int k = 0; k < nTiles; k++)
 				{
 					LatLong tileLocation = new LatLong(bottomLeftLocation.Latitude + delta * i, bottomLeftLocation.Longitude + delta * k);
-					imageTiles[(nTiles - i - 1) * nTiles + k] = RecurseivelyGetTiledImage(tileLocation,desiredZoomLevel,newLogDelta);
+					imageTiles[(nTiles - i - 1) * nTiles + k] = RecursivelyGetTiledImage(tileLocation,desiredZoomLevel,newLogDelta);
 				}
 			}
 			return ImageConverter.StitchImages(imageTiles,nTiles,nTiles);
@@ -91,13 +111,20 @@ namespace Direct3DLib
 			Image image = GetImageFromFile(d);
 			if (image == null)
 			{
-				return webAccessor.GetImage(d);
-				//return CropFromLargerImage(bottomLeftLocation, desiredZoomLevel-1, logDelta);
+				FetchImageFromWeb(d);
+				return RecursivelyGetTiledImage(bottomLeftLocation, desiredZoomLevel - 1, logDelta);
 			}
 			return image;
 		}
 
-
+		private void FetchImageFromWeb(MapDescriptor descriptor)
+		{
+			if (descriptor.ZoomLevel == initialZoomLevel)
+			{
+				if (AutomaticallyDownloadMaps)
+					webAccessor.FetchAndSaveImageInNewThread(descriptor);
+			}
+		}
 
 		private int CalculateZoomFromLogDelta(int logDelta)
 		{
@@ -123,14 +150,14 @@ namespace Direct3DLib
 			description.MapState = MapDescriptor.MapImageState.Partial;
 			Image image = fileAccessor.GetImage(description);
 			if (image == null) return null;
-			RectangleF bounds = MercatorProjection.CalculateImageBoundsAtLatitude(image.Width,image.Height,description.Latitude);
+			RectangleF bounds = EarthProjection.CalculateImageBoundsAtLatitude(image.Width,image.Height,description.Latitude);
 			image = ImageConverter.CropImage(image, bounds);
 			return image;
 		}
 
 	}
 
-	public class MercatorProjection
+	public class EarthProjection
 	{
 		private static double XScale = 256.0 / 360.0;
 
@@ -138,6 +165,7 @@ namespace Direct3DLib
 		{
 			double sec = 1 / Math.Cos(Math.Abs(latitude) * Math.PI / 180.0);
 			double ys = XScale * sec;
+			if (ys > 1) Console.WriteLine("Extreme Latitude: " + latitude + ", " + ys);
 			return ys;
 		}
 
@@ -158,10 +186,12 @@ namespace Direct3DLib
 			double top = Math.Floor((h - height) / 2.0);
 			return new RectangleF((float)left, (float)top, (float)width, (float)height);
 		}
+
 		public static LatLong CalculateNearestLatLongAtDelta(LatLong latLong, double delta)
 		{
 			return CalculateNearestLatLongAtDelta(latLong, delta, true);
 		}
+
 		public static LatLong CalculateNearestLatLongAtDelta(LatLong latLong, double delta, bool roundToNearest)
 		{
 			double dLat = latLong.Latitude / delta;
@@ -175,6 +205,15 @@ namespace Direct3DLib
 			long lng = Convert.ToInt64(dLng);
 			LatLong ret = new LatLong((double)lat * delta, (double)lng * delta);
 			return ret;
+		}
+
+		public static int GetZoomFromElevation(double elevation)
+		{
+			if (elevation <= 0)
+				return EarthTiles.MaxGoogleZoom;
+			double zoom = 25.0 - Math.Log(elevation, 2.0);
+			int z = (int)zoom;
+			return z;
 		}
 	}
 }

@@ -110,6 +110,12 @@ namespace Direct3DLib
 				SetCameraLocation(earthTiles.ConvertLatLongElevationToCameraLocation(CurrentLatLong, value));
 			}
 		}
+		public bool AutomaticallyDownloadMaps
+		{
+			get { return earthTiles.AutomaticallyDownloadMaps; }
+			set { earthTiles.AutomaticallyDownloadMaps = value; }
+		}
+
 		
 
 		private string[] GetTextureFilenames()
@@ -167,7 +173,7 @@ namespace Direct3DLib
 				if (previousCameraLocation.X != CameraLocation.X || previousCameraLocation.Z != CameraLocation.Z || previousCameraLocation.Y != CameraLocation.Y)
 				{
 					LatLong latLong = earthTiles.ConvertCameraLocationToLatLong(CameraLocation);
-					latLong = MercatorProjection.CalculateNearestLatLongAtDelta(latLong, earthTiles.Delta);
+					latLong = EarthProjection.CalculateNearestLatLongAtDelta(latLong, earthTiles.Delta);
 					earthTiles.CameraLocationChanged(CameraLocation);
                     //debugString += earthTiles.currentTiles[0, 0];
 				}

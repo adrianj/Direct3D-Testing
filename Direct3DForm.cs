@@ -14,9 +14,14 @@ namespace Direct3DLib
 			"Make sure the Direct3DForm.Render() method calls the Render() methods of the Direct3DControl"
 			); }
 
+		public static void Run(Direct3DForm form)
+		{
+			SlimDX.Windows.MessagePump.Run(form, form.Render);
+		}
 
         private void InitializeComponent()
         {
+			/*
             this.SuspendLayout();
             // 
             // Direct3DForm
@@ -25,7 +30,7 @@ namespace Direct3DLib
             this.KeyPreview = true;
             this.Name = "Direct3DForm";
             this.ResumeLayout(false);
-
+			 */
         }
     }
 }

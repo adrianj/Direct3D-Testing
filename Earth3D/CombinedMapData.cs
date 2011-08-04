@@ -56,7 +56,7 @@ namespace Direct3DLib
 		private double shapeDelta = 0.125;
 		public double ShapeDelta { get { return shapeDelta; } set { shapeDelta = value; } }
 		private int tileRes = -2;
-		public int TileResolution { get { return tileRes; } set { tileRes = value; } }
+		public int ZoomLevel { get { return tileRes; } set { tileRes = value; } }
 		private Shape terrainShape;
 		public Shape TerrainShape
 		{
@@ -91,7 +91,7 @@ namespace Direct3DLib
 		{
 			if (!other.ShapeDelta.Equals(this.ShapeDelta)) return false;
 			if (!other.BottomLeftPosition.Equals(this.bottomLeft)) return false;
-			if (other.TileResolution != this.TileResolution) return false;
+			if (other.ZoomLevel != this.ZoomLevel) return false;
 			if (other.terrainShape != this.terrainShape) return false;
 			if (other.image != this.image) return false;
 			return true;
@@ -109,7 +109,7 @@ namespace Direct3DLib
 		{
 			if (other.shapeDelta != this.shapeDelta) return false;
 			if (!other.BottomLeftPosition.Equals(this.bottomLeft)) return false;
-			if (other.TileResolution != this.TileResolution) return false;
+			if (other.ZoomLevel != this.ZoomLevel) return false;
 			if (other.TextureImage == null) return false;
 			return true;
 		}

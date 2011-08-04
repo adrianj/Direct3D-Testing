@@ -33,7 +33,7 @@
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{C19EF7DF-2F9D-4D4C-965D-AD714DCBB323}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Direct3DLib</RootNamespace>
     <AssemblyName>Direct3DLib</AssemblyName>
@@ -240,7 +240,6 @@
     <Compile Include="Earth3D\Float3.cs" />
     <Compile Include="Earth3D\LatLong.cs" />
     <Compile Include="Earth3D\MapFileAccessor.cs" />
-    <Compile Include="Earth3D\MapTextureFactory.cs" />
     <Compile Include="Earth3D\StaticMapFactory.cs" />
     <Compile Include="GenericTypeConverter.cs" />
     <Compile Include="ImageConverter.cs" />
@@ -351,9 +350,9 @@
     <Content Include="textures\flower.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="textures\NoTexture.png">
+    <EmbeddedResource Include="textures\NoTexture.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </EmbeddedResource>
     <Content Include="textures\woomera_12.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

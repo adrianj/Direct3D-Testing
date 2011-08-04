@@ -51,8 +51,8 @@
 			this.engine.TabIndex = 0;
 			this.engine.TextureImageFilenames = new string[0];
 			this.engine.Tilt = -1.570796F;
-			this.engine.ZClipFar = 100000F;
-			this.engine.ZClipNear = 0.01F;
+			this.engine.ZClipFar = 1000000F;
+			this.engine.ZClipNear = 5F;
 			this.engine.Zoom = 5F;
 			this.engine.CameraChanged += new System.EventHandler(this.engine_CameraChanged);
 			// 

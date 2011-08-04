@@ -45,18 +45,6 @@ namespace Direct3DLib
 			return texture;
 		}
 
-		private static string WriteImageToTempFile(Image image)
-		{
-			string filename = Path.GetRandomFileName();
-			image.Save(filename);
-			return filename;
-		}
-
-		private static void DeleteTempFile(string filename)
-		{
-			if (File.Exists(filename))
-				File.Delete(filename);
-		}
 
 		public static Texture2D ConvertImageFileToTexture2D(Device device, string filename)
 		{
@@ -113,11 +101,16 @@ namespace Direct3DLib
 
 		public static Image CropImage(Image image, RectangleF rect)
 		{
+			if (image.Width < 2 || image.Height < 2) throw new ArgumentException("Cannot crop image to less than 2x2 pixels");
 			Bitmap bmp = new Bitmap(image);
 			if (rect.Width > image.Width) rect.Width = image.Width;
-			if (rect.X < 0) rect.X = 0;
 			if (rect.Height > image.Height) rect.Height = image.Height;
+			if (rect.Width < 2) rect.Width = 2;
+			if (rect.Height < 2) rect.Width = 2;
+			if (rect.X < 0) rect.X = 0;
+			if (rect.X + rect.Width > bmp.Width) rect.X = bmp.Width - rect.Width;
 			if (rect.Y < 0) rect.Y = 0;
+			if (rect.Y + rect.Height > bmp.Height) rect.Y = bmp.Height - rect.Height;
 			return bmp.Clone(rect, bmp.PixelFormat);
 		}
 	}
