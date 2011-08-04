@@ -51,7 +51,7 @@
 			this.direct3DControl1.Size = new System.Drawing.Size(611, 470);
 			this.direct3DControl1.TabIndex = 0;
 			this.direct3DControl1.CameraLocation = new SlimDX.Vector3(-2F, 2F, -2F);
-			this.direct3DControl1.TextureImageFilenames = new string[] {
+			/*this.direct3DControl1.TextureImageFilenames = new string[] {
         "textures\\NoTexture.png",
         "textures\\NoTexture.png",
         "textures\\NoTexture.png",
@@ -68,6 +68,7 @@
         "textures\\NoTexture.png",
         "textures\\NoTexture.png",
         "textures\\NoTexture.png"};
+			 */
 			this.direct3DControl1.Tilt = -0.7F;
 			this.direct3DControl1.ZClipFar = 100F;
 			this.direct3DControl1.ZClipNear = 0.1F;

@@ -25,7 +25,7 @@ namespace Direct3DLib.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("g")]
+        [global::System.Configuration.DefaultSettingValueAttribute("An Unlikely folder")]
         public string MapTextureFolder {
             get {
                 return ((string)(this["MapTextureFolder"]));
@@ -37,7 +37,7 @@ namespace Direct3DLib.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("g")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Another Unlikely folder")]
         public string MapTerrainFolder {
             get {
                 return ((string)(this["MapTerrainFolder"]));

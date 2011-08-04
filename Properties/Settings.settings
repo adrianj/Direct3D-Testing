@@ -3,10 +3,10 @@
   <Profiles />
   <Settings>
     <Setting Name="MapTextureFolder" Type="System.String" Scope="User">
-      <Value Profile="(Default)">g</Value>
+      <Value Profile="(Default)">An Unlikely folder</Value>
     </Setting>
     <Setting Name="MapTerrainFolder" Type="System.String" Scope="User">
-      <Value Profile="(Default)">g</Value>
+      <Value Profile="(Default)">Another Unlikely folder</Value>
     </Setting>
   </Settings>
 </SettingsFile>

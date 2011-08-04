@@ -248,6 +248,7 @@ namespace Direct3DLib
 		{
 			if (this.isInitialized)
 			{
+				EarthControlOptionsForm.CheckGlobalSettings();
 				earthTiles.MapChanged += (o, ev) => { engine.Engine.UpdateShapes(); };
 				earthTiles.InitializeAtCameraLocation(CameraLocation);
 			}

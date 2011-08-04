@@ -14,6 +14,7 @@ namespace Direct3DLib
 	public class ImageConverter
 	{
 		private static Texture2D NullTexture;
+		private static NullImage nullImage = new NullImage(new Size(256,256),Color.WhiteSmoke);
 
 		public static Image ConvertTexture2DToImage(Device device,Texture2D texture)
 		{
@@ -49,40 +50,26 @@ namespace Direct3DLib
 		public static Texture2D ConvertImageFileToTexture2D(Device device, string filename)
 		{
 			if (filename == null || filename.Length < 1 || !File.Exists(filename))
-				return GetNullTexture(device);
+				return GetErrorTexture(device,"File Not Found:\n"+filename);
 			Texture2D texture = Texture2D.FromFile(device, filename);
 			return texture;
 		}
 
-		public static Texture2D GetNullTexture(Device device) 
+		public static Texture2D GetNullTexture(Device device)
 		{
 			if (NullTexture == null)
 			{
-				if (File.Exists(ShaderHelper.DEFAULT_IMAGE_FILENAME))
-					NullTexture = Texture2D.FromFile(device, ShaderHelper.DEFAULT_IMAGE_FILENAME);
-				else
-					NullTexture = CreateEmptyTexture(device, 1, 1);
+				NullTexture = GetErrorTexture(device, "Null Texture");
 			}
 			return NullTexture;
 		}
 
-		public static Texture2D CreateEmptyTexture(Device device, int width, int height)
+		public static Texture2D GetErrorTexture(Device device, string errorMessage)
 		{
-			Texture2DDescription desc = new Texture2DDescription()
-			{
-				Width = width,
-				Height = height,
-				MipLevels = 1,
-				ArraySize = 1,
-				Usage = ResourceUsage.Dynamic,
-				CpuAccessFlags = SlimDX.Direct3D10.CpuAccessFlags.Write,
-				BindFlags = SlimDX.Direct3D10.BindFlags.ShaderResource,
-				SampleDescription = new SlimDX.DXGI.SampleDescription(1, 0),
-				Format = SlimDX.DXGI.Format.R8G8B8A8_UNorm,
-			};
-			Texture2D texture = new Texture2D(device, desc);
-			return texture;
+			nullImage.Text = errorMessage;
+			return ConvertImageToTexture2D(device, nullImage.ImageClone);
 		}
+
 
 		public static Image StitchImages(Image[] images, int tileWidth, int tileHeight)
 		{
@@ -101,12 +88,12 @@ namespace Direct3DLib
 
 		public static Image CropImage(Image image, RectangleF rect)
 		{
-			if (image.Width < 2 || image.Height < 2) throw new ArgumentException("Cannot crop image to less than 2x2 pixels");
+			if (image.Width < 1 || image.Height < 1) throw new ArgumentException("Cannot crop image to less than 1x1 pixels");
 			Bitmap bmp = new Bitmap(image);
 			if (rect.Width > image.Width) rect.Width = image.Width;
 			if (rect.Height > image.Height) rect.Height = image.Height;
-			if (rect.Width < 2) rect.Width = 2;
-			if (rect.Height < 2) rect.Width = 2;
+			if (rect.Width < 1) rect.Width = 1;
+			if (rect.Height < 1) rect.Width = 1;
 			if (rect.X < 0) rect.X = 0;
 			if (rect.X + rect.Width > bmp.Width) rect.X = bmp.Width - rect.Width;
 			if (rect.Y < 0) rect.Y = 0;

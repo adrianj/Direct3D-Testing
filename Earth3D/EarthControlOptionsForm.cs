@@ -104,5 +104,25 @@ namespace Direct3DLib
 		{
 			MessageBox.Show("Error setting property\n" + ex);
 		}
+
+		public static void CheckGlobalSettings()
+		{
+			if (!Directory.Exists(Properties.Settings.Default.MapTerrainFolder))
+			{
+				FolderBrowserDialog fbd = new FolderBrowserDialog();
+				fbd.Description = "Select the folder with GIS terrain data (*.hgt files)";
+				fbd.ShowDialog();
+				Properties.Settings.Default.MapTerrainFolder = fbd.SelectedPath;
+				Properties.Settings.Default.Save();
+			}
+			if (!Directory.Exists(Properties.Settings.Default.MapTextureFolder))
+			{
+				FolderBrowserDialog fbd = new FolderBrowserDialog();
+				fbd.Description = "Select the folder with downloaded Google Maps.";
+				fbd.ShowDialog();
+				Properties.Settings.Default.MapTextureFolder = fbd.SelectedPath;
+				Properties.Settings.Default.Save();
+			}
+		}
 	}
 }

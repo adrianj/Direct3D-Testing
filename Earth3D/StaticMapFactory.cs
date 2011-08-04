@@ -25,6 +25,7 @@ namespace Direct3DLib
 		}
 		#endregion
 
+		public const int MIN_TEXTURE_SIZE = 16;
 		private MapWebAccessor webAccessor = new MapWebAccessor();
 		private MapFileAccessor fileAccessor = new MapFileAccessor();
 		private NullImage nullImage = new NullImage();
@@ -70,14 +71,13 @@ namespace Direct3DLib
 
 		private Image CropFromLargerImage(LatLong bottomLeftLocation, int desiredZoomLevel, int logDelta)
 		{
-			int MinTextureSize = 8;
 			double delta = Math.Pow(2.0,logDelta+1);
 			LatLong newLocation = EarthProjection.CalculateNearestLatLongAtDelta(bottomLeftLocation, delta,false);
 			Image image = RecursivelyGetTiledImage(newLocation, desiredZoomLevel, logDelta+1);
 			float width = image.Width / 2;
-			if (width < MinTextureSize) width = MinTextureSize;
+			if (width < MIN_TEXTURE_SIZE) width = MIN_TEXTURE_SIZE;
 			float height = image.Height / 2;
-			if (height < MinTextureSize) height = MinTextureSize;
+			if (height < MIN_TEXTURE_SIZE) height = MIN_TEXTURE_SIZE;
 			float yOffset = height;
 			if (bottomLeftLocation.Latitude > newLocation.Latitude) yOffset = 0;
 			float xOffset = 0;

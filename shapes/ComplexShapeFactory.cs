@@ -21,7 +21,10 @@ namespace Direct3DLib
 			{ComplexShapeFactory.CreateFromUnknownFile,"unknown"},
 			{ComplexShapeFactory.CreateFromDxfFile,".dxf"},
 			{ShapeHGTFactory.CreateFromFile,".hgt"},
-			{ShapeSTLFactory.CreateFromFile,".stl"}
+			{ShapeImageFactory.CreateFromFile,".jpg"},
+			{ShapeImageFactory.CreateFromFile,".png"},
+			{ShapeImageFactory.CreateFromFile,".bmp"},
+			{ShapeImageFactory.CreateFromFile,".jpeg"}
 		};
 
 		public static string SupportedFileTypeFilter
@@ -73,15 +76,6 @@ namespace Direct3DLib
 
 		private static Shape CreateFromUnknownFile(string filename)
 		{
-			return null;
-		}
-
-		private static Shape CreateFromKnownFileType(SupportedFileType type, string filename)
-		{
-			if (type == SupportedFileType.Unknown) return null;
-			if (type == SupportedFileType.STL) return ShapeSTLFactory.CreateFromFile(filename);
-			if (type == SupportedFileType.DXF) return ShapeSTLFactory.CreateFromFile(filename);
-			if (type == SupportedFileType.HGT) return ShapeSTLFactory.CreateFromFile(filename);
 			return null;
 		}
 

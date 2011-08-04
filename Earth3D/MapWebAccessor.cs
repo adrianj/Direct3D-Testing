@@ -197,7 +197,6 @@ namespace Direct3DLib
 
 		public string CalculateFilename()
 		{
-			CheckTextureFolder();
 			string folder = Properties.Settings.Default.MapTextureFolder + Path.DirectorySeparatorChar
 			+ "zoom=" + this.ZoomLevel;
 			if (!Directory.Exists(folder))
@@ -206,23 +205,6 @@ namespace Direct3DLib
 			return filename;
 		}
 
-		private void CheckTextureFolder()
-		{
-			FolderBrowserDialog fbd = new FolderBrowserDialog();
-			fbd.Description = "Please select the folder containing downloaded google maps.";
-			int attempts = 3;
-			for (int i = 0; i < attempts; i++)
-			{
-				if (!System.IO.Directory.Exists(Properties.Settings.Default.MapTextureFolder))
-				{
-					fbd.ShowDialog();
-					Properties.Settings.Default.MapTextureFolder = fbd.SelectedPath;
-					Properties.Settings.Default.Save();
-				}
-				else
-					break;
-			}
-		}
 
 		private double Wrap(double value, double nRange, double pRange)
 		{
