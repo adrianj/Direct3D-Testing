@@ -64,7 +64,7 @@ namespace Direct3DLib
 		public float KeyboardMovementSpeed { get { return engine.KeyboardMovementSpeed; } set { engine.KeyboardMovementSpeed = value; } }
 
 		public object SelectedObject { get { return engine.SelectedObject; } set { engine.SelectedObject = value; } }
-		public List<IRenderable> ShapeList { get { return engine.Engine.ShapeList; } }
+		public List<Shape> ShapeList { get { return engine.Engine.ShapeList; } }
 		public double RefreshRate { get { return engine.Engine.RefreshRate; } }
 
 		#endregion
@@ -93,7 +93,12 @@ namespace Direct3DLib
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public LatLong CurrentLatLong
 		{
-			get { return new LatLong(currentLat,currentLong); }
+			get
+			{
+				LatLong ll = earthTiles.ConvertCameraLocationToLatLong(CameraLocation);
+				currentLat = ll.Latitude; currentLong = ll.Longitude;
+				return new LatLong(currentLat, currentLong);
+			}
 			set
 			{
 				currentLat = value.Latitude; currentLong = value.Longitude;
@@ -103,7 +108,7 @@ namespace Direct3DLib
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public double CurrentElevation
 		{
-			get { return currentEle; }
+			get { currentEle = CameraLocation.Y; return currentEle; }
 			set
 			{
 				currentEle = value;
@@ -115,8 +120,19 @@ namespace Direct3DLib
 			get { return earthTiles.AutomaticallyDownloadMaps; }
 			set { earthTiles.AutomaticallyDownloadMaps = value; }
 		}
-
-		
+		public bool FixTerrain { get { return earthTiles.FixTerrain; } set { earthTiles.FixTerrain = value; } }
+		public bool FixZoom { get { return earthTiles.FixZoom; } set { earthTiles.FixZoom = value; } }
+		private bool UseTerrainData
+		{
+			get { return earthTiles.UseTerrainData; }
+			set
+			{
+				Properties.Settings.Default.UseGISData = value;
+				Properties.Settings.Default.Save(); 
+				earthTiles.UseTerrainData = value;
+			}
+		}
+	
 
 		private string[] GetTextureFilenames()
 		{
@@ -186,7 +202,7 @@ namespace Direct3DLib
 		{
 			if (SelectedObject != null)
 			{
-				IRenderable shape = SelectedObject as IRenderable;
+				Shape shape = SelectedObject as Shape;
 				Matrix wvp = shape.World * engine.CameraView * engine.CameraProjection;
 				BoundingBox newBB = shape.MaxBoundingBox;
 				newBB = Direct3DEngine.BoundingBoxMultiplyMatrix(newBB, wvp);
@@ -249,6 +265,7 @@ namespace Direct3DLib
 			if (this.isInitialized)
 			{
 				EarthControlOptionsForm.CheckGlobalSettings();
+				UseTerrainData = Properties.Settings.Default.UseGISData;
 				earthTiles.MapChanged += (o, ev) => { engine.Engine.UpdateShapes(); };
 				earthTiles.InitializeAtCameraLocation(CameraLocation);
 			}
@@ -262,21 +279,38 @@ namespace Direct3DLib
 
 		private void UpdateControlFromOptions()
 		{
-			CurrentLatLong = optionsForm.GotoLatLong;
-			CurrentElevation = optionsForm.GotoElevation;
 			EarthTiles.MaxGoogleZoom = optionsForm.MaxGoogleZoom;
+			earthTiles.Delta = optionsForm.Delta;
+			FixTerrain = optionsForm.FixTerrain;
+			KeyboardMovementSpeed = optionsForm.KeyboardSpeed;
+			if (UseTerrainData != optionsForm.UseGIS)
+			{
+				UseTerrainData = optionsForm.UseGIS;
+				EarthControlOptionsForm.UseGisCheckChanged();
+			}
+			FixZoom = optionsForm.FixZoom;
+			AutomaticallyDownloadMaps = optionsForm.AutomaticallyDownloadMaps;
 			Properties.Settings.Default.MapTerrainFolder = optionsForm.TerrainFolder;
 			Properties.Settings.Default.MapTextureFolder = optionsForm.TextureFolder;
 			Properties.Settings.Default.Save();
+			CurrentLatLong = optionsForm.GotoLatLong;
+			CurrentElevation = optionsForm.GotoElevation;
 			UpdateOptionsFromControl();
 		}
 		private void UpdateOptionsFromControl()
 		{
+			Console.WriteLine("" + CurrentLatLong);
 			optionsForm.GotoLatLong = CurrentLatLong;
+			optionsForm.AutomaticallyDownloadMaps = AutomaticallyDownloadMaps;
+			optionsForm.UseGIS = UseTerrainData;
+			optionsForm.FixZoom = FixZoom;
+			optionsForm.KeyboardSpeed = (int)KeyboardMovementSpeed;
 			optionsForm.GotoElevation = CurrentElevation;
 			optionsForm.MaxGoogleZoom = EarthTiles.MaxGoogleZoom;
+			optionsForm.FixTerrain = FixTerrain;
 			optionsForm.TerrainFolder = Properties.Settings.Default.MapTerrainFolder;
 			optionsForm.TextureFolder = Properties.Settings.Default.MapTextureFolder;
+			optionsForm.Delta = earthTiles.Delta;
 		}
 	}
 }

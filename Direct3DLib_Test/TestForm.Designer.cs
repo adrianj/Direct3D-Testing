@@ -1,4 +1,4 @@
-﻿namespace Direct3DLib
+﻿namespace Direct3DLib_Test
 {
     partial class TestForm
     {
@@ -160,23 +160,26 @@
 			this.earth3DControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
 						| System.Windows.Forms.AnchorStyles.Left)
 						| System.Windows.Forms.AnchorStyles.Right)));
+			this.earth3DControl.AutomaticallyDownloadMaps = false;
 			this.earth3DControl.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
 			this.earth3DControl.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 			this.earth3DControl.BothMouseFunction = Direct3DLib.Direct3DControl.MouseOption.CameraTranslateXZ;
 			this.earth3DControl.CameraPan = 1.5F;
-			this.earth3DControl.CameraTilt = -2.570796F;
+			this.earth3DControl.CameraTilt = -2.870796F;
 			this.earth3DControl.CurrentElevation = 12000D;
-			latLong1.Latitude = -36.82D;
-			latLong1.Longitude = 174.795D;
+			latLong1.Latitude = -37D;
+			latLong1.Longitude = 174.8D;
 			this.earth3DControl.CurrentLatLong = latLong1;
+			this.earth3DControl.FixTerrain = false;
+			this.earth3DControl.FixZoom = false;
 			this.earth3DControl.KeyboardMovementSpeed = 5000F;
 			this.earth3DControl.LeftMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Select;
-			this.earth3DControl.LightAmbientIntensity = 0.7F;
+			this.earth3DControl.LightAmbientIntensity = 0.3F;
 			float31.X = 0F;
-			float31.Y = 1F;
+			float31.Y = 0.5F;
 			float31.Z = 1F;
 			this.earth3DControl.LightDirection = float31;
-			this.earth3DControl.LightDirectionalIntensity = 0.3F;
+			this.earth3DControl.LightDirectionalIntensity = 0.7F;
 			this.earth3DControl.Location = new System.Drawing.Point(12, 214);
 			this.earth3DControl.MouseMovementSpeed = 5000F;
 			this.earth3DControl.Name = "earth3DControl";
@@ -226,6 +229,6 @@
 		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.Button button1;
 		private System.Windows.Forms.Button button2;
-		private Earth3DControl earth3DControl;
+		private Direct3DLib.Earth3DControl earth3DControl;
     }
 }

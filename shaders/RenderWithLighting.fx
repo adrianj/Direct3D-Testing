@@ -35,8 +35,8 @@ Texture2D <float4> Texture_15;
 SamplerState TextureSampler
 {
     Filter = MIN_MAG_MIP_LINEAR;
-    AddressU = Wrap;
-    AddressV = Wrap;
+    AddressU = Mirror;
+    AddressV = Mirror;
 };
  
 struct PS_IN
@@ -63,7 +63,6 @@ PS_IN VS(float4 inPos : POSITION, float4 inNorm : NORMAL, float4 inColor : COLOR
 {
 	PS_IN output = (PS_IN)0;
 	output.pos = TransformPosition(inPos);
-	//output.norm = TransformNormal(inNorm);
 	output.norm = inNorm;
 	output.col = inColor;
 	
@@ -72,7 +71,8 @@ PS_IN VS(float4 inPos : POSITION, float4 inNorm : NORMAL, float4 inColor : COLOR
 
 float CalculateIntensity(float4 inNorm)
 {
-	// Added the +1 so that normals kind of behind the object also get some light.
+	if(AmbientIntensity >= 1.0 || DirectionalIntensity <= 0.0)
+		return 1.0;
 	float dotProd = dot((float3)inNorm,(float3)LightDir);
 	float directionalIntensity = dotProd * DirectionalIntensity;
 	return saturate(AmbientIntensity + directionalIntensity);

@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.ComponentModel;
 using SlimDX;
 using SlimDX.Direct3D10;
+using SlimDX.D3DCompiler;
 using SlimDX.DXGI;
 using Device = SlimDX.Direct3D10.Device;
 using Vector3 = SlimDX.Vector3;
@@ -36,8 +37,9 @@ namespace Direct3DLib
         #region Dispose Method
         public void Dispose()
         {
-			foreach (IRenderable s in shapeList) s.Dispose();
+			foreach (Shape s in shapeList) s.Dispose();
 			shapeList.Clear();
+			if (shaderSignature != null) shaderSignature.Dispose();
 			if (shaderEffect != null) shaderEffect.Dispose();
 			if (shaderHelper != null) shaderHelper.Dispose();
             if(device != null) device.Dispose();
@@ -70,8 +72,8 @@ namespace Direct3DLib
 			set { shaderHelper.ConstantBufferSet.LightAmbientIntensity = value; }
 		}
 
-		private List<IRenderable> shapeList = new List<IRenderable>();
-		public List<IRenderable> ShapeList { get { return shapeList; } set { shapeList = value; } }
+		private List<Shape> shapeList = new List<Shape>();
+		public List<Shape> ShapeList { get { return shapeList; } set { shapeList = value; } }
 
 		private long prevTick1 = 100;
 		private long prevTick2 = 99;
@@ -89,7 +91,7 @@ namespace Direct3DLib
 				{
 					imageFilenames = new string[ShaderHelper.MAX_TEXTURES];
 					for (int i = 0; i < ShaderHelper.MAX_TEXTURES; i++)
-						imageFilenames[i] = ShaderHelper.DEFAULT_IMAGE_FILENAME;
+						imageFilenames[i] = "";
 				}
 				return imageFilenames;
 			}
@@ -109,6 +111,7 @@ namespace Direct3DLib
         private DepthStencilView renderDepth;
         private Viewport viewPort;
 		private ShaderHelper shaderHelper = new ShaderHelper();
+		private ShaderSignature shaderSignature;
 		private Effect shaderEffect;
 
 		#endregion
@@ -116,16 +119,16 @@ namespace Direct3DLib
 
 		public void UpdateShapes()
 		{
-			foreach (IRenderable s in shapeList)
-				s.Update(device,shaderEffect);
+			foreach (Shape s in shapeList)
+				s.Update(device, shaderSignature);
 		}
 
-        public IRenderable PickObjectAt(Point screenLocation)
+		public Shape PickObjectAt(Point screenLocation)
         {
 			Ray ray = GetRayFromScreenPoint(screenLocation);
-            IRenderable ret = null;
+			Shape ret = null;
             double minZ = float.MaxValue;
-            foreach (IRenderable s in shapeList)
+			foreach (Shape s in shapeList)
             {
                 if (!s.CanPick) continue;
                 float dist = 0;
@@ -176,37 +179,42 @@ namespace Direct3DLib
 		public void InitializeDevice()
         {
             isInitialized = false;
-            try
-            {
-                // Declare and create the Device and SwapChain.
-                var desc = new SwapChainDescription()
-                {
-                    BufferCount = 1,
-                    ModeDescription = new ModeDescription(mParent.ClientSize.Width, mParent.ClientSize.Height, new Rational(60, 1), Format.R8G8B8A8_UNorm),
-                    IsWindowed = true,
-                    OutputHandle = mParent.Handle,
-                    SampleDescription = new SampleDescription(1, 0),
-                    SwapEffect = SwapEffect.Discard,
-                    Usage = Usage.RenderTargetOutput
-                };
-                Factory fact = new Factory();
-                Device.CreateWithSwapChain(fact.GetAdapter(0), DriverType.Hardware, DeviceCreationFlags.None, desc, out device, out swapChain);
-                Device context = device;
+			try
+			{
+				// Declare and create the Device and SwapChain.
+				var desc = new SwapChainDescription()
+				{
+					BufferCount = 1,
+					ModeDescription = new ModeDescription(mParent.ClientSize.Width, mParent.ClientSize.Height, new Rational(60, 1), Format.R8G8B8A8_UNorm),
+					IsWindowed = true,
+					OutputHandle = mParent.Handle,
+					SampleDescription = new SampleDescription(1, 0),
+					SwapEffect = SwapEffect.Discard,
+					Usage = Usage.RenderTargetOutput
+				};
+				Factory fact = new Factory();
+				Device.CreateWithSwapChain(fact.GetAdapter(0), DriverType.Hardware, DeviceCreationFlags.None, desc, out device, out swapChain);
+				Device context = device;
 
-				shaderEffect = Effect.FromString(device, Properties.Resources.RenderWithLighting, "fx_4_0");
-				shaderHelper.Initialize(device,shaderEffect);
+				shaderEffect = ShaderHelper.GetEffect(device);
+				//Effect.FromString(device, Properties.Resources.RenderWithLighting, "fx_4_0");
+				shaderHelper.Initialize(device, shaderEffect);
+				shaderSignature = shaderEffect.GetTechniqueByIndex(0).GetPassByIndex(0).Description.Signature;
 
-                // Scale the buffers appropriately to the size of the parent control.
-                isInitialized = true;
-                ResizeBuffers();
+				// Scale the buffers appropriately to the size of the parent control.
+				isInitialized = true;
+				ResizeBuffers();
 
 				for (int i = 0; i < Math.Min(imageFilenames.Length, ShaderHelper.MAX_TEXTURES); i++)
 					shaderHelper.TextureSet[i].TextureImage = ImageConverter.ConvertImageFileToTexture2D(device, imageFilenames[i]);
 
 				UpdateShapes();
-            }
-            catch (Direct3D10Exception ex) { MessageBox.Show("" + ex.Message + "\n\n" + ex.ResultCode.Code.ToString("X")
-				+"\n\n"+ex.StackTrace); return; }
+			}
+			catch (Direct3D10Exception ex)
+			{
+				MessageBox.Show("" + ex.Message + "\n\n" + ex.ResultCode.Code.ToString("X")
+					+ "\n\n" + ex.StackTrace); return;
+			}
         }
 
         /// <summary>
@@ -271,7 +279,7 @@ namespace Direct3DLib
 
 		private void RenderAllShapes()
 		{
-			foreach (IRenderable shape in shapeList)
+			foreach (Shape shape in shapeList)
 			{
 				BoundingBox bbInWorld = Direct3DEngine.BoundingBoxMultiplyMatrix(shape.MaxBoundingBox, shape.World); 
 				bool onScreen = BoundingBoxOnScreenFine(bbInWorld);

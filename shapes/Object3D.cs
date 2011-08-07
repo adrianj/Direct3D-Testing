@@ -11,7 +11,7 @@ namespace Direct3DLib
     /// So it includes Shapes, Light sources and the Camera.
     /// </summary>
     [Serializable]
-    public class Object3D : NamedObject
+    public class Object3D : Component
     {
         [NonSerialized,Browsable(false)]
         protected Matrix mWorld = Matrix.Identity;

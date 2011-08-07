@@ -46,5 +46,17 @@ namespace Direct3DLib.Properties {
                 this["MapTerrainFolder"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool UseGISData {
+            get {
+                return ((bool)(this["UseGISData"]));
+            }
+            set {
+                this["UseGISData"] = value;
+            }
+        }
     }
 }

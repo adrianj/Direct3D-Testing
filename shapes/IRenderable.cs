@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using SlimDX.Direct3D10;
 using SlimDX;
+using SlimDX.D3DCompiler;
 
 namespace Direct3DLib
 {
+	/*
     public interface IRenderable : IDisposable
     {
         /// <summary>
@@ -26,7 +28,7 @@ namespace Direct3DLib
         /// Typically this includes adding the Vertices to the device's input buffer
         /// </summary>
         /// <param name="device"></param>
-        void Update(Device device, Effect effect);
+        void Update(Device device, ShaderSignature effect);
 
 
         /// <summary>
@@ -62,4 +64,5 @@ namespace Direct3DLib
         bool CanPick { get; }
         bool RayIntersects(Ray ray, out float dist);
     }
+	 */
 }

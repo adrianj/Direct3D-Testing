@@ -12,7 +12,7 @@ namespace Direct3DLib
 	public class ShaderHelper : IDisposable
 	{
 		public const int MAX_TEXTURES = 16;
-		public const string DEFAULT_IMAGE_FILENAME = "textures\\NoTexture.png";
+		public const string SHADER_RESOURCE = "Direct3DLib.shaders.RenderWithLighting.fx";
 
 		private Device device;
 		private Effect effect;
@@ -96,6 +96,31 @@ namespace Direct3DLib
 		{
 			for (int i = 0; i < textureHelper.Length; i++)
 				textureHelper[i].Dispose();
+		}
+
+		public static Effect GetEffect(Device device)
+		{
+			try
+			{
+				System.IO.Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(SHADER_RESOURCE);
+				System.IO.StreamReader reader = new System.IO.StreamReader(stream);
+				string shaderString = reader.ReadToEnd();
+				Effect e = Effect.FromString(device, shaderString, "fx_4_0");
+				//Effect e = Effect.FromStream(device, stream, "fx_4_0");
+				//Effect e = Effect.FromFile(device, "shaders\\RenderWithLighting.fx", "fx_4_0");
+				return e;
+			}
+			catch (CompilationException cx)
+			{
+				DisplayEffectException(cx); throw;
+			}
+			catch (Exception) { throw; }
+		}
+
+		private static void DisplayEffectException(Exception ex)
+		{
+			System.Windows.Forms.MessageBox.Show("" + ex, "Error loading shader file",
+				System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
 		}
 	}
 

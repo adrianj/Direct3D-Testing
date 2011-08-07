@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Drawing;
 using DTALib;
 using SlimDX;
 using Vector3 = SlimDX.Vector3;
@@ -14,8 +15,8 @@ namespace Direct3DLib
 		private const int ROWS_PER_FILE = 1200;
 		private const int COLUMNS_PER_FILE = 1200;
 
-		private int nRowsToRead = ROWS_PER_FILE+1;
-		private int nColumnsToRead = COLUMNS_PER_FILE + 1;
+		private int nRowsToRead = ROWS_PER_FILE;
+		private int nColumnsToRead = COLUMNS_PER_FILE;
 		private int startRow = 0;
 		private int startCol = 0;
 
@@ -32,7 +33,7 @@ namespace Direct3DLib
 		private double unitsPerLatitude = 100000;	// Could be 111 km for example.
 		public double UnitsPerDegreeLatitude { get { return unitsPerLatitude; } set { unitsPerLatitude = value; } }
 
-		private double degreesLatitudePerPoint = 1/(double)ROWS_PER_FILE;
+		private double degreesLatitudePerPoint = 1/(double)(ROWS_PER_FILE-1);
 		
 		private float verticalScale = 1.0f;			// 1 m
 		public float VerticalScale { get { return verticalScale; } set { verticalScale = value; } }
@@ -48,6 +49,8 @@ namespace Direct3DLib
 		private int[] previousRow = null;
 		private int previousInt = 0;
 		private int currentColumn = 0;
+
+		public static string TerrainFolder = null;
 
 		public static Shape CreateFromFile(string filename)
 		{
@@ -82,7 +85,9 @@ namespace Direct3DLib
 			if (longitude < 1 && latLong.Longitude % 1 != 0)
 				longitude -= 1;
 			string ret = LatLongToString(latitude, longitude);
-			return Properties.Settings.Default.MapTerrainFolder + "\\" + ret + ".hgt";
+			string folder = TerrainFolder;
+			if (TerrainFolder == null) folder = Properties.Settings.Default.MapTerrainFolder;
+			return folder + "\\" + ret + ".hgt";
 		}
 
 		private static string LatLongToString(int latitude, int longitude)
@@ -108,25 +113,41 @@ namespace Direct3DLib
 
 		public Shape ReadShapeFromFile()
 		{
-			shape = new Shape();
-			using (reader = new BinaryReaderBiEndian(filename, true))
+			/*
+			Initialize();
+			using (Image image = ConvertHGTToImage(filename, startCol, startRow, nColumnsToRead, nRowsToRead))
 			{
-				Initialize();
-				SkipToStartRow();
-				for (int r = 0; r < nRowsToRead; r++)
-				{
-					Vertex[] row = ReadNextRowOfTriangles();
-					shape.Vertices.AddRange(row);
-				}
+				image.Save(filename + "_" + startCol + "_" + startRow + ".bmp");
+				float latScale = (float)(UnitsPerDegreeLatitude * LatitudeDelta);
+				float longScale = (float)(UnitsPerDegreeLatitude * LongitudeDelta);
+				shape = ShapeImageFactory.CreateFromImage(image, new PointF(latScale, longScale));
 			}
-			return shape;
+			 */
+			try
+			{
+				shape = new Shape();
+				using (reader = new BinaryReaderBiEndian(filename, true))
+				{
+					Initialize();
+					SkipToStartRow();
+					for (int r = 0; r < nRowsToRead-1; r++)
+					{
+						Vertex[] row = ReadNextRowOfTriangles();
+						shape.Vertices.AddRange(row);
+					}
+				}
+
+				return shape;
+			}
+			catch (Exception) { throw; }
+			 
 		}
 
 		private void Initialize()
 		{
 			horizontalScale = CalculateHorizontalScale();
 			CalculateStartingRowsAndColumns();
-			CalculateNRowAndColumnToRead();
+			CalculateNumRowsAndColumnsToRead();
 			previousRow = null;
 			currentRow = 0;
 		}
@@ -143,10 +164,10 @@ namespace Direct3DLib
 			startCol = (int)(longOffset * (double)COLUMNS_PER_FILE);
 		}
 
-		private void CalculateNRowAndColumnToRead()
+		private void CalculateNumRowsAndColumnsToRead()
 		{
-			nRowsToRead = (int)(latitudeDelta * (double)ROWS_PER_FILE) ;
-			if (nRowsToRead + startRow > ROWS_PER_FILE)
+			nRowsToRead = (int)(latitudeDelta * (double)ROWS_PER_FILE)+1 ;
+			if (nRowsToRead + startRow > ROWS_PER_FILE+1)
 				nRowsToRead = ROWS_PER_FILE - startRow;
 			nColumnsToRead = (int)(longitudeDelta * (double)COLUMNS_PER_FILE)+1;
 			if (nColumnsToRead + startCol > COLUMNS_PER_FILE+1)
@@ -258,9 +279,9 @@ namespace Direct3DLib
 
 		private Color4 GetColorFromVertex(Vertex vertex)
 		{
-			float xScale = 1 / ((nColumnsToRead-1) * horizontalScale);
+			float xScale = 1 / ((nColumnsToRead+1) * horizontalScale);
 			float yScale = 1 / 1000.0f;
-			float zScale = 1 / (nRowsToRead * horizontalScale);
+			float zScale = 1 / ((nRowsToRead+1) * horizontalScale);
 			Color4 col = new Color4(1-vertex.Position.X * xScale, vertex.Position.Z * zScale, vertex.Position.Y*yScale);
 			return col;
 		}
@@ -271,6 +292,42 @@ namespace Direct3DLib
 			float longExtent = (float)(unitsPerLatitude * longitudeDelta);
 			Shape shape = new PictureTile(new System.Drawing.RectangleF(0,0,longExtent,latExtent));
 			return shape;
+		}
+
+		public static Image ConvertHGTToImage(string hgtFilename)
+		{
+			return ConvertHGTToImage(hgtFilename, 0, 0, COLUMNS_PER_FILE, ROWS_PER_FILE);
+		}
+		public static Image ConvertHGTToImage(string hgtFilename, int xOffset, int yOffset, int width, int height)
+		{
+			Bitmap image = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+			int prevColor = 0;
+			int color = 0;
+			using(BinaryReaderBiEndian reader = new BinaryReaderBiEndian(new FileStream(hgtFilename, FileMode.Open)))
+			{
+				reader.IsBigEndian = true;
+				for (int y = 0; y < ROWS_PER_FILE+1; y++)
+				{
+					int finalY = y - yOffset;
+					for (int x = 0; x < COLUMNS_PER_FILE+1; x++)
+					{
+						int finalX = x - xOffset;
+						color = reader.ReadInt16();
+						if (finalY >= 0 && finalY < height && finalX >= 0 && finalX < width)
+						{
+							if (color < -30000)
+								color = prevColor;
+							int r = (color >> 8) & 0xFF;
+							int g = (color) & 0xFF;
+							int a = 255;
+							int b = 0;
+							image.SetPixel(finalX, finalY, Color.FromArgb(a,r,g,b));
+							prevColor = color;
+						}
+					}
+				}
+			}
+			return image;
 		}
 
 	}

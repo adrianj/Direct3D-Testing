@@ -64,7 +64,7 @@ namespace Direct3DLib
 				string line = reader.ReadLine();
 				lineNum++;
 				string[] words = line.Split(new char[] { ' ' });
-				ret.Name = words[1];
+				//ret. = words[1];
 				List<Vector3> verts = new List<Vector3>();
 				Vector3 norm = Vector3.Zero;
 				// Loop through to end of file.

@@ -15,18 +15,23 @@ namespace Direct3DLib
 		public static int MaxGoogleZoom = 13;
 		private CombinedMapDataFactory mapFactory = CombinedMapDataFactory.Instance;
 		public CombinedMapData[,] currentTiles = new CombinedMapData[TILE_ROWS,TILE_COLUMNS];
-		public bool UseTerrainData { get { return mapFactory.UseTerrainData; } set { mapFactory.UseTerrainData = value; } }
+		public bool UseTerrainData
+		{
+			get { return mapFactory.UseTerrainData; }
+			set { mapFactory.UseTerrainData = value; }
+		}
 		public bool AutomaticallyDownloadMaps { get { return mapFactory.AutomaticallyDownloadMaps; } set { mapFactory.AutomaticallyDownloadMaps = value; } }
-		private double delta = 0.0625;
+		private double delta = 0.125;
 		public double Delta { get { return delta; } set { delta = value; } }
 		private double previousElevation = -1000;
 		private LatLong previousLocation = new LatLong(-1000, -1000);
 
-		private List<IRenderable> engineShapeList;
-		public List<IRenderable> EngineShapeList { set { engineShapeList = value; } }
+		private List<Shape> engineShapeList;
+		public List<Shape> EngineShapeList { set { engineShapeList = value; } }
 
 		private BackgroundWorker textureWorker = new BackgroundWorker();
-
+		public bool FixTerrain { get; set; }
+		public bool FixZoom { get; set; }
 
 		public event EventHandler MapChanged;
 
@@ -38,7 +43,6 @@ namespace Direct3DLib
 		
 		public EarthTiles()
 		{
-			UseTerrainData = false;
 			mapFactory.UnitsPerDegreeLatitude = 100000;
 			textureWorker.WorkerSupportsCancellation = true;
 			textureWorker.DoWork += new DoWorkEventHandler(textureWorker_DoWork);
@@ -62,7 +66,7 @@ namespace Direct3DLib
 						textureWorker.CancelAsync();
 						previousElevation = -1000;
 						mapFactory.RetrieveOrUpdateMapTerrain(expectedMap);
-						expectedMap.TerrainShape.Scale = new SlimDX.Vector3(1, 3, 1);
+						expectedMap.Scale = new SlimDX.Vector3(1, 3, 1);
 						AddTileToArray(expectedMap, i, k);
 					}
 				}
@@ -114,11 +118,13 @@ namespace Direct3DLib
 
 		public void UpdateMapTerrain(LatLong location, double elevation)
 		{
+			if (FixTerrain) return;
 			InitializeAtGivenLatLongElevation(location, elevation);
 		}
 
 		private void UpdateMapTextures(LatLong location, double elevation)
 		{
+			if (FixZoom) return;
 			if (textureWorker.IsBusy) return;
 			if(elevation != previousElevation)
 				textureWorker.RunWorkerAsync(elevation);

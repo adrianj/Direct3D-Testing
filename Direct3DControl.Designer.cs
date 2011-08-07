@@ -29,19 +29,20 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.SuspendLayout();
-            // 
-            // Direct3DControl
-            // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Name = "Direct3DControl";
-            this.Size = new System.Drawing.Size(611, 470);
-            this.ResumeLayout(false);
+			this.SuspendLayout();
+			// 
+			// Direct3DControl
+			// 
+			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+			this.Name = "Direct3DControl";
+			this.Size = new System.Drawing.Size(611, 470);
+			this.ResumeLayout(false);
 
         }
 
         #endregion
 
-    }
+
+	}
 }

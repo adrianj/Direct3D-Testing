@@ -40,7 +40,16 @@ namespace Direct3DLib
 
 		private void InitializeDevice()
 		{
-			engine.InitializeDevice();
+			try
+			{
+				engine.InitializeDevice();
+				if (!engine.IsInitialized) throw new Exception("Unknown Error");
+			}
+			catch (Exception ex)
+			{
+
+				MessageBox.Show("Direct3D Engine Initialization Failed\n\n" + ex);
+			}
 		}
 
 		#region Public Properties
@@ -106,7 +115,7 @@ namespace Direct3DLib
 
 		}
 
-		public IRenderable PickObjectAt(Point screenLocation)
+		public Shape PickObjectAt(Point screenLocation)
 		{
 			return engine.PickObjectAt(screenLocation);
 		}
@@ -158,7 +167,7 @@ namespace Direct3DLib
 			if ((e.Button == MouseButtons.Left && LeftMouseFunction == MouseOption.Select)
 				|| (e.Button == MouseButtons.Right && RightMouseFunction == MouseOption.Select))
 			{
-				IRenderable obj = this.PickObjectAt(e.Location);
+				Shape obj = this.PickObjectAt(e.Location);
 				if (obj != null)
 					SelectedObject = obj;
 			}
@@ -257,9 +266,9 @@ namespace Direct3DLib
 			if (!keysOfInterest.Contains(e.KeyCode)) return;
 			if (e.KeyCode == Keys.Delete)
 			{
-				if (SelectedObject != null && SelectedObject is IRenderable)
+				if (SelectedObject != null && SelectedObject is Shape)
 				{
-					IRenderable shape = SelectedObject as IRenderable;
+					Shape shape = SelectedObject as Shape;
 					if (engine.ShapeList.Contains(shape))
 					{
 						engine.ShapeList.Remove(shape);

@@ -23,6 +23,7 @@ namespace Direct3DLib
         private Vector4 mPosition;
         private Vector4 mNormal;
         private Color4 mColor;
+		public Vertex(Vector3 pos) : this(pos, new Vector3(0, 1, 0)) { }
         public Vertex(float x, float y, float z) : this(x, y, z, FloatToColor(new Vector3(x,y,z))) { }
         public Vertex(float x, float y, float z, Color col) : this(x, y, z, FloatToColor(new Vector3(x, y, z)),new Vector4(0,1,0,1)) { }
 		public Vertex(float x, float y, float z, float nx, float ny, float nz)

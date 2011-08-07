@@ -62,13 +62,48 @@ namespace Direct3DLib
 			return path;
 		}
 
-		private int maxZoom;
 		public int MaxGoogleZoom
 		{
 			get { return (int)maxZoomBox.Value; }
-			set { maxZoom = value; maxZoomBox.Value = value; }
+			set {  maxZoomBox.Value = value; }
 		}
-		
+
+		public double Delta
+		{
+			get { return Math.Pow(2.0, (double)logDeltaBox.Value); }
+			set { logDeltaBox.Value = (decimal)Math.Floor(Math.Log(value, 2.0)); }
+		}
+
+		public bool FixZoom
+		{
+			get { return fixZoomCheck.Checked; }
+			set { fixZoomCheck.Checked = value; }
+		}
+
+		public bool FixTerrain
+		{
+			get { return fixTerrainCheck.Checked; }
+			set { fixTerrainCheck.Checked = value; }
+		}
+
+		public int KeyboardSpeed
+		{
+			get { return (int)keySpeedBox.Value; }
+			set { keySpeedBox.Value = value; }
+		}
+
+		public bool UseGIS
+		{
+			get { return useGisCheck.Checked; }
+			set { useGisCheck.Checked = value; }
+		}
+
+		public bool AutomaticallyDownloadMaps
+		{
+			get { return autoDownloadCheck.Checked; }
+			set { autoDownloadCheck.Checked = value; }
+		}
+
 		public event EventHandler OptionsChanged;
 		private void FireOptionsChangedEvent()
 		{
@@ -124,5 +159,12 @@ namespace Direct3DLib
 				Properties.Settings.Default.Save();
 			}
 		}
+
+		public static void UseGisCheckChanged()
+		{
+			MessageBox.Show("Currently loaded terrain will not change until Application restarts",
+				"GIS Terrain Data Changed", MessageBoxButtons.OK, MessageBoxIcon.Information);
+		}
+
 	}
 }

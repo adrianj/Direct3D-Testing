@@ -207,6 +207,7 @@
     <Reference Include="DTALib">
       <HintPath>..\Mp3Organiser\depends\DTALib.dll</HintPath>
     </Reference>
+    <Reference Include="nunit.framework, Version=2.5.10.11092, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL" />
     <Reference Include="SlimDX, Version=4.0.11.43, Culture=neutral, PublicKeyToken=b1b0c32fd1ffe4f9, processorArchitecture=AMD64" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -222,7 +223,9 @@
       <DependentUpon>BasicForm.cs</DependentUpon>
     </Compile>
     <Compile Include="CameraControl.cs" />
-    <Compile Include="Earth3D\CombinedMapData.cs" />
+    <Compile Include="Earth3D\CombinedMapData.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Earth3D\CombinedMapDataFactory.cs" />
     <Compile Include="Earth3D\Earth3DControl.cs">
       <SubType>UserControl</SubType>
@@ -259,23 +262,21 @@
     </Compile>
     <Compile Include="shapes\IRenderable.cs" />
     <Compile Include="shapes\NamedObject.cs" />
-    <Compile Include="shapes\Object3D.cs" />
+    <Compile Include="shapes\Object3D.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="shapes\PictureTile.cs" />
     <Compile Include="shapes\Pipe.cs" />
     <Compile Include="ShaderHelper.cs" />
-    <Compile Include="shapes\Shape.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="shapes\Shape.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="shapes\ShapeImageFactory.cs" />
     <Compile Include="shapes\ShapeSTLFactory.cs" />
     <Compile Include="shapes\Sphere.cs" />
     <Compile Include="Earth3D\MapWebAccessor.cs" />
-    <Compile Include="TestForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="TestForm.Designer.cs">
-      <DependentUpon>TestForm.cs</DependentUpon>
-    </Compile>
+    <Compile Include="TestCode\TestShapeImageFactory.cs" />
     <Compile Include="TextShape.cs" />
     <Compile Include="TextureHelper.cs" />
     <Compile Include="Vertex.cs" />
@@ -305,10 +306,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="TestForm.resx">
-      <DependentUpon>TestForm.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
     <None Include="app.config" />
     <None Include="Direct3DLib_TemporaryKey.pfx" />
     <None Include="Properties\Settings.settings">
@@ -320,9 +317,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <None Include="shaders\RenderWithLighting.fx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <EmbeddedResource Include="shaders\RenderWithLighting.fx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <None Include="textures\streettexture.dds">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

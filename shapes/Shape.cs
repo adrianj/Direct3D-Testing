@@ -18,7 +18,7 @@ namespace Direct3DLib
     /// how it is made up of flat triangles.
     /// </summary>
     [TypeConverter(typeof(GenericTypeConverter<Shape>))]
-    public class Shape : Object3D, IRenderable, IDisposable
+    public class Shape : Object3D
     {
         
         private bool mPick = true;
@@ -30,7 +30,8 @@ namespace Direct3DLib
         public VertexList Vertices { get { return mVList; } set { mVList = value; } }
 		public int SelectedVertexIndex { get; set; }
 
-        protected Device mDevice;
+        private Device mDevice;
+		private ShaderSignature mSignature;
 		private Color mSolidColor = Color.Empty;
 		public Color SolidColor { get { return mSolidColor; } set { SetUniformColor(value); mSolidColor = value; Update(); } }
 
@@ -59,8 +60,12 @@ namespace Direct3DLib
         protected SlimDX.Direct3D10.Buffer indexBuffer;
         protected InputLayout vertexLayout;
 
-		
 
+		public Shape(int initialVertexCapacity)
+			: base()
+		{
+			Vertices = new VertexList(initialVertexCapacity);
+		}
         public Shape()
             : base()
         {
@@ -78,13 +83,14 @@ namespace Direct3DLib
         }
 
 
-		public void Update() { Update(mDevice); }
-		public virtual void Update(Device device) { Update(device, null); }
-        public virtual void Update(Device device, Effect effect)
+		public void Update() { Update(mDevice, mSignature); }
+		//public virtual void Update(Device device) { Update(device, null); }
+        public virtual void Update(Device device, ShaderSignature effectSignature)
         {
             if (device == null || device.Disposed) return;
 			
             mDevice = device;
+			mSignature = effectSignature;
             // If there is less than 1 vertex then we can't make a point, let alone a shape!
             if (Vertices == null || Vertices.Count < 1) return;
 
@@ -110,16 +116,17 @@ namespace Direct3DLib
             dataStream.Close();
 
             // Get the shader effects signature
-			if(effect == null)
-				effect = Effect.FromString(device, Properties.Resources.RenderWithLighting, "fx_4_0");
-			EffectPass effectPass = effect.GetTechniqueByIndex(0).GetPassByName("ColoredWithLighting");
+			//if(effect == null)
+			//	effect = Effect.FromFile(device, "RenderWithLighting.fx","fx_4_0");
+				//effect = Effect.FromString(device, Properties.Resources., "fx_4_0");
+			//EffectPass effectPass = effect.GetTechniqueByIndex(0).GetPassByName("ColoredWithLighting");
 
 
             if (Vertices != null && Vertices.Count > 0)
             {
                 // Set the input layout.
                 InputElement[] inputElements = Vertices[0].GetInputElements();
-                vertexLayout = new InputLayout(device, effectPass.Description.Signature, inputElements);
+                vertexLayout = new InputLayout(device, effectSignature, inputElements);
 
                 // Draw Indexed
                 if (Vertices.Indices != null && Vertices.Indices.Count > 0)
@@ -261,10 +268,6 @@ namespace Direct3DLib
 			get { return preWorldTransformBox;}
         }
 
-		~Shape()
-		{
-			Dispose();
-		}
 
         public void Dispose()
         {

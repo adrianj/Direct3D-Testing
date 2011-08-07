@@ -47,9 +47,9 @@ namespace Direct3DLib
 		{
 			foreach (CombinedMapData cmd in previouslyCreatedTerrain)
 			{
-				if (cmd != null && cmd.TerrainShape != null)
+				if (cmd != null)
 				{
-					cmd.TerrainShape.Dispose();
+					cmd.Dispose();
 				}
 			}
 		}
@@ -71,7 +71,7 @@ namespace Direct3DLib
 			CombinedMapData foundInList = previouslyCreatedTerrain.Find(newMap.IsSameShape);
 			if (foundInList != null)
 			{
-				newMap.TerrainShape = foundInList.TerrainShape;
+				foundInList.CopyShapeTo(newMap);
 			}
 			else
 			{
@@ -99,20 +99,25 @@ namespace Direct3DLib
 				shape = shapeFactory.GenerateNullShape();
 			else
 			{
+				Console.WriteLine("Getting terrain");
 				string filename = ShapeHGTFactory.CalculateFilenameFromLatLong(BottomLeftLocation);
+				Console.WriteLine("file: " + filename);
 				shapeFactory.Filename = filename;
 				try
 				{
 					shape = shapeFactory.ReadShapeFromFile();
+					Console.WriteLine("success");
 				}
 				catch (System.IO.FileNotFoundException)
 				{
 					shape = shapeFactory.GenerateNullShape();
+					Console.WriteLine("fail");
 				}
 			}
 			Float3 location = new Float3((float)(BottomLeftLocation.Longitude * UnitsPerDegreeLatitude), 0, (float)(BottomLeftLocation.Latitude * UnitsPerDegreeLatitude));
 			shape.Location = location.AsVector3();
-			mapToUpdate.TerrainShape = shape;
+			mapToUpdate.CopyShapeFrom(shape);
+			//mapToUpdate.TerrainShape = shape;
 		}
 	}
 }

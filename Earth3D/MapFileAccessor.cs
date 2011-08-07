@@ -15,7 +15,8 @@ namespace Direct3DLib
 			if (File.Exists(filename))
 			{
 				descriptor.MapState = MapDescriptor.MapImageState.Correct;
-				return Bitmap.FromFile(filename);
+				Image image = Bitmap.FromFile(filename);
+				return image;
 			}
 			descriptor.MapState = MapDescriptor.MapImageState.Empty;
 			return null;
