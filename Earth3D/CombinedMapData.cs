@@ -17,8 +17,9 @@ namespace Direct3DLib
 		public double ShapeDelta { get { return shapeDelta; } set { shapeDelta = value; } }
 		private int tileRes = -2;
 		public int ZoomLevel { get { return tileRes; } set { tileRes = value; } }
+		private bool updateRequired = true;
 		private Image image;
-		public Image TextureImage { get { return image; } set { image = value; }}
+		public Image TextureImage { get { return image; } set { if (image != value) updateRequired = true; image = value; } }
 
 		public CombinedMapData()
 		{
@@ -45,7 +46,7 @@ namespace Direct3DLib
 		{
 			if (!other.ShapeDelta.Equals(this.ShapeDelta)) return false;
 			if (!other.BottomLeftPosition.Equals(this.bottomLeft)) return false;
-			return base.Equals(other as Shape);
+			return true;
 		}
 
 		public bool IsSameTexture(CombinedMapData other)
@@ -86,13 +87,52 @@ namespace Direct3DLib
 		public void CopyShapeTo(Shape other)
 		{
 			other.Vertices = this.Vertices;
+			other.Location = this.Location;
+			other.Rotation = this.Rotation;
+			other.Scale = this.Scale;
 			other.Update();
 		}
 
 		public void CopyShapeFrom(Shape other)
 		{
 			this.Vertices = other.Vertices;
+			this.Location = other.Location;
+			this.Rotation = other.Rotation;
+			this.Scale = other.Scale;
 			this.Update();
+		}
+
+		private bool disposed = false;
+		protected override void Dispose(bool disposing)
+		{
+			if (!this.disposed)
+			{
+				try
+				{
+					if (disposing)
+						DisposeManaged();
+					this.disposed = true;
+				}
+				finally
+				{
+					base.Dispose(disposing);
+				}
+			}
+		}
+
+		public override void Render(SlimDX.Direct3D10.Device device, ShaderHelper shaderHelper)
+		{
+			if (updateRequired)
+			{
+				SetTextureInSeperateThread(device, shaderHelper);
+				updateRequired = false;
+			}
+			base.Render(device, shaderHelper);
+		}
+
+		private void DisposeManaged()
+		{
+			if (image != null) image.Dispose();
 		}
 	}
 

@@ -33,9 +33,9 @@ namespace Direct3DLib_Test
 			earth3DControl.SelectedObjectChanged += (o, e) =>
             {
 				object obj = earth3DControl.SelectedObject;
-				if (obj is IRenderable)
+				if (obj is Shape)
 				{
-					IRenderable s = obj as IRenderable;
+					Shape s = obj as Shape;
 					propertyGrid.SelectedObject = s;
 					textBox1.Text = "" + s;
 				}

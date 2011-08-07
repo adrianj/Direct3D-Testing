@@ -269,7 +269,25 @@ namespace Direct3DLib
         }
 
 
-        public void Dispose()
+		private bool disposed = false;
+		protected override void Dispose(bool disposing)
+		{
+			if (!this.disposed)
+			{
+				try
+				{
+					if (disposing)
+						DisposeManaged();
+					this.disposed = true;
+				}
+				finally
+				{
+					base.Dispose(disposing);
+				}
+			}
+		}
+
+        private void DisposeManaged()
         {
             if(vertexBuffer != null) vertexBuffer.Dispose();
             if(indexBuffer != null) indexBuffer.Dispose();

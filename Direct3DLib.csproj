@@ -222,7 +222,9 @@
     <Compile Include="BasicForm.Designer.cs">
       <DependentUpon>BasicForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="CameraControl.cs" />
+    <Compile Include="CameraControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Earth3D\CombinedMapData.cs">
       <SubType>Component</SubType>
     </Compile>

@@ -52,6 +52,8 @@ namespace Direct3DLib
 
 		private void InitializeAtGivenLatLongElevation(LatLong pos, double elevation)
 		{
+			//double logDelta = Math.Log(elevation, 2.0) - 15;
+			//Delta = Math.Pow(2.0, Math.Floor(logDelta));
 			mapFactory.Delta = delta;
 			pos = EarthProjection.CalculateNearestLatLongAtDelta(pos,delta);
 			for (int i = 0; i < TILE_ROWS; i++)
