@@ -35,15 +35,20 @@ namespace Direct3DLib
 
 
         #region Dispose Method
+		private bool disposed = false;
         public void Dispose()
         {
-			foreach (Shape s in shapeList) s.Dispose();
-			shapeList.Clear();
-			if (shaderSignature != null) shaderSignature.Dispose();
-			if (shaderEffect != null) shaderEffect.Dispose();
-			if (shaderHelper != null) shaderHelper.Dispose();
-            if(device != null) device.Dispose();
-            if (swapChain != null) swapChain.Dispose();
+			if (!disposed)
+			{
+				foreach (Shape s in shapeList) s.Dispose();
+				shapeList.Clear();
+				if (shaderSignature != null) shaderSignature.Dispose();
+				if (shaderEffect != null) shaderEffect.Dispose();
+				if (shaderHelper != null) shaderHelper.Dispose();
+				if (device != null) device.Dispose();
+				if (swapChain != null) swapChain.Dispose();
+				disposed = true;
+			}
         }
         #endregion
 
