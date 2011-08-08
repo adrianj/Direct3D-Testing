@@ -89,7 +89,7 @@ namespace Direct3DLib
 		public static Image CropImage(Image image, RectangleF rect)
 		{
 			if (image.Width < 1 || image.Height < 1) throw new ArgumentException("Cannot crop image to less than 1x1 pixels");
-			Bitmap bmp = new Bitmap(image);
+			Bitmap bmp = (Bitmap)image;
 			if (rect.Width > image.Width) rect.Width = image.Width;
 			if (rect.Height > image.Height) rect.Height = image.Height;
 			if (rect.Width < 1) rect.Width = 1;
@@ -99,6 +99,17 @@ namespace Direct3DLib
 			if (rect.Y < 0) rect.Y = 0;
 			if (rect.Y + rect.Height > bmp.Height) rect.Y = bmp.Height - rect.Height;
 			return bmp.Clone(rect, bmp.PixelFormat);
+		}
+
+		public static Image ResizeImage(Image image, Size newSize)
+		{
+			Bitmap bmp = new Bitmap(newSize.Width, newSize.Height);
+			using (Graphics g = Graphics.FromImage(bmp))
+			{
+				g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBilinear;
+				g.DrawImage(image, 0, 0, newSize.Width, newSize.Height);
+			}
+			return bmp;
 		}
 	}
 }

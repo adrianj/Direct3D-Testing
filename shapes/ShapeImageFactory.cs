@@ -36,6 +36,7 @@ namespace Direct3DLib
 		public Shape ConvertImageToShape(Image image)
 		{
 				Bitmap bmp = (Bitmap)image;
+				byte [] bytes = ImageConverter.ConvertImageToBytes(bmp);
 				width = image.Width;
 				height = image.Height;
 				shape = new Shape(width*height*6);
@@ -71,15 +72,18 @@ namespace Direct3DLib
 			for (int x = 0; x < width; x++)
 			{
 				Color c = bmp.GetPixel(x, row);
-				ret[x] = ((int)c.R << 8) + c.G;
+				int elevation = (int)BitConverter.ToInt16(new byte[] { c.B, c.G, c.R, c.A }, 0);
+				if (c.B > 0 || c.G > 0 || c.A > 0 || c.R > 0)
+					Console.WriteLine("read Color: " + c + "," + c.A + "," + c.R+","+c.G+","+c.B+","+elevation);
+				ret[x] = elevation;
 			}
 			return ret;
 		}
 
 		private Vector3 ConvertCoordinatesToVector(int x, int y, int elevation)
 		{
-			float xScale = shapeWidth / (float)width;
-			float zScale = shapeHeight / (float)height;
+			float xScale = shapeWidth / (float)(width-1);
+			float zScale = shapeHeight / (float)(height-1);
 			Vector3 vect = new Vector3((float)x * xScale, (float)elevation, (float)y * zScale);
 			return vect;
 		}

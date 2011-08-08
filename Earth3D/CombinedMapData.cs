@@ -19,7 +19,7 @@ namespace Direct3DLib
 		public int ZoomLevel { get { return tileRes; } set { tileRes = value; } }
 		private bool updateRequired = true;
 		private Image image;
-		public Image TextureImage { get { return image; } set { if (image != value) updateRequired = true; image = value; } }
+		public Image TextureImage { get { return image; } set { if (image != value && value != null) updateRequired = true; image = value; } }
 
 		public CombinedMapData()
 		{
@@ -70,18 +70,20 @@ namespace Direct3DLib
 
 		private void SetTextureInSeperateThread(SlimDX.Direct3D10.Device device, ShaderHelper helper)
 		{
+			updateRequired = false;
 			BackgroundWorker worker = new BackgroundWorker();
 			SlimDX.Direct3D10.Texture2D tex = null;
 			worker.DoWork += (o, e) =>
 			{
-				if (TextureIndex >= 0)
+				Image img = (Image)e.Argument;
+				if (TextureIndex >= 0 && img != null)
 				{
-					byte[] bytes = ImageConverter.ConvertImageToBytes(image);
+					byte[] bytes = ImageConverter.ConvertImageToBytes(img);
 					tex = ImageConverter.ConvertBytesToTexture2D(device, bytes);
 					helper.TextureSet[TextureIndex].TextureImage = tex;
 				}
 			};
-			worker.RunWorkerAsync();
+			worker.RunWorkerAsync(image);
 		}
 
 		public void CopyShapeTo(Shape other)
@@ -105,18 +107,18 @@ namespace Direct3DLib
 		private bool disposed = false;
 		protected override void Dispose(bool disposing)
 		{
-			if (!this.disposed)
+			try
 			{
-				try
+				if (!this.disposed)
 				{
 					if (disposing)
 						DisposeManaged();
 					this.disposed = true;
 				}
-				finally
-				{
-					base.Dispose(disposing);
-				}
+			}
+			finally
+			{
+				base.Dispose(disposing);
 			}
 		}
 
@@ -125,7 +127,6 @@ namespace Direct3DLib
 			if (updateRequired)
 			{
 				SetTextureInSeperateThread(device, shaderHelper);
-				updateRequired = false;
 			}
 			base.Render(device, shaderHelper);
 		}

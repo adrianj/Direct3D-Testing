@@ -20,7 +20,6 @@ namespace Direct3DLib
     [TypeConverter(typeof(GenericTypeConverter<Shape>))]
     public class Shape : Object3D
     {
-        
         private bool mPick = true;
         public virtual bool CanPick { get { return mPick; } set { mPick = value; } }
 		private Vertex [] mSelectedVerts = new Vertex[3];
@@ -272,18 +271,18 @@ namespace Direct3DLib
 		private bool disposed = false;
 		protected override void Dispose(bool disposing)
 		{
-			if (!this.disposed)
+			try
 			{
-				try
+				if (!this.disposed)
 				{
 					if (disposing)
 						DisposeManaged();
 					this.disposed = true;
 				}
-				finally
-				{
-					base.Dispose(disposing);
-				}
+			}
+			finally
+			{
+				base.Dispose(disposing);
 			}
 		}
 

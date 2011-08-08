@@ -99,19 +99,17 @@ namespace Direct3DLib
 				shape = shapeFactory.GenerateNullShape();
 			else
 			{
-				Console.WriteLine("Getting terrain");
 				string filename = ShapeHGTFactory.CalculateFilenameFromLatLong(BottomLeftLocation);
-				Console.WriteLine("file: " + filename);
 				shapeFactory.Filename = filename;
 				try
 				{
-					shape = shapeFactory.ReadShapeFromFile();
-					Console.WriteLine("success");
+					//shape = shapeFactory.ReadShapeFromFile();
+					int logDelta = (int)Math.Log(Delta, 2.0);
+					shape = shapeFactory.ReadAndReduceShapeFromFile(logDelta-EarthTiles.MinLogDelta);
 				}
 				catch (System.IO.FileNotFoundException)
 				{
 					shape = shapeFactory.GenerateNullShape();
-					Console.WriteLine("fail");
 				}
 			}
 			Float3 location = new Float3((float)(BottomLeftLocation.Longitude * UnitsPerDegreeLatitude), 0, (float)(BottomLeftLocation.Latitude * UnitsPerDegreeLatitude));

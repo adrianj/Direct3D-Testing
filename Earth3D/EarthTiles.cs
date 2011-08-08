@@ -13,6 +13,7 @@ namespace Direct3DLib
 		public const int TILE_COLUMNS = 2;
 		public const double MAX_ELEVATION = 2100000;
 		public static int MaxGoogleZoom = 13;
+		public static int MinLogDelta = -4;
 		private CombinedMapDataFactory mapFactory = CombinedMapDataFactory.Instance;
 		public CombinedMapData[,] currentTiles = new CombinedMapData[TILE_ROWS,TILE_COLUMNS];
 		public bool UseTerrainData
@@ -52,17 +53,16 @@ namespace Direct3DLib
 
 		private void InitializeAtGivenLatLongElevation(LatLong pos, double elevation)
 		{
-			//double logDelta = Math.Log(elevation, 2.0) - 15;
-			//Delta = Math.Pow(2.0, Math.Floor(logDelta));
-			mapFactory.Delta = delta;
-			pos = EarthProjection.CalculateNearestLatLongAtDelta(pos,delta);
+			SetDeltaFromElevation(elevation);
+			mapFactory.Delta = Delta;
+			pos = EarthProjection.CalculateNearestLatLongAtDelta(pos,Delta);
 			for (int i = 0; i < TILE_ROWS; i++)
 			{
 				for (int k = 0; k < TILE_COLUMNS; k++)
 				{
-					LatLong newPos = new  LatLong(pos.Latitude - delta * i, pos.Longitude - delta * k);
+					LatLong newPos = new  LatLong(pos.Latitude - Delta * i, pos.Longitude - Delta * k);
 					mapFactory.BottomLeftLocation = newPos;
-					CombinedMapData expectedMap = mapFactory.CreateEmptyMapAtLocation(newPos,elevation,delta);
+					CombinedMapData expectedMap = mapFactory.CreateEmptyMapAtLocation(newPos,elevation,Delta);
 					if (TerrainUpdateRequired(currentTiles[i, k], expectedMap))
 					{
 						textureWorker.CancelAsync();
@@ -74,6 +74,14 @@ namespace Direct3DLib
 				}
 			}
 			UpdateMapTextures(pos, elevation);
+		}
+
+		private void SetDeltaFromElevation(double elevation)
+		{
+			double logDelta = Math.Log(elevation, 2.0) - 14;
+			if (elevation <= 0) logDelta = MinLogDelta;
+			if (logDelta < MinLogDelta) logDelta = MinLogDelta;
+			Delta = Math.Pow(2.0, Math.Floor(logDelta));
 		}
 
 		private bool TerrainUpdateRequired(CombinedMapData currentMap, CombinedMapData expectedMap)

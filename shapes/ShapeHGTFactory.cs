@@ -113,16 +113,6 @@ namespace Direct3DLib
 
 		public Shape ReadShapeFromFile()
 		{
-			/*
-			Initialize();
-			using (Image image = ConvertHGTToImage(filename, startCol, startRow, nColumnsToRead, nRowsToRead))
-			{
-				image.Save(filename + "_" + startCol + "_" + startRow + ".bmp");
-				float latScale = (float)(UnitsPerDegreeLatitude * LatitudeDelta);
-				float longScale = (float)(UnitsPerDegreeLatitude * LongitudeDelta);
-				shape = ShapeImageFactory.CreateFromImage(image, new PointF(latScale, longScale));
-			}
-			 */
 			try
 			{
 				shape = new Shape();
@@ -141,6 +131,26 @@ namespace Direct3DLib
 			}
 			catch (Exception) { throw; }
 			 
+		}
+
+		public Shape ReadAndReduceShapeFromFile(int logFactorToDecimate)
+		{
+			if (LatitudeDelta > 1 || LongitudeDelta > 1)
+				return GenerateNullShape();
+			Initialize();
+			short[,] data = ShapeHGTFactory.ReadHGT(filename, startCol, startRow, nColumnsToRead, nRowsToRead);
+			int width = data.GetLength(1);
+			int height = data.GetLength(0);
+			int factor = (int)Math.Pow(2.0, logFactorToDecimate);
+			if (factor > 1)
+			{
+				Size newSize = new Size(width / factor, height / factor);
+				data = Decimate(data, factor);
+			}
+			float latScale = (float)(UnitsPerDegreeLatitude * LatitudeDelta);
+			float longScale = (float)(UnitsPerDegreeLatitude * LongitudeDelta);
+			shape = ShapeArrayFactory.CreateFromArray(data, new PointF(latScale, longScale));
+			return shape;
 		}
 
 		private void Initialize()
@@ -300,35 +310,74 @@ namespace Direct3DLib
 		}
 		public static Image ConvertHGTToImage(string hgtFilename, int xOffset, int yOffset, int width, int height)
 		{
-			Bitmap image = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-			int prevColor = 0;
-			int color = 0;
-			using(BinaryReaderBiEndian reader = new BinaryReaderBiEndian(new FileStream(hgtFilename, FileMode.Open)))
-			{
-				reader.IsBigEndian = true;
-				for (int y = 0; y < ROWS_PER_FILE+1; y++)
+			short[,] data = ReadHGT(hgtFilename, xOffset, yOffset, width, height);
+			Bitmap image = new Bitmap(data.GetLength(1), data.GetLength(0), System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+			for(int y = 0; y < data.GetLength(1); y++)
+				for (int x = 0; x < data.GetLength(0); x++)
 				{
-					int finalY = y - yOffset;
-					for (int x = 0; x < COLUMNS_PER_FILE+1; x++)
-					{
-						int finalX = x - xOffset;
-						color = reader.ReadInt16();
-						if (finalY >= 0 && finalY < height && finalX >= 0 && finalX < width)
-						{
-							if (color < -30000)
-								color = prevColor;
-							int r = (color >> 8) & 0xFF;
-							int g = (color) & 0xFF;
-							int a = 255;
-							int b = 0;
-							image.SetPixel(finalX, finalY, Color.FromArgb(a,r,g,b));
-							prevColor = color;
-						}
-					}
+					short color = data[x, y];
+					image.SetPixel(x, y, Color.FromArgb(color));
 				}
-			}
 			return image;
 		}
 
+		public static short[,] ReadHGT(string hgtFilename, int xOffset, int yOffset, int width, int height)
+		{
+			short[,] data = new short[width, height];
+			short prevColor = 0;
+			using (BinaryReaderBiEndian reader = new BinaryReaderBiEndian(new FileStream(hgtFilename, FileMode.Open)))
+			{
+				reader.IsBigEndian = true;
+				for (int y = 0; y < ROWS_PER_FILE + 1; y++)
+				{
+					int finalY = y - yOffset;
+					for (int x = 0; x < COLUMNS_PER_FILE + 1; x++)
+					{
+						int finalX = x - xOffset;
+						short color = reader.ReadInt16();
+						if (color < -30000) color = prevColor;
+						if (finalY >= 0 && finalY < height && finalX >= 0 && finalX < width)
+						{
+							data[finalX, finalY] = color;
+						}
+						prevColor = color;
+					}
+				}
+			}
+			return data;
+		}
+
+		public static short[,] Decimate(short[,] data, int factor)
+		{
+			int width = data.GetLength(1) / factor;
+			int height = data.GetLength(0) / factor;
+			short[,] ret = new short[width+1, height+1];
+			for(int x = 0; x < width+1; x++)
+				for (int y = 0; y < height+1; y++)
+				{
+					if (x >= width)
+						ret[x, y] = data[data.GetLength(1) - 1, y * factor];
+					else if (y >= height)
+						ret[x, y] = data[x * factor, data.GetLength(0) - 1];
+					else if (x == 0)
+						ret[x, y] = data[0, y * factor];
+					else if (y == 0)
+						ret[x, y] = data[x * factor, 0];
+					else
+						ret[x, y] = AveragePixelsInRange(data, x * factor, y * factor, factor, factor);
+				}
+			return ret;
+		}
+
+		public static short AveragePixelsInRange(short[,] data, int xOffset, int yOffset, int width, int height)
+		{
+			long sum = 0;
+			long n = width * height;
+			for(int x = xOffset; x < xOffset + width; x++)
+				for(int y = yOffset; y < yOffset + height; y++)
+					sum += data[x,y];
+			sum = sum / n;
+			return (short)sum;
+		}
 	}
 }

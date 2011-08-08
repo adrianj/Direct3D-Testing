@@ -166,9 +166,9 @@
 			this.earth3DControl.BothMouseFunction = Direct3DLib.Direct3DControl.MouseOption.CameraTranslateXZ;
 			this.earth3DControl.CameraPan = 1.5F;
 			this.earth3DControl.CameraTilt = -2.870796F;
-			this.earth3DControl.CurrentElevation = 12000D;
-			latLong1.Latitude = -37D;
-			latLong1.Longitude = 174.8D;
+			this.earth3DControl.CurrentElevation = 8000D;
+			latLong1.Latitude = -36.827D;
+			latLong1.Longitude = 174.81D;
 			this.earth3DControl.CurrentLatLong = latLong1;
 			this.earth3DControl.FixTerrain = false;
 			this.earth3DControl.FixZoom = false;
