@@ -8,33 +8,43 @@ using SlimDX;
 
 namespace Direct3DLib
 {
-
+	[System.ComponentModel.TypeConverter(typeof(BasicTypeConverter))]
     public class Sphere : Shape
     {
-		
-		public int debug { get { return _debug; } set { _debug = value; Recreate(); } }
-		public int debug2 { get { return _debug2; } set { _debug2 = value; Recreate(); } }
 		// It's easier to internally store nLatLines as LatLines + 1.
 		private int nLatLines = 6;
 		private int nLongLines = 12;
-		public int LatLines { get { return nLatLines-1; } set { nLatLines = value+1; Recreate(); } }
-		public int LongLines { get { return nLongLines; } set { nLongLines = value; Recreate(); } }
+		public int LatLines { get { return nLatLines-1; } set { nLatLines = value+1; Regenerate(); } }
+		public int LongLines { get { return nLongLines; } set { nLongLines = value; Regenerate(); } }
 		private int mCorners = 6;
-		public int Corners { get { return mCorners; } set { mCorners = value; Recreate(); } }
+		public int Corners
+		{
+			get { return mCorners; }
+			set
+			{
+				if (value < 4) throw new ArgumentException("Sphere shape must have at least 4 corners");
+				mCorners = value; 
+				Regenerate();
+			}
+		}
         public Sphere() : this(6) { }
         public Sphere(Color col) : this(6, col) { }
 		public Sphere(int corners, Color col) : this(corners) { SolidColor = col; }
         public Sphere(int corners)
             : base()
         {
-            if (corners < 4) throw new ArgumentException("Sphere shape must have at least 4 corners");
+            
 			Corners = corners;
 
-			Recreate();
-
-			AutoGenerateVertices();
-
         }
+
+		private void Regenerate()
+		{
+			checkParams();
+			AutoGenerateVertices();
+			AutoGenerateIndices();
+			Update();
+		}
 
 		private void checkParams()
 		{
@@ -58,13 +68,6 @@ namespace Direct3DLib
 			}
 		}
 
-		private void Recreate()
-		{
-			checkParams();
-			AutoGenerateVertices();
-			AutoGenerateIndices();
-			Update();
-		}
 
 		public void AutoGenerateVertices()
 		{
@@ -118,8 +121,6 @@ namespace Direct3DLib
 			SetUniformColor(SolidColor);
 		}
 
-		private int _debug = 0;
-		private int _debug2 = 0;
 
 		public override void AutoGenerateIndices()
 		{

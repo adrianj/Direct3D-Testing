@@ -10,10 +10,10 @@ namespace Direct3DLib
     /// This class encompasses any kind of object that has a 3D position, scale and a 3D rotation.
     /// So it includes Shapes, Light sources and the Camera.
     /// </summary>
-    [Serializable]
-    public class Object3D : Component
+    [ToolboxItem(false)]
+	[TypeConverter(typeof(BasicTypeConverter))]
+    public class Object3D : IDisposable
     {
-        [NonSerialized,Browsable(false)]
         protected Matrix mWorld = Matrix.Identity;
         /// <summary>
         /// The final World matrix after all transformations have been applied.
@@ -27,15 +27,17 @@ namespace Direct3DLib
         /// <summary>
         /// Specifies scaling of the object.
         /// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public virtual Vector3 Scale
         {
-            get { return mScale; }
+            get { return mScale;}
             set { mScale = value; updateWorld(); }
         }
         protected Vector3 mLocation = new Vector3(0,0,0);
         /// <summary>
         /// Specifies movement of the object's centre.
         /// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public virtual Vector3 Location
         {
             get { return mLocation; }
@@ -93,5 +95,11 @@ namespace Direct3DLib
         /// Rotation -> Translation -> Scaling
         /// </summary>
         protected virtual void updateWorld() { updateWorld(false); }
+
+		public void Dispose() { Dispose(true); }
+		protected virtual void Dispose(bool disposing){}
+		
+
+		
     }
 }

@@ -64,10 +64,7 @@ namespace Direct3DLib
 
 	public class LatLongTypeConverter : GenericTypeConverter
 	{
-		public override Type cType
-		{
-			get { return typeof(LatLong); }
-		}
+		public LatLongTypeConverter() { cType = typeof(LatLong); }
 	}
 
 }

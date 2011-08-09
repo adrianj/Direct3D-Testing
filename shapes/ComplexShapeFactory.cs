@@ -16,15 +16,16 @@ namespace Direct3DLib
 	{
 		private delegate Shape CreateShapeFromFile(string filename);
 		public enum SupportedFileType { Unknown, STL, DXF, HGT }
-		private static Dictionary<CreateShapeFromFile, string> TypeDictionary = new Dictionary<CreateShapeFromFile, string>
+		private static Dictionary<string,CreateShapeFromFile> TypeDictionary = new Dictionary<string,CreateShapeFromFile>
 		{
-			{ComplexShapeFactory.CreateFromUnknownFile,"unknown"},
-			{ComplexShapeFactory.CreateFromDxfFile,".dxf"},
-			{ShapeHGTFactory.CreateFromFile,".hgt"},
-			{ShapeImageFactory.CreateFromFile,".jpg"},
-			{ShapeImageFactory.CreateFromFile,".png"},
-			{ShapeImageFactory.CreateFromFile,".bmp"},
-			{ShapeImageFactory.CreateFromFile,".jpeg"}
+			{"unknown",ComplexShapeFactory.CreateFromUnknownFile},
+			{".stl",ShapeSTLFactory.CreateFromFile},
+			{".dxf",ComplexShapeFactory.CreateFromDxfFile},
+			{".hgt",ShapeHGTFactory.CreateFromFile},
+			{"jpg.",ShapeImageFactory.CreateFromFile},
+			{"png.",ShapeImageFactory.CreateFromFile},
+			{"bmp.",ShapeImageFactory.CreateFromFile},
+			{"jpeg.",ShapeImageFactory.CreateFromFile}
 		};
 
 		public static string SupportedFileTypeFilter
@@ -34,7 +35,7 @@ namespace Direct3DLib
 				string fileNames = "3D Model Files";
 				string fileExts = "|";
 				bool first = true;
-				foreach (string ext in TypeDictionary.Values)
+				foreach (string ext in TypeDictionary.Keys)
 				{
 					if (ext.Substring(0, 1).Equals("."))
 					{
@@ -63,27 +64,20 @@ namespace Direct3DLib
 
 		private static CreateShapeFromFile DetermineFileType(string filename)
 		{
-			// Figure out file type from file extension.
-			foreach (KeyValuePair<CreateShapeFromFile, string> keyPair in TypeDictionary)
-			{
-				if (IsGivenFileExtension(keyPair.Value, filename))
-				{
-					return keyPair.Key;
-				}
-			}
+			string key = GetFileExtension(filename);
+			if (TypeDictionary.ContainsKey(key))
+				return TypeDictionary[key];
 			return ComplexShapeFactory.CreateFromUnknownFile;
 		}
 
-		private static Shape CreateFromUnknownFile(string filename)
+		private static ComplexShape CreateFromUnknownFile(string filename)
 		{
-			return null;
+			throw new ArgumentException("Cannot create shape from unknown file type: " + filename);
 		}
 
-		private static bool IsGivenFileExtension(string extension, string filename)
+		private static string GetFileExtension(string filename)
 		{
-			if (Path.GetExtension(filename).Equals(extension, StringComparison.InvariantCultureIgnoreCase))
-				return true;
-			return false;
+			return Path.GetExtension(filename).ToLower();
 		}
 
 				/// <summary>
@@ -93,7 +87,7 @@ namespace Direct3DLib
 		/// <returns></returns>
 		private static Shape CreateFromDxfFile(string filename)
 		{
-			return null;
+			throw new NotImplementedException("Create From DXF File not implemented. "+filename);
 		}
 
 

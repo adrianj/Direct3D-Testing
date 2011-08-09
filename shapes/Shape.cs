@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using SlimDX;
 using SlimDX.DXGI;
 using System.Runtime.InteropServices;
@@ -17,17 +14,19 @@ namespace Direct3DLib
     /// A class that consists of a number of ColoredVertices, and an index buffer specifying
     /// how it is made up of flat triangles.
     /// </summary>
-    [TypeConverter(typeof(GenericTypeConverter<Shape>))]
+    [TypeConverter(typeof(BasicTypeConverter))]
     public class Shape : Object3D
     {
         private bool mPick = true;
         public virtual bool CanPick { get { return mPick; } set { mPick = value; } }
 		private Vertex [] mSelectedVerts = new Vertex[3];
-		public Vertex[] SelectedVertices { get { return mSelectedVerts; } set { mSelectedVerts = value; } }
+		public Vertex[] SelectedVertices { get { return mSelectedVerts; }  }
 
         private VertexList mVList = new VertexList();
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public VertexList Vertices { get { return mVList; } set { mVList = value; } }
-		public int SelectedVertexIndex { get; set; }
+		private int selectedIndex = 0;
+		public int SelectedVertexIndex { get { return selectedIndex; } }
 
         private Device mDevice;
 		private ShaderSignature mSignature;
@@ -222,27 +221,24 @@ namespace Direct3DLib
 
 			if (Vertices.Indices == null || Vertices.Indices.Count < 1)
 			{
-				if (Topology == PrimitiveTopology.TriangleList)
+				for (int i = 0; i < Vertices.Count - 2; i += 3)
 				{
-					for (int i = 0; i < Vertices.Count - 2; i += 3)
+					Vector3 v1 = Vector3.TransformCoordinate(Vertices[i].Position, World);
+					Vector3 v2 = Vector3.TransformCoordinate(Vertices[i + 1].Position, World);
+					Vector3 v3 = Vector3.TransformCoordinate(Vertices[i + 2].Position, World);
+					float d = float.MaxValue;
+					bool ii = Ray.Intersects(ray, v1, v2, v3, out d);
+					if (ii && d < distance)
 					{
-						Vector3 v1 = Vector3.TransformCoordinate(Vertices[i].Position, World);
-						Vector3 v2 = Vector3.TransformCoordinate(Vertices[i + 1].Position, World);
-						Vector3 v3 = Vector3.TransformCoordinate(Vertices[i + 2].Position, World);
-						float d = float.MaxValue;
-						bool ii = Ray.Intersects(ray, v1, v2, v3, out d);
-						if (ii && d < distance)
-						{
-							distance = d;
-							ints = true;
-							SelectedVertices[0] = Vertices[i];
-							SelectedVertices[0].Position = v1;
-							SelectedVertices[1] = Vertices[i + 1];
-							SelectedVertices[1].Position = v2;
-							SelectedVertices[2] = Vertices[i + 2];
-							SelectedVertices[2].Position = v3;
-							SelectedVertexIndex = i;
-						}
+						distance = d;
+						ints = true;
+						SelectedVertices[0] = Vertices[i];
+						SelectedVertices[0].Position = v1;
+						SelectedVertices[1] = Vertices[i + 1];
+						SelectedVertices[1].Position = v2;
+						SelectedVertices[2] = Vertices[i + 2];
+						SelectedVertices[2].Position = v3;
+						selectedIndex = i;
 					}
 				}
 			}
@@ -292,7 +288,26 @@ namespace Direct3DLib
             if(indexBuffer != null) indexBuffer.Dispose();
             if(vertexLayout != null) vertexLayout.Dispose();
         }
-    }
 
+
+		public void CopyShapeTo(Shape other)
+		{
+			other.Vertices = this.Vertices;
+			other.Location = this.Location;
+			other.Rotation = this.Rotation;
+			other.Scale = this.Scale;
+			other.Update();
+		}
+
+		public void CopyShapeFrom(Shape other)
+		{
+			this.Vertices = other.Vertices;
+			this.Location = other.Location;
+			this.Rotation = other.Rotation;
+			this.Scale = other.Scale;
+			this.Update();
+		}
+
+    }
 
 }

@@ -1,41 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.ComponentModel;
 using System.Reflection;
+using System.ComponentModel.Design.Serialization;
 using System.Windows.Forms;
 
 namespace Direct3DLib
 {
 	public class GenericTypeConverter<T> : GenericTypeConverter
 	{
-		public override Type cType
+		public GenericTypeConverter()
+			: base()
 		{
-			get { return typeof(T); }
+			cType = typeof(T);
 		}
 	}
 
-	public abstract class GenericTypeConverter : TypeConverter
+	public abstract class GenericTypeConverter : BasicTypeConverter
 	{
-		public abstract Type cType { get; }
+		protected Type cType = typeof(object);
 
 		public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
 		{
 			if (sourceType.Equals(typeof(string)))
 				return true;
-			return false;
+			return base.CanConvertFrom(context,sourceType);
 		}
 
 		public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
 		{
 			if(destinationType.Equals(typeof(string)))
 				return true;
-			return false;
+			//if (destinationType == typeof(InstanceDescriptor))
+			//	return true;
+			return base.CanConvertTo(context,destinationType);
 		}
 
+		
 		public override object CreateInstance(ITypeDescriptorContext context, System.Collections.IDictionary propertyValues)
 		{
+			MessageBox.Show("CreateInstance: cType: " + cType + ", CompType: " + context.PropertyDescriptor.ComponentType + ", instance" + context.Instance);
 			object value = Activator.CreateInstance(cType);
 			foreach (KeyValuePair<object, object> pair in propertyValues)
 			{
@@ -48,28 +52,40 @@ namespace Direct3DLib
 
 		public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)
 		{
+			MessageBox.Show("ConvertFrom: cType: " + cType + ", CompType: " + context.PropertyDescriptor.ComponentType + ", instance" + context.Instance+", value: "+value);
 			object t = Activator.CreateInstance(cType);
 			if (value.GetType() == typeof(string))
 			{
-				MethodInfo tryParse = GetTryParseMethod(cType);
-				object[] paras = new object[] { value, t };
-				bool parseSucceeded = (bool)tryParse.Invoke(t, paras);
-				if (parseSucceeded)
+				try
 				{
-					return paras[1];
+					MethodInfo tryParse = GetTryParseMethod(cType);
+					object[] paras = new object[] { value, t };
+					bool parseSucceeded = (bool)tryParse.Invoke(t, paras);
+					if (parseSucceeded)
+					{
+						return paras[1];
+					}
+				}
+				catch
+				{
+					return t;
 				}
 			}
-			throw new ArgumentException("Could not convert '" + value + "' to type '" + cType + "'");
+			return base.ConvertFrom(context, culture, value);
 
 		}
 
 		public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
 		{
-			//LatLong thisVal = value as LatLong;
 			if (destinationType == typeof(string))
 				return "" + value;
-			throw new FormatException("Could not convert from '" + value + "' to LatLong");
+			//if (destinationType == typeof(InstanceDescriptor))
+			//{
+			//	return new InstanceDescriptor(value.GetType().GetConstructor(new Type[] { }), null, false);
+			//}
+			return base.ConvertTo(context, culture, value, destinationType);
 		}
+		/*
 		public override bool GetPropertiesSupported(ITypeDescriptorContext context)
 		{
 			return true;
@@ -77,8 +93,9 @@ namespace Direct3DLib
 
 		public override PropertyDescriptorCollection GetProperties(ITypeDescriptorContext context, object value, Attribute[] attributes)
 		{
-			return TypeDescriptor.GetProperties(cType);
+			return TypeDescriptor.GetProperties(value.GetType());
 		}
+		 */
 
 		public static MethodInfo GetTryParseMethod(Type typeWithMethods)
 		{
@@ -86,6 +103,36 @@ namespace Direct3DLib
 			if (method == null) return null;
 			if (method.ReturnType != typeof(bool)) return null;
 			return method;
+		}
+	}
+
+	public class BasicTypeConverter : TypeConverter
+	{
+
+		public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
+		{
+			if (destinationType == typeof(InstanceDescriptor))
+				return true;
+			return base.CanConvertTo(context, destinationType);
+		}
+
+		public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
+		{
+			if (destinationType == typeof(InstanceDescriptor))
+			{
+				return new InstanceDescriptor(value.GetType().GetConstructor(new Type[] { }), null, false);
+			}
+			return base.ConvertTo(context, culture, value, destinationType);
+		}
+
+		public override bool GetPropertiesSupported(ITypeDescriptorContext context)
+		{
+			return true;
+		}
+
+		public override PropertyDescriptorCollection GetProperties(ITypeDescriptorContext context, object value, Attribute[] attributes)
+		{
+			return TypeDescriptor.GetProperties(value.GetType());
 		}
 	}
 }

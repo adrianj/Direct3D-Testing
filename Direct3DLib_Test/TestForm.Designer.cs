@@ -30,6 +30,7 @@
         {
 			Direct3DLib.LatLong latLong1 = new Direct3DLib.LatLong();
 			Direct3DLib.Float3 float31 = new Direct3DLib.Float3();
+			Direct3DLib.ComplexShape complexShape1 = new Direct3DLib.ComplexShape();
 			this.textBox1 = new System.Windows.Forms.TextBox();
 			this.textBox2 = new System.Windows.Forms.TextBox();
 			this.propertyGrid = new System.Windows.Forms.PropertyGrid();
@@ -142,7 +143,6 @@
 			this.button1.TabIndex = 12;
 			this.button1.Text = "Add Shape";
 			this.button1.UseVisualStyleBackColor = true;
-			this.button1.Click += new System.EventHandler(this.button1_Click);
 			// 
 			// button2
 			// 
@@ -160,6 +160,14 @@
 			this.earth3DControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
 						| System.Windows.Forms.AnchorStyles.Left)
 						| System.Windows.Forms.AnchorStyles.Right)));
+			this.earth3DControl.APipe.CanPick = true;
+			this.earth3DControl.APipe.Corners = 5;
+			this.earth3DControl.APipe.Location = new SlimDX.Vector3(0F, 0F, 0F);
+			this.earth3DControl.APipe.Rotation = new SlimDX.Vector3(0F, 0F, 0F);
+			this.earth3DControl.APipe.Scale = new SlimDX.Vector3(1F, 1F, 1F);
+			this.earth3DControl.APipe.SolidColor = System.Drawing.Color.Empty;
+			this.earth3DControl.APipe.TextureIndex = -1;
+			this.earth3DControl.APipe.Topology = SlimDX.Direct3D10.PrimitiveTopology.TriangleList;
 			this.earth3DControl.AutomaticallyDownloadMaps = false;
 			this.earth3DControl.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
 			this.earth3DControl.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
@@ -167,8 +175,8 @@
 			this.earth3DControl.CameraPan = 1.5F;
 			this.earth3DControl.CameraTilt = -2.870796F;
 			this.earth3DControl.CurrentElevation = 8000D;
-			latLong1.Latitude = -36.827D;
-			latLong1.Longitude = 174.81D;
+			latLong1.Latitude = -36.8D;
+			latLong1.Longitude = 174.7D;
 			this.earth3DControl.CurrentLatLong = latLong1;
 			this.earth3DControl.FixTerrain = false;
 			this.earth3DControl.FixZoom = false;
@@ -176,7 +184,7 @@
 			this.earth3DControl.LeftMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Select;
 			this.earth3DControl.LightAmbientIntensity = 0.3F;
 			float31.X = 0F;
-			float31.Y = 0.5F;
+			float31.Y = 1F;
 			float31.Z = 1F;
 			this.earth3DControl.LightDirection = float31;
 			this.earth3DControl.LightDirectionalIntensity = 0.7F;
@@ -185,6 +193,15 @@
 			this.earth3DControl.Name = "earth3DControl";
 			this.earth3DControl.RightMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Rotate;
 			this.earth3DControl.SelectedObject = null;
+			complexShape1.CanPick = true;
+			complexShape1.Location = new SlimDX.Vector3(1.7477E+07F, 2000F, -3682700F);
+			complexShape1.Rotation = new SlimDX.Vector3(4.583185F, 0F, 0F);
+			complexShape1.Scale = new SlimDX.Vector3(20F, 20F, 20F);
+			complexShape1.SolidColor = System.Drawing.Color.Empty;
+			complexShape1.SourceFile = "C:\\Users\\adrianj\\Documents\\Work\\CAD\\hercules_LORES.stl";
+			complexShape1.TextureIndex = -1;
+			complexShape1.Topology = SlimDX.Direct3D10.PrimitiveTopology.TriangleList;
+			this.earth3DControl.ShapeList.Add(complexShape1);
 			this.earth3DControl.Size = new System.Drawing.Size(774, 432);
 			this.earth3DControl.TabIndex = 15;
 			this.earth3DControl.TextureImageFilenames = new string[0];
@@ -230,5 +247,6 @@
 		private System.Windows.Forms.Button button1;
 		private System.Windows.Forms.Button button2;
 		private Direct3DLib.Earth3DControl earth3DControl;
+		private Direct3DLib.ComplexShape complexShape1;
     }
 }

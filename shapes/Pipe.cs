@@ -5,32 +5,49 @@ using System.Text;
 using System.Drawing;
 using SlimDX.Direct3D10;
 using SlimDX;
+using System.ComponentModel;
 
 namespace Direct3DLib
 {
 	/// <summary>
-	/// A 3D Pipe shape. basically these are cylinders with a varying number of "corners", ie, 4 corners = a cube.
+	/// A 3D Pipe shape. basically these are cylinders with a varying number of "corners", ie, 4 corners = a cubic box.
 	/// </summary>
+	[TypeConverter(typeof(BasicTypeConverter))]
 	public class Pipe : Shape
 	{
+		
 		protected int mCorners = 6;
+		public int Corners
+		{
+			get { return mCorners; }
+			set
+			{
+				if (value < 2) throw new ArgumentException("Pipe shape must have at least 2 corners");
+				mCorners = value;
+				Regenerate();
+			}
+		}
+
 		public Pipe() : this(6) { }
 		public Pipe(Color col) : this(6, col) { }
 		public Pipe(int corners, Color col) : this(corners) { SetUniformColor(col); }
 		public Pipe(int corners)
 			: base()
 		{
-			if (corners < 2) throw new ArgumentException("Pipe shape must have at least 2 corners");
-			mCorners = corners;
-			Vertices.Capacity = (corners * 6);
-			for (int i = 0; i < corners; i++)
+			Corners = corners;
+		}
+		protected virtual void Regenerate()
+		{
+			Vertices.Clear();
+			Vertices.Capacity = (mCorners * 6);
+			for (int i = 0; i < mCorners; i++)
 			{
 				// Each face is a square with corners at (x0,-1,z0) and (x1,1,z1)
 
-				float x0 = (float)(Math.Cos(Math.PI * 2 * i / corners + Math.PI/4));
-				float z0 = (float)(Math.Sin(Math.PI * 2 * i / corners + Math.PI / 4));
-				float x1 = (float)(Math.Cos(Math.PI * 2 * (i + 1) / corners + Math.PI / 4));
-				float z1 = (float)(Math.Sin(Math.PI * 2 * (i + 1) / corners + Math.PI / 4));
+				float x0 = (float)(Math.Cos(Math.PI * 2 * i / mCorners + Math.PI / 4));
+				float z0 = (float)(Math.Sin(Math.PI * 2 * i / mCorners + Math.PI / 4));
+				float x1 = (float)(Math.Cos(Math.PI * 2 * (i + 1) / mCorners + Math.PI / 4));
+				float z1 = (float)(Math.Sin(Math.PI * 2 * (i + 1) / mCorners + Math.PI / 4));
 				float y0 = -0.5f;
 				float y1 = -y0;
 				Vector3 c0 = new Vector3(x0, y0, z0);
@@ -45,7 +62,6 @@ namespace Direct3DLib
 				Vertices.Add(new Vertex(c2, norm));
 				Vertices.Add(new Vertex(c3, norm));
 			}
-			//AutoGenerateIndices();
 		}
 
 		public override void AutoGenerateIndices()
@@ -79,6 +95,7 @@ namespace Direct3DLib
 
 	}
 
+	[TypeConverter(typeof(BasicTypeConverter))]
 	public class ClosedPipe : Pipe
 	{
 		public ClosedPipe() : this(6) { }
@@ -87,31 +104,35 @@ namespace Direct3DLib
 		public ClosedPipe(int corners)
 			: base(corners)
 		{
+		}
+
+		protected override void Regenerate()
+		{
+			base.Regenerate();
+
 			// Same as for a pipe, but just need to close off the top and bottom.
-			
 			Vector3 v0 = Vertices[4].Position;
-			for (int i = 0; i < corners; i++)
+			for (int i = 0; i < mCorners; i++)
 			{
-				Vector3 v1 = Vertices[i * 6+1].Position;
-				Vector3 v2 = Vertices[i * 6+2].Position;
+				Vector3 v1 = Vertices[i * 6 + 1].Position;
+				Vector3 v2 = Vertices[i * 6 + 2].Position;
 				Vector3 norm = new Plane(v2, v1, v0).Normal;
 				Vertices.Add(new Vertex(v2, norm));
 				Vertices.Add(new Vertex(v1, norm));
 				Vertices.Add(new Vertex(v0, norm));
 			}
-			 
+
 			v0 = Vertices[0].Position;
-			for (int i = 0; i < corners; i++)
+			for (int i = 0; i < mCorners; i++)
 			{
-				Vector3 v1 = Vertices[i * 6+3].Position;
+				Vector3 v1 = Vertices[i * 6 + 3].Position;
 				Vector3 v2 = Vertices[i * 6 + 5].Position;
 				Vector3 norm = new Plane(v0, v1, v2).Normal;
 				Vertices.Add(new Vertex(v0, norm));
 				Vertices.Add(new Vertex(v1, norm));
 				Vertices.Add(new Vertex(v2, norm));
 			}
-			  
+
 		}
 	}
-
 }

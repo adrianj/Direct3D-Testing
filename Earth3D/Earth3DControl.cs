@@ -64,7 +64,7 @@ namespace Direct3DLib
 		public float KeyboardMovementSpeed { get { return engine.KeyboardMovementSpeed; } set { engine.KeyboardMovementSpeed = value; } }
 
 		public object SelectedObject { get { return engine.SelectedObject; } set { engine.SelectedObject = value; } }
-		public List<Shape> ShapeList { get { return engine.Engine.ShapeList; } }
+		//public List<Shape> ShapeList { get { return engine.Engine.ShapeList; } }
 		public double RefreshRate { get { return engine.Engine.RefreshRate; } }
 
 		#endregion
@@ -132,6 +132,14 @@ namespace Direct3DLib
 				earthTiles.UseTerrainData = value;
 			}
 		}
+		private List<Shape> shapeList = new List<Shape>();
+		[Category("Shapes"),Editor(typeof(ShapeCollectionEditor), typeof(System.Drawing.Design.UITypeEditor)),
+		DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
+		public List<Shape> ShapeList { get { return shapeList; } set { shapeList = value; } }
+
+		private Pipe aPipe = new Pipe(5);
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
+		public Pipe APipe { get { return aPipe; } set { aPipe = value; } }
 	
 
 		private string[] GetTextureFilenames()
@@ -264,6 +272,11 @@ namespace Direct3DLib
 		{
 			if (this.isInitialized)
 			{
+				foreach (Shape s in ShapeList)
+				{
+					engine.Engine.ShapeList.Add(s);
+				}
+				engine.Engine.UpdateShapes();
 				EarthControlOptionsForm.CheckGlobalSettings();
 				UseTerrainData = Properties.Settings.Default.UseGISData;
 				earthTiles.MapChanged += (o, ev) => { engine.Engine.UpdateShapes(); };

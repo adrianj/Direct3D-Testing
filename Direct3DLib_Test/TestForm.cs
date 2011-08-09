@@ -47,46 +47,8 @@ namespace Direct3DLib_Test
 			earth3DControl.UpdateShapes();
         }
 
-		private void AddHerc()
-		{
-			string filename = "C:\\Users\\adrianj\\Documents\\Work\\CAD\\hercules_LORES.stl";
-			Shape shape = OpenShapeFromFile(filename);
-			if (shape != null)
-			{
-				shape.Rotation = new Vector3(-(float)Math.PI / 2, 0, 0);
-				Float3 loc = new Float3(earth3DControl.CameraLocation);
-				loc.Y = 500;
-				shape.Location = loc.AsVector3();
-				shape.Scale = new Vector3(1.0f, 1.0f, 1.0f);
-				earth3DControl.ShapeList.Add(shape);
-			}
-		}
 
-		private void AddSphere()
-		{
-			Sphere sp = new Sphere(24, Color.Black);
-			sp.LongLines = 12;
-			sp.LatLines = 7;
-			sp.Scale = new Vector3(300, 300, 300);
-			Float3 loc = new Float3(earth3DControl.CameraLocation);
-			loc.Y = 500;
-			sp.Location = loc.AsVector3();
-			sp.Topology = SlimDX.Direct3D10.PrimitiveTopology.LineList;
-			sp.CanPick = false;
-			earth3DControl.ShapeList.Add(sp);
-		}
 
-		private void AddWoomera()
-		{
-			Shape shape = ShapeHGTFactory.CreateFromCoordinates(-37.1, 174.1, 0.25, 0.25);
-			if (shape != null)
-			{
-				shape.Scale = new Vector3(1.0f, 10.0f, 1.0f);
-				shape.Location = new Vector3(0, 0, 0);
-				shape.TextureIndex = 3;
-				earth3DControl.ShapeList.Add(shape);
-			}
-		}
 
 		private Shape OpenShapeFromFile(string filename)
 		{
@@ -133,25 +95,11 @@ namespace Direct3DLib_Test
             }
         }
 
-		private void button1_Click(object sender, EventArgs e)
-		{
-			OpenFileDialog ofd = new OpenFileDialog();
-			ofd.Filter = ComplexShapeFactory.SupportedFileTypeFilter;
-			if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-			{
-				Shape newShape = ComplexShapeFactory.CreateFromFile(ofd.FileName);
-				if (newShape != null)
-				{
-					earth3DControl.ShapeList.Add(newShape);
-					earth3DControl.UpdateShapes();
-					earth3DControl.SelectedObject = newShape;
-				}
-			}
-		}
 
 		private void button2_Click(object sender, EventArgs e)
 		{
 		}
+
 
     }
 }

@@ -63,7 +63,7 @@ PS_IN VS(float4 inPos : POSITION, float4 inNorm : NORMAL, float4 inColor : COLOR
 {
 	PS_IN output = (PS_IN)0;
 	output.pos = TransformPosition(inPos);
-	output.norm = inNorm;
+	output.norm = TransformNormal(inNorm);
 	output.col = inColor;
 	
 	return output;

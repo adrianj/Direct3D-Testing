@@ -40,10 +40,7 @@ namespace Direct3DLib
 
 	public class Float3TypeConverter : GenericTypeConverter
 	{
-		public override Type cType
-		{
-			get { return typeof(Float3); }
-		}
+		public Float3TypeConverter() { cType = typeof(Float3); }
 		
 		public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
 		{

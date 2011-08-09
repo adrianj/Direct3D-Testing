@@ -115,6 +115,8 @@ namespace Direct3DLib
 
 		}
 
+
+
 		public Shape PickObjectAt(Point screenLocation)
 		{
 			return engine.PickObjectAt(screenLocation);

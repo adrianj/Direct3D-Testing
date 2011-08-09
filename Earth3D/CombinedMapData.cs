@@ -7,7 +7,7 @@ using System.ComponentModel;
 
 namespace Direct3DLib
 {
-	[TypeConverter(typeof(GenericTypeConverter<CombinedMapData>))]
+	[TypeConverter(typeof(BasicTypeConverter))]
 	public class CombinedMapData : Shape
 	{
 		private LatLong bottomLeft = new LatLong();
@@ -19,6 +19,7 @@ namespace Direct3DLib
 		public int ZoomLevel { get { return tileRes; } set { tileRes = value; } }
 		private bool updateRequired = true;
 		private Image image;
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public Image TextureImage { get { return image; } set { if (image != value && value != null) updateRequired = true; image = value; } }
 
 		public CombinedMapData()
@@ -86,23 +87,6 @@ namespace Direct3DLib
 			worker.RunWorkerAsync(image);
 		}
 
-		public void CopyShapeTo(Shape other)
-		{
-			other.Vertices = this.Vertices;
-			other.Location = this.Location;
-			other.Rotation = this.Rotation;
-			other.Scale = this.Scale;
-			other.Update();
-		}
-
-		public void CopyShapeFrom(Shape other)
-		{
-			this.Vertices = other.Vertices;
-			this.Location = other.Location;
-			this.Rotation = other.Rotation;
-			this.Scale = other.Scale;
-			this.Update();
-		}
 
 		private bool disposed = false;
 		protected override void Dispose(bool disposing)

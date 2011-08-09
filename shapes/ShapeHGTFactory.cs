@@ -7,6 +7,7 @@ using System.Drawing;
 using DTALib;
 using SlimDX;
 using Vector3 = SlimDX.Vector3;
+using System.Windows.Forms;
 
 namespace Direct3DLib
 {
@@ -36,9 +37,9 @@ namespace Direct3DLib
 		private double degreesLatitudePerPoint = 1/(double)(ROWS_PER_FILE-1);
 		
 		private float verticalScale = 1.0f;			// 1 m
-		public float VerticalScale { get { return verticalScale; } set { verticalScale = value; } }
+		//public float VerticalScale { get { return verticalScale; } set { verticalScale = value; } }
 		private float horizontalScale = 1.0f;
-		public float HorizontalScale { get { return horizontalScale; } set { horizontalScale = value; } }
+		//public float HorizontalScale { get { return horizontalScale; } set { horizontalScale = value; } }
 
 
 		private string filename;
@@ -55,6 +56,7 @@ namespace Direct3DLib
 		public static Shape CreateFromFile(string filename)
 		{
 			ShapeHGTFactory factory = new ShapeHGTFactory(filename);
+			
 			Shape shape = factory.ReadShapeFromFile();
 			return shape;
 		}
