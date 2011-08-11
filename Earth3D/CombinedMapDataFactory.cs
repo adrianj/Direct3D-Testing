@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
 
 namespace Direct3DLib
 {
@@ -99,13 +96,16 @@ namespace Direct3DLib
 				shape = shapeFactory.GenerateNullShape();
 			else
 			{
-				string filename = ShapeHGTFactory.CalculateFilenameFromLatLong(BottomLeftLocation);
-				shapeFactory.Filename = filename;
 				try
 				{
-					//shape = shapeFactory.ReadShapeFromFile();
-					int logDelta = (int)Math.Log(Delta, 2.0);
-					shape = shapeFactory.ReadAndReduceShapeFromFile(logDelta-EarthTiles.MinLogDelta);
+					string filename = ShapeHGTFactory.CalculateFilenameFromLatLong(BottomLeftLocation);
+					using (System.IO.Stream stream = new System.IO.FileStream(filename, System.IO.FileMode.Open))
+					{
+						shapeFactory.Stream = stream;
+						//shape = shapeFactory.ReadShapeFromFile();
+						int logDelta = (int)Math.Log(Delta, 2.0);
+						shape = shapeFactory.ReadAndReduceShapeFromFile(logDelta - EarthTiles.MinLogDelta);
+					}
 				}
 				catch (System.IO.FileNotFoundException)
 				{

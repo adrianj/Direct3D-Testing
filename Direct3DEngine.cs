@@ -14,7 +14,7 @@ using Vector3 = SlimDX.Vector3;
 
 namespace Direct3DLib
 {
-	//[TypeConverter(typeof(EngineTypeConverter))]
+	[TypeConverter(typeof(BasicTypeConverter))]
     public class Direct3DEngine : IDisposable
     {
         #region Parent Declaration and Constructor
@@ -273,7 +273,8 @@ namespace Direct3DLib
             if (IsInitialized)
             {
                 // Clear the view, resetting to the background colour.
-                device.ClearRenderTargetView(renderView, new Color4(mParent.BackColor));
+				Color4 back = new Color4(mParent.BackColor);
+                device.ClearRenderTargetView(renderView, back);
                 device.ClearDepthStencilView(renderDepth, DepthStencilClearFlags.Depth, 1, 0);
 				shaderHelper.ConstantBufferSet.ViewProj = Camera.World;
 				RenderAllShapes();
@@ -343,7 +344,7 @@ namespace Direct3DLib
 			return BoundingBox.FromPoints(corners);// BoundingBoxFromVertices(corners);
 		}
     }
-	
+	/*
 	public class EngineTypeConverter : System.ComponentModel.TypeConverter
 	{
 		public override bool GetPropertiesSupported(ITypeDescriptorContext context)
@@ -363,6 +364,7 @@ namespace Direct3DLib
 			return pdc;
 		}
 	}
+	 */
 	 
 }
 

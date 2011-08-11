@@ -14,18 +14,18 @@ namespace Direct3DLib
 	/// </summary>
 	public class ComplexShapeFactory
 	{
-		private delegate Shape CreateShapeFromFile(string filename);
+		private delegate Shape CreateShapeFromFile(Stream stream);
 		public enum SupportedFileType { Unknown, STL, DXF, HGT }
 		private static Dictionary<string,CreateShapeFromFile> TypeDictionary = new Dictionary<string,CreateShapeFromFile>
 		{
 			{"unknown",ComplexShapeFactory.CreateFromUnknownFile},
-			{".stl",ShapeSTLFactory.CreateFromFile},
+			{".stl",ShapeSTLFactory.CreateFromStream},
 			{".dxf",ComplexShapeFactory.CreateFromDxfFile},
-			{".hgt",ShapeHGTFactory.CreateFromFile},
-			{"jpg.",ShapeImageFactory.CreateFromFile},
-			{"png.",ShapeImageFactory.CreateFromFile},
-			{"bmp.",ShapeImageFactory.CreateFromFile},
-			{"jpeg.",ShapeImageFactory.CreateFromFile}
+			{".hgt",ShapeHGTFactory.CreateFromStream},
+			{"jpg.",ShapeImageFactory.CreateFromStream},
+			{"png.",ShapeImageFactory.CreateFromStream},
+			{"bmp.",ShapeImageFactory.CreateFromStream},
+			{"jpeg.",ShapeImageFactory.CreateFromStream}
 		};
 
 		public static string SupportedFileTypeFilter
@@ -57,8 +57,14 @@ namespace Direct3DLib
 		/// <returns></returns>
 		public static Shape CreateFromFile(string filename)
 		{
+			Stream stream = new FileStream(filename, FileMode.Open);
+			return CreateFromStream(stream, filename);
+		}
+
+		public static Shape CreateFromStream(Stream stream, string filename)
+		{
 			CreateShapeFromFile functionDelegate = DetermineFileType(filename);
-			Shape retShape = functionDelegate(filename);
+			Shape retShape = functionDelegate(stream);
 			return retShape;
 		}
 
@@ -70,9 +76,9 @@ namespace Direct3DLib
 			return ComplexShapeFactory.CreateFromUnknownFile;
 		}
 
-		private static ComplexShape CreateFromUnknownFile(string filename)
+		private static ComplexShape CreateFromUnknownFile(Stream stream)
 		{
-			throw new ArgumentException("Cannot create shape from unknown file type: " + filename);
+			throw new ArgumentException("Cannot create shape from unknown file type: " + stream);
 		}
 
 		private static string GetFileExtension(string filename)
@@ -85,9 +91,9 @@ namespace Direct3DLib
 		/// </summary>
 		/// <param name="filename">Path of the file to read</param>
 		/// <returns></returns>
-		private static Shape CreateFromDxfFile(string filename)
+		private static Shape CreateFromDxfFile(Stream stream)
 		{
-			throw new NotImplementedException("Create From DXF File not implemented. "+filename);
+			throw new NotImplementedException("Create From DXF File not implemented. "+stream);
 		}
 
 

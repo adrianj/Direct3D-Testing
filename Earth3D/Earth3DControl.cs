@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
-using Direct3DLib;
 using SlimDX;
 
 namespace Direct3DLib
@@ -135,11 +130,8 @@ namespace Direct3DLib
 		private List<Shape> shapeList = new List<Shape>();
 		[Category("Shapes"),Editor(typeof(ShapeCollectionEditor), typeof(System.Drawing.Design.UITypeEditor)),
 		DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-		public List<Shape> ShapeList { get { return shapeList; } set { shapeList = value; } }
+		public List<Shape> ShapeList { get { return shapeList; } set { MessageBox.Show("added shapes"); shapeList = value; } }
 
-		private Pipe aPipe = new Pipe(5);
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-		public Pipe APipe { get { return aPipe; } set { aPipe = value; } }
 	
 
 		private string[] GetTextureFilenames()
@@ -324,6 +316,11 @@ namespace Direct3DLib
 			optionsForm.TerrainFolder = Properties.Settings.Default.MapTerrainFolder;
 			optionsForm.TextureFolder = Properties.Settings.Default.MapTextureFolder;
 			optionsForm.Delta = earthTiles.Delta;
+		}
+
+		private void engine_DragDrop(object sender, DragEventArgs e)
+		{
+			MessageBox.Show("Hello");
 		}
 	}
 }

@@ -14,6 +14,7 @@ namespace Direct3DLib
     /// A class that consists of a number of ColoredVertices, and an index buffer specifying
     /// how it is made up of flat triangles.
     /// </summary>
+	[ToolboxItem(false)]
     [TypeConverter(typeof(BasicTypeConverter))]
     public class Shape : Object3D
     {

@@ -42,9 +42,11 @@ namespace Direct3DLib
 		//public float HorizontalScale { get { return horizontalScale; } set { horizontalScale = value; } }
 
 
-		private string filename;
-		public string Filename { get { return filename; } set { filename = value; } }
+		//private string filename;
+		//public string Filename { set { reader = new BinaryReaderBiEndian(value, true); } }
+		
 		private BinaryReaderBiEndian reader;
+		public Stream Stream { set { reader = new BinaryReaderBiEndian(value, true); } }
 		private Shape shape;
 		private int currentRow = 0;
 		private int[] previousRow = null;
@@ -55,9 +57,14 @@ namespace Direct3DLib
 
 		public static Shape CreateFromFile(string filename)
 		{
-			ShapeHGTFactory factory = new ShapeHGTFactory(filename);
+			using(Stream stream = new FileStream(filename, FileMode.Open))
+				return ShapeHGTFactory.CreateFromStream(stream);
+		}
+		public static Shape CreateFromStream(Stream stream)
+		{
+			ShapeHGTFactory factory = new ShapeHGTFactory(stream);
 			
-			Shape shape = factory.ReadShapeFromFile();
+			Shape shape = factory.ReadShapeFromStream();
 			return shape;
 		}
 
@@ -66,15 +73,21 @@ namespace Direct3DLib
 			string filename = CalculateFilenameFromLatLong(new LatLong(latStart, longStart));
 			return CreateFromFile(filename, latStart, longStart, latDelta, longDelta);
 		}
-
 		public static Shape CreateFromFile(string filename, double latStart, double longStart, double latDelta, double longDelta)
 		{
-			ShapeHGTFactory factory = new ShapeHGTFactory(filename);
+			using (Stream stream = new FileStream(filename, FileMode.Open))
+			{
+				return CreateFromStream(stream, latStart, longStart, latDelta, longDelta);
+			}
+		}
+		public static Shape CreateFromStream(Stream stream, double latStart, double longStart, double latDelta, double longDelta)
+		{
+			ShapeHGTFactory factory = new ShapeHGTFactory(stream);
 			factory.latitudeStart = latStart;
 			factory.latitudeDelta = latDelta;
 			factory.longitudeStart = longStart;
 			factory.longitudeDelta = longDelta;
-			Shape shape = factory.ReadShapeFromFile();
+			Shape shape = factory.ReadShapeFromStream();
 			return shape;
 		}
 
@@ -106,28 +119,29 @@ namespace Direct3DLib
 			return ret;
 		}
 
-		public ShapeHGTFactory(string filename)
+
+		public ShapeHGTFactory(Stream stream)
 		{
-			this.filename = filename;
+			this.Stream = stream;
 		}
 
 		public ShapeHGTFactory() { }
 
-		public Shape ReadShapeFromFile()
+		public Shape ReadShapeFromStream()
 		{
+			if (reader == null)
+				throw new NullReferenceException("ShapeHGTFactory does not have a valid Stream");
 			try
 			{
 				shape = new Shape();
-				using (reader = new BinaryReaderBiEndian(filename, true))
+				Initialize();
+				SkipToStartRow();
+				for (int r = 0; r < nRowsToRead - 1; r++)
 				{
-					Initialize();
-					SkipToStartRow();
-					for (int r = 0; r < nRowsToRead-1; r++)
-					{
-						Vertex[] row = ReadNextRowOfTriangles();
-						shape.Vertices.AddRange(row);
-					}
+					Vertex[] row = ReadNextRowOfTriangles();
+					shape.Vertices.AddRange(row);
 				}
+
 
 				return shape;
 			}
@@ -140,7 +154,7 @@ namespace Direct3DLib
 			if (LatitudeDelta > 1 || LongitudeDelta > 1)
 				return GenerateNullShape();
 			Initialize();
-			short[,] data = ShapeHGTFactory.ReadHGT(filename, startCol, startRow, nColumnsToRead, nRowsToRead);
+			short[,] data = ReadHGT(startCol, startRow, nColumnsToRead, nRowsToRead);
 			int width = data.GetLength(1);
 			int height = data.GetLength(0);
 			int factor = (int)Math.Pow(2.0, logFactorToDecimate);
@@ -192,6 +206,7 @@ namespace Direct3DLib
 			return (float)(unitsPerLatitude * degreesLatitudePerPoint);
 		}
 
+		/*
 		private void InferRowsAndColumnsFromFileSize()
 		{
 			FileInfo info = new FileInfo(filename);
@@ -207,6 +222,7 @@ namespace Direct3DLib
 			nRowsToRead = (int)(nInts / rows);
 		}
 
+		 */
 		private Vertex[] ReadNextRowOfTriangles()
 		{
 			if (previousRow == null)
@@ -306,13 +322,13 @@ namespace Direct3DLib
 			return shape;
 		}
 
-		public static Image ConvertHGTToImage(string hgtFilename)
+		public Image ConvertHGTToImage()
 		{
-			return ConvertHGTToImage(hgtFilename, 0, 0, COLUMNS_PER_FILE, ROWS_PER_FILE);
+			return ConvertHGTToImage(0, 0, COLUMNS_PER_FILE, ROWS_PER_FILE);
 		}
-		public static Image ConvertHGTToImage(string hgtFilename, int xOffset, int yOffset, int width, int height)
+		public Image ConvertHGTToImage(int xOffset, int yOffset, int width, int height)
 		{
-			short[,] data = ReadHGT(hgtFilename, xOffset, yOffset, width, height);
+			short[,] data = ReadHGT(xOffset, yOffset, width, height);
 			Bitmap image = new Bitmap(data.GetLength(1), data.GetLength(0), System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 			for(int y = 0; y < data.GetLength(1); y++)
 				for (int x = 0; x < data.GetLength(0); x++)
@@ -323,12 +339,12 @@ namespace Direct3DLib
 			return image;
 		}
 
-		public static short[,] ReadHGT(string hgtFilename, int xOffset, int yOffset, int width, int height)
+		public short[,] ReadHGT(int xOffset, int yOffset, int width, int height)
 		{
 			short[,] data = new short[width, height];
 			short prevColor = 0;
-			using (BinaryReaderBiEndian reader = new BinaryReaderBiEndian(new FileStream(hgtFilename, FileMode.Open)))
-			{
+			//using (BinaryReaderBiEndian reader = new BinaryReaderBiEndian(new FileStream(hgtFilename, FileMode.Open)))
+			//{
 				reader.IsBigEndian = true;
 				for (int y = 0; y < ROWS_PER_FILE + 1; y++)
 				{
@@ -345,7 +361,7 @@ namespace Direct3DLib
 						prevColor = color;
 					}
 				}
-			}
+			//}
 			return data;
 		}
 

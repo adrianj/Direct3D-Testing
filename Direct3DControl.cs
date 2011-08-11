@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Data;
 using System.Text;
 using System.Windows.Forms;
+using System.Windows.Forms.Design;
 using SlimDX;
 using SlimDX.Windows;
 using System.Reflection;
@@ -26,8 +27,6 @@ namespace Direct3DLib
 			InitializeMouse();
 			InitializeKeyboard();
 			this.Load += new EventHandler(Direct3DControl_Load);
-			if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
-				designTime = true;
 		}
 
 		void Direct3DControl_Load(object sender, EventArgs e)
@@ -286,6 +285,16 @@ namespace Direct3DLib
 			}
 		}
 		#endregion
+
+		private void Direct3DControl_DragDrop(object sender, DragEventArgs e)
+		{
+			MessageBox.Show("Item dropped");
+		}
+
+		private void Direct3DControl_DragEnter(object sender, DragEventArgs e)
+		{
+			MessageBox.Show("Item enter");
+		}
 
 
 	}

@@ -77,12 +77,16 @@ namespace Direct3DLib
 			worker.DoWork += (o, e) =>
 			{
 				Image img = (Image)e.Argument;
-				if (TextureIndex >= 0 && img != null)
+				try
 				{
-					byte[] bytes = ImageConverter.ConvertImageToBytes(img);
-					tex = ImageConverter.ConvertBytesToTexture2D(device, bytes);
-					helper.TextureSet[TextureIndex].TextureImage = tex;
+					if (TextureIndex >= 0 && img != null)
+					{
+						byte[] bytes = ImageConverter.ConvertImageToBytes(img);
+						tex = ImageConverter.ConvertBytesToTexture2D(device, bytes);
+						helper.TextureSet[TextureIndex].TextureImage = tex;
+					}
 				}
+				catch (SlimDX.Direct3D10.Direct3D10Exception) { }
 			};
 			worker.RunWorkerAsync(image);
 		}

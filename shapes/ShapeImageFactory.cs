@@ -5,6 +5,7 @@ using System.Text;
 using System.Drawing;
 using System.Drawing.Imaging;
 using SlimDX;
+using System.IO;
 
 namespace Direct3DLib
 {
@@ -17,6 +18,14 @@ namespace Direct3DLib
 		public PointF ShapeSize { get { return new PointF(shapeWidth, shapeHeight); } set { shapeHeight = value.Y; shapeWidth = value.X; } }
 		private Shape shape;
 
+		public static Shape CreateFromStream(Stream stream) { return CreateFromStream(stream, new PointF(1.0f, 1.0f)); }
+		public static Shape CreateFromStream(Stream stream, PointF outputShapeSize)
+		{
+			using (Image image = Bitmap.FromStream(stream))
+			{
+				return CreateFromImage(image, outputShapeSize);
+			}
+		}
 		public static Shape CreateFromFile(string filename) { return CreateFromFile(filename, new PointF(1.0f, 1.0f)); }
 		public static Shape CreateFromFile(string filename, PointF outputShapeSize)
 		{

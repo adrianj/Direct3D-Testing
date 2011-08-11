@@ -41,5 +41,10 @@ namespace Direct3DLib
 			return vects;
 		}
 
+		public override string ToString()
+		{
+			return "["+this.Count+"] "+this.GetType().Name;
+		}
+
     }
 }

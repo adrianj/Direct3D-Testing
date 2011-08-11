@@ -40,7 +40,7 @@ namespace Direct3DLib_Test
 					textBox1.Text = "" + s;
 				}
             };
-			propertyGrid.SelectedObject = earth3DControl;
+			propertyGrid.SelectedObject = complexShape1;
 			//AddHerc();
 			//AddSphere();
 			//AddWoomera();
@@ -96,9 +96,6 @@ namespace Direct3DLib_Test
         }
 
 
-		private void button2_Click(object sender, EventArgs e)
-		{
-		}
 
 
     }

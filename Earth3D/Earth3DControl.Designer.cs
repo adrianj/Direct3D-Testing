@@ -33,6 +33,7 @@
 			// 
 			// engine
 			// 
+			this.engine.AllowDrop = true;
 			this.engine.BothMouseFunction = Direct3DLib.Direct3DControl.MouseOption.CameraTranslateXZ;
 			this.engine.CameraLocation = new SlimDX.Vector3(0F, 12000F, 0F);
 			this.engine.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -55,6 +56,7 @@
 			this.engine.ZClipNear = 5F;
 			this.engine.Zoom = 5F;
 			this.engine.CameraChanged += new System.EventHandler(this.engine_CameraChanged);
+			this.engine.DragDrop += new System.Windows.Forms.DragEventHandler(this.engine_DragDrop);
 			// 
 			// Earth3DControl
 			// 

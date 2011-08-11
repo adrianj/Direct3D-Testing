@@ -28,9 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
+			this.components = new System.ComponentModel.Container();
 			Direct3DLib.LatLong latLong1 = new Direct3DLib.LatLong();
 			Direct3DLib.Float3 float31 = new Direct3DLib.Float3();
-			Direct3DLib.ComplexShape complexShape1 = new Direct3DLib.ComplexShape();
 			this.textBox1 = new System.Windows.Forms.TextBox();
 			this.textBox2 = new System.Windows.Forms.TextBox();
 			this.propertyGrid = new System.Windows.Forms.PropertyGrid();
@@ -43,6 +43,8 @@
 			this.button1 = new System.Windows.Forms.Button();
 			this.button2 = new System.Windows.Forms.Button();
 			this.earth3DControl = new Direct3DLib.Earth3DControl();
+			this.complexShape1 = new Direct3DLib.ComplexShape();
+			this.namedComponent1 = new Direct3DLib.NamedComponent(this.components);
 			this.SuspendLayout();
 			// 
 			// textBox1
@@ -153,23 +155,15 @@
 			this.button2.TabIndex = 14;
 			this.button2.Text = "Google Map Test";
 			this.button2.UseVisualStyleBackColor = true;
-			this.button2.Click += new System.EventHandler(this.button2_Click);
 			// 
 			// earth3DControl
 			// 
 			this.earth3DControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
 						| System.Windows.Forms.AnchorStyles.Left)
 						| System.Windows.Forms.AnchorStyles.Right)));
-			this.earth3DControl.APipe.CanPick = true;
-			this.earth3DControl.APipe.Corners = 5;
-			this.earth3DControl.APipe.Location = new SlimDX.Vector3(0F, 0F, 0F);
-			this.earth3DControl.APipe.Rotation = new SlimDX.Vector3(0F, 0F, 0F);
-			this.earth3DControl.APipe.Scale = new SlimDX.Vector3(1F, 1F, 1F);
-			this.earth3DControl.APipe.SolidColor = System.Drawing.Color.Empty;
-			this.earth3DControl.APipe.TextureIndex = -1;
-			this.earth3DControl.APipe.Topology = SlimDX.Direct3D10.PrimitiveTopology.TriangleList;
 			this.earth3DControl.AutomaticallyDownloadMaps = false;
 			this.earth3DControl.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+			this.earth3DControl.BackgroundImage = global::Direct3DLib_Test.Properties.Resources.Chrysanthemum;
 			this.earth3DControl.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 			this.earth3DControl.BothMouseFunction = Direct3DLib.Direct3DControl.MouseOption.CameraTranslateXZ;
 			this.earth3DControl.CameraPan = 1.5F;
@@ -193,20 +187,23 @@
 			this.earth3DControl.Name = "earth3DControl";
 			this.earth3DControl.RightMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Rotate;
 			this.earth3DControl.SelectedObject = null;
-			complexShape1.CanPick = true;
-			complexShape1.Location = new SlimDX.Vector3(1.7477E+07F, 2000F, -3682700F);
-			complexShape1.Rotation = new SlimDX.Vector3(4.583185F, 0F, 0F);
-			complexShape1.Scale = new SlimDX.Vector3(20F, 20F, 20F);
-			complexShape1.SolidColor = System.Drawing.Color.Empty;
-			complexShape1.SourceFile = "C:\\Users\\adrianj\\Documents\\Work\\CAD\\hercules_LORES.stl";
-			complexShape1.TextureIndex = -1;
-			complexShape1.Topology = SlimDX.Direct3D10.PrimitiveTopology.TriangleList;
-			this.earth3DControl.ShapeList.Add(complexShape1);
+			this.earth3DControl.ShapeList.Add(this.complexShape1);
 			this.earth3DControl.Size = new System.Drawing.Size(774, 432);
 			this.earth3DControl.TabIndex = 15;
 			this.earth3DControl.TextureImageFilenames = new string[0];
 			this.earth3DControl.ZClipFar = 1E+07F;
 			this.earth3DControl.ZClipNear = 5F;
+			// 
+			// complexShape1
+			// 
+			this.complexShape1.CanPick = true;
+			this.complexShape1.Location = new SlimDX.Vector3(1.747E+07F, 6000F, -3680000F);
+			this.complexShape1.Rotation = new SlimDX.Vector3(4.583185F, 0F, 0F);
+			this.complexShape1.Scale = new SlimDX.Vector3(100F, 100F, 100F);
+			this.complexShape1.SolidColor = System.Drawing.Color.Empty;
+			this.complexShape1.SourceFile = "";
+			this.complexShape1.TextureIndex = -1;
+			this.complexShape1.Topology = SlimDX.Direct3D10.PrimitiveTopology.TriangleList;
 			// 
 			// TestForm
 			// 
@@ -248,5 +245,6 @@
 		private System.Windows.Forms.Button button2;
 		private Direct3DLib.Earth3DControl earth3DControl;
 		private Direct3DLib.ComplexShape complexShape1;
+		private Direct3DLib.NamedComponent namedComponent1;
     }
 }
