@@ -6,7 +6,7 @@ using SlimDX;
 
 namespace Direct3DLib
 {
-	public partial class Earth3DControl : UserControl
+	public partial class Earth3DControl : Direct3DControl
 	{
 		#region Private Fields
 		public const int TEXTURE_OFFSET = ShaderHelper.MAX_TEXTURES - (EarthTiles.TILE_COLUMNS * EarthTiles.TILE_ROWS);
@@ -14,13 +14,14 @@ namespace Direct3DLib
 		private List<string> externalTextureFilenames = new List<string>();
 		private EarthTiles earthTiles = new EarthTiles();
 		private Float3 previousCameraLocation = new Float3();
-		private bool isInitialized { get { return engine.Engine.IsInitialized; } }
+		private bool isInitialized { get { return Engine.IsInitialized; } }
 		private EarthControlOptionsForm optionsForm = new EarthControlOptionsForm();
 		#endregion
 
 		public string debugString = "";
-
+		/*
 		#region Direct3DControl Wrapped Properties, Events and Methods
+		
 		#region Properties
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public float CameraTilt { get { return engine.Tilt; } set { engine.Tilt = value; } }
@@ -76,12 +77,14 @@ namespace Direct3DLib
 			remove { engine.SelectedObjectChanged -= value; }
 		}
 		#endregion
+		 
 
 		#region Methods
 		public void UpdateShapes() { engine.Engine.UpdateShapes(); }
 		public void Render() { engine.Render(); }
 		#endregion
 		#endregion
+		 */
 		private double currentLat;
 		private double currentLong;
 		private double currentEle;
@@ -90,7 +93,7 @@ namespace Direct3DLib
 		{
 			get
 			{
-				LatLong ll = earthTiles.ConvertCameraLocationToLatLong(CameraLocation);
+				LatLong ll = earthTiles.ConvertCameraLocationToLatLong(new Float3(CameraLocation));
 				currentLat = ll.Latitude; currentLong = ll.Longitude;
 				return new LatLong(currentLat, currentLong);
 			}
@@ -149,7 +152,7 @@ namespace Direct3DLib
 		private void CombineTextureFilenameListAndUpdate()
 		{
 			string[] newFiles = new string[ShaderHelper.MAX_TEXTURES];
-			Array.Copy(engine.TextureImageFilenames, newFiles, Math.Min(engine.TextureImageFilenames.Length, ShaderHelper.MAX_TEXTURES));
+			Array.Copy(TextureImageFilenames, newFiles, Math.Min(TextureImageFilenames.Length, ShaderHelper.MAX_TEXTURES));
 			for (int i = 0; i < Math.Min(externalTextureFilenames.Count, TEXTURE_OFFSET); i++)
 			{
 				newFiles[i] = externalTextureFilenames[i];
@@ -158,7 +161,7 @@ namespace Direct3DLib
 			{
 				newFiles[i + TEXTURE_OFFSET] = localTextureFilenames[i];
 			}
-			engine.TextureImageFilenames = newFiles;
+			TextureImageFilenames = newFiles;
 		}
 
 
@@ -166,13 +169,13 @@ namespace Direct3DLib
 		{
 			InitializeComponent();
 			InitializeOthers();
-			engine.Engine.Camera.IsFirstPerson = true;
-			earthTiles.EngineShapeList = engine.Engine.ShapeList;
+			Engine.Camera.IsFirstPerson = true;
+			earthTiles.EngineShapeList = Engine.ShapeList;
 		}
 
 		private void InitializeOthers()
 		{
-			engine.DoubleClick += Earth3DControl_DoubleClick;
+			DoubleClick += Earth3DControl_DoubleClick;
 			optionsForm.FormClosing += (o, ev) =>
 			{
 				optionsForm.Hide();
@@ -188,14 +191,14 @@ namespace Direct3DLib
 				RestrictCameraElevation();
 				if (previousCameraLocation.X != CameraLocation.X || previousCameraLocation.Z != CameraLocation.Z || previousCameraLocation.Y != CameraLocation.Y)
 				{
-					LatLong latLong = earthTiles.ConvertCameraLocationToLatLong(CameraLocation);
+					LatLong latLong = earthTiles.ConvertCameraLocationToLatLong(new Float3(CameraLocation));
 					latLong = EarthProjection.CalculateNearestLatLongAtDelta(latLong, earthTiles.Delta);
-					earthTiles.CameraLocationChanged(CameraLocation);
+					earthTiles.CameraLocationChanged(new Float3(CameraLocation));
                     //debugString += earthTiles.currentTiles[0, 0];
 				}
 				UpdateDebugString();
 			}
-			previousCameraLocation = CameraLocation;
+			previousCameraLocation = new Float3(CameraLocation);
 		}
 
 		private void UpdateDebugString()
@@ -203,7 +206,7 @@ namespace Direct3DLib
 			if (SelectedObject != null)
 			{
 				Shape shape = SelectedObject as Shape;
-				Matrix wvp = shape.World * engine.CameraView * engine.CameraProjection;
+				Matrix wvp = shape.World * CameraView * CameraProjection;
 				BoundingBox newBB = shape.MaxBoundingBox;
 				newBB = Direct3DEngine.BoundingBoxMultiplyMatrix(newBB, wvp);
 				BoundingBox bbCam = new BoundingBox(new Vector3(-1.0f, -1.0f, 0), new Vector3(1.0f, 1.0f, 1.0f));
@@ -242,22 +245,22 @@ namespace Direct3DLib
 
 		private void RestrictCameraElevation()
 		{
-			Float3 loc = CameraLocation;
+			Float3 loc = new Float3(CameraLocation);
 			if (loc.Y < -100)
 			{
 				loc.Y = -100;
-				engine.CameraLocation = loc.AsVector3();
+				CameraLocation = loc.AsVector3();
 			}
 			if (loc.Y > (float)EarthTiles.MAX_ELEVATION)
 			{
 				loc.Y = (float)EarthTiles.MAX_ELEVATION;
-				engine.CameraLocation = loc.AsVector3();
+				CameraLocation = loc.AsVector3();
 			}
 		}
 
 		private void SetCameraLocation(Float3 camLoc)
 		{
-			engine.CameraLocation = camLoc.AsVector3();
+			CameraLocation = camLoc.AsVector3();
 		}
 
 		private void Earth3DControl_Load(object sender, EventArgs e)
@@ -266,13 +269,13 @@ namespace Direct3DLib
 			{
 				foreach (Shape s in ShapeList)
 				{
-					engine.Engine.ShapeList.Add(s);
+					Engine.ShapeList.Add(s);
 				}
-				engine.Engine.UpdateShapes();
+				Engine.UpdateShapes();
 				EarthControlOptionsForm.CheckGlobalSettings();
 				UseTerrainData = Properties.Settings.Default.UseGISData;
-				earthTiles.MapChanged += (o, ev) => { engine.Engine.UpdateShapes(); };
-				earthTiles.InitializeAtCameraLocation(CameraLocation);
+				earthTiles.MapChanged += (o, ev) => { Engine.UpdateShapes(); };
+				earthTiles.InitializeAtCameraLocation(new Float3(CameraLocation));
 			}
 		}
 

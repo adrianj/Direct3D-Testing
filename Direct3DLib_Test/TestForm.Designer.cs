@@ -180,7 +180,6 @@
 			float31.X = 0F;
 			float31.Y = 1F;
 			float31.Z = 1F;
-			this.earth3DControl.LightDirection = float31;
 			this.earth3DControl.LightDirectionalIntensity = 0.7F;
 			this.earth3DControl.Location = new System.Drawing.Point(12, 214);
 			this.earth3DControl.MouseMovementSpeed = 5000F;

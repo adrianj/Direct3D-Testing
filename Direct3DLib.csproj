@@ -224,12 +224,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BasicForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="BasicForm.Designer.cs">
-      <DependentUpon>BasicForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="CameraControl.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -303,9 +297,6 @@
     <Compile Include="TextureHelper.cs" />
     <Compile Include="Vertex.cs" />
     <Compile Include="VertexList.cs" />
-    <EmbeddedResource Include="BasicForm.resx">
-      <DependentUpon>BasicForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Direct3DControl.resx">
       <DependentUpon>Direct3DControl.cs</DependentUpon>
     </EmbeddedResource>

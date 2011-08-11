@@ -15,7 +15,7 @@ namespace Direct3DLib
 	public partial class Direct3DControl : UserControl
 	{
 		private Direct3DEngine engine;
-		public Direct3DEngine Engine { get { return engine; } }
+		protected Direct3DEngine Engine { get { return engine; } }
 		public bool IsInitialized { get { if (engine == null) return false; return engine.IsInitialized; } }
 		private bool designTime = false;
 		private bool forceRender = true;
@@ -53,9 +53,9 @@ namespace Direct3DLib
 
 		#region Public Properties
 		[CategoryAttribute("Camera, Lighting and Textures")]
-		public float Tilt { get { return engine.Camera.Tilt; } set { engine.Camera.Tilt = value; } }
+		public float CameraTilt { get { return engine.Camera.Tilt; } set { engine.Camera.Tilt = value; } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
-		public float Pan { get { return engine.Camera.Pan; } set { engine.Camera.Pan = value; } }
+		public float CameraPan { get { return engine.Camera.Pan; } set { engine.Camera.Pan = value; } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public Vector3 CameraLocation { get { return engine.Camera.Location; } set { engine.Camera.Location = value; } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
@@ -76,6 +76,8 @@ namespace Direct3DLib
 		public float LightAmbientIntensity { get { return engine.LightAmbientIntensity; } set { engine.LightAmbientIntensity = value; } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public string[] TextureImageFilenames { get { return engine.ImageFilenames; } set { engine.ImageFilenames = value; } }
+
+		public double RefreshRate { get { return engine.RefreshRate; } }
 		#endregion
 
 		#region Events
@@ -113,7 +115,10 @@ namespace Direct3DLib
 			}
 
 		}
-
+		public void UpdateShapes()
+		{
+			engine.UpdateShapes();
+		}
 
 
 		public Shape PickObjectAt(Point screenLocation)
@@ -285,16 +290,6 @@ namespace Direct3DLib
 			}
 		}
 		#endregion
-
-		private void Direct3DControl_DragDrop(object sender, DragEventArgs e)
-		{
-			MessageBox.Show("Item dropped");
-		}
-
-		private void Direct3DControl_DragEnter(object sender, DragEventArgs e)
-		{
-			MessageBox.Show("Item enter");
-		}
 
 
 	}

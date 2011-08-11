@@ -38,8 +38,6 @@
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.Name = "Direct3DControl";
 			this.Size = new System.Drawing.Size(611, 470);
-			this.DragDrop += new System.Windows.Forms.DragEventHandler(this.Direct3DControl_DragDrop);
-			this.DragEnter += new System.Windows.Forms.DragEventHandler(this.Direct3DControl_DragEnter);
 			this.ResumeLayout(false);
 
         }
