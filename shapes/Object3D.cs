@@ -10,15 +10,15 @@ namespace Direct3DLib
     /// This class encompasses any kind of object that has a 3D position, scale and a 3D rotation.
     /// So it includes Shapes, Light sources and the Camera.
     /// </summary>
-	[TypeConverter(typeof(BasicTypeConverter))]
     public class Object3D : NamedComponent
 	{
 		protected Matrix mWorld = Matrix.Identity;
         /// <summary>
         /// The final World matrix after all transformations have been applied.
         /// </summary>
+		[Browsable(false)]
         public virtual Matrix World { get { return mWorld; }  }
-
+		[Browsable(false)]
 		public virtual Matrix RotationMatrix { get { return Matrix.RotationYawPitchRoll(mRotation.Y, mRotation.X, mRotation.Z); } }
 
 
@@ -56,6 +56,9 @@ namespace Direct3DLib
                 updateWorld();
             }
         }
+
+		public Object3D() : base() { }
+		public Object3D(IContainer c) : base(c) { }
 
         public static float UnwrapPhase(float phase)
         {

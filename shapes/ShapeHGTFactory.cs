@@ -318,7 +318,7 @@ namespace Direct3DLib
 		{
 			float latExtent = (float)(unitsPerLatitude * latitudeDelta);
 			float longExtent = (float)(unitsPerLatitude * longitudeDelta);
-			Shape shape = new PictureTile(new System.Drawing.RectangleF(0,0,longExtent,latExtent));
+			Shape shape = new Square(new System.Drawing.RectangleF(0,0,longExtent,latExtent));
 			return shape;
 		}
 

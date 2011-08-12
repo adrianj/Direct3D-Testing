@@ -23,7 +23,6 @@ namespace Direct3DLib
         public Direct3DEngine(Control con)
         {
             mParent = con;
-            //InitializeDevice();
             mParent.Disposed += (o, e) => { this.Dispose(); };
             mParent.SizeChanged += (o, e) => { this.ResizeBuffers(); };
         }
@@ -87,22 +86,20 @@ namespace Direct3DLib
 
 		public ShaderHelper Shader { get { return shaderHelper; } }
 
-		private string[] imageFilenames;
-		public string[] ImageFilenames
+		private Image [] textureImages;
+		public Image [] TextureImages
 		{
 			get
 			{
-				if (imageFilenames == null)
+				if (textureImages == null)
 				{
-					imageFilenames = new string[ShaderHelper.MAX_TEXTURES];
-					for (int i = 0; i < ShaderHelper.MAX_TEXTURES; i++)
-						imageFilenames[i] = "";
+					textureImages = new Image[ShaderHelper.MAX_TEXTURES];
 				}
-				return imageFilenames;
+				return textureImages;
 			}
 			set
 			{
-				imageFilenames = value;
+				textureImages = value;
 			}
 		}
 
@@ -210,8 +207,7 @@ namespace Direct3DLib
 				isInitialized = true;
 				ResizeBuffers();
 
-				for (int i = 0; i < Math.Min(imageFilenames.Length, ShaderHelper.MAX_TEXTURES); i++)
-					shaderHelper.TextureSet[i].TextureImage = ImageConverter.ConvertImageFileToTexture2D(device, imageFilenames[i]);
+				UpdateTextures();
 
 				UpdateShapes();
 			}
@@ -221,6 +217,18 @@ namespace Direct3DLib
 					+ "\n\n" + ex.StackTrace); return;
 			}
         }
+
+		private void UpdateTextures()
+		{
+			if (isInitialized && textureImages != null)
+			{
+				for (int i = 0; i < Math.Min(textureImages.Length, ShaderHelper.MAX_TEXTURES); i++)
+				{
+					if(textureImages[i] != null)
+						shaderHelper.TextureSet[i].TextureImage = ImageConverter.ConvertImageToTexture2D(device, textureImages[i]);
+				}
+			}
+		}
 
         /// <summary>
         /// Rescale the buffers to the size of the parent control.
@@ -344,27 +352,6 @@ namespace Direct3DLib
 			return BoundingBox.FromPoints(corners);// BoundingBoxFromVertices(corners);
 		}
     }
-	/*
-	public class EngineTypeConverter : System.ComponentModel.TypeConverter
-	{
-		public override bool GetPropertiesSupported(ITypeDescriptorContext context)
-		{
-			return true;
-		}
-		public override PropertyDescriptorCollection GetProperties(ITypeDescriptorContext context, object value, Attribute[] attributes)
-		{
-			PropertyDescriptorCollection original = TypeDescriptor.GetProperties(typeof(Direct3DEngine));
-			PropertyDescriptorCollection pdc = new PropertyDescriptorCollection(null, false);
-			foreach (PropertyDescriptor pd in original)
-			{
-				if (pd.Name.Equals("ShapeList"))
-					continue; 
-				pdc.Add(pd);
-			}
-			return pdc;
-		}
-	}
-	 */
 	 
 }
 

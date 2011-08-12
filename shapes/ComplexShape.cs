@@ -10,6 +10,7 @@ using System.Collections.Generic;
 
 namespace Direct3DLib
 {
+	[ToolboxItem(true)]
 	public class ComplexShape : Shape
 	{
 		private string sourceFile = "";
@@ -48,8 +49,8 @@ namespace Direct3DLib
 			{
 				using (Stream stream = FindResourceStream(resourcePath))
 				{
-					Shape s = ComplexShapeFactory.CreateFromStream(stream,resourcePath);
-					this.Vertices = s.Vertices;
+					using(Shape s = ComplexShapeFactory.CreateFromStream(stream,resourcePath))
+						this.Vertices = s.Vertices;
 				}
 				return true;
 			}

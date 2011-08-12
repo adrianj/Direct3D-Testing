@@ -3,16 +3,20 @@ using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Windows.Forms;
 using System.Collections;
+using System.Drawing.Design;
 
 namespace Direct3DLib
 {
-
+	public class NoEditor : UITypeEditor
+	{
+		public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
+		{
+			return value;
+		}
+	}
 	public class ObjectCollectionEditor : CollectionEditor
 	{
-		public ObjectCollectionEditor(Type type)
-			: base(type)
-		{
-		}
+		public ObjectCollectionEditor(Type t) : base(t) { }
 		protected virtual Type[] GetTypes()
 		{
 			return new Type[] { typeof(object) };
@@ -91,16 +95,9 @@ namespace Direct3DLib
 		public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
 		{
 			ICollection begin = new ArrayList(value as ICollection);
-			MessageBox.Show("begin: "+begin+", start size: "+begin.Count);
 			ICollection end = base.EditValue(context, provider, value) as ICollection;
 
-			int hash = 0;
-			foreach (object o in begin) hash ^= o.GetHashCode();
-			int hash2 = 0;
-			foreach (object o in end) hash2 ^= o.GetHashCode();
-			if (CollectionsEqual(begin, end))
-				MessageBox.Show("obj: " + end + ", end size: " + GetCollection().Count + ", hash: " + hash2);
-			else
+			if (!CollectionsEqual(begin, end))
 				FireCollectionChangedEvent(new PropertyChangedEventArgs(context.PropertyDescriptor.Name));
 				
 			return end;
@@ -108,6 +105,7 @@ namespace Direct3DLib
 
 		private bool CollectionsEqual(ICollection collA, ICollection collB)
 		{
+			if (collA == null || collB == null) return false;
 			if (collA.Count != collB.Count) return false;
 			IEnumerator eA = collA.GetEnumerator();
 			IEnumerator eB = collB.GetEnumerator();

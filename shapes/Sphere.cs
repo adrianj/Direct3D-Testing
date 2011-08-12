@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
+using System.ComponentModel;
 using SlimDX.Direct3D10;
 using SlimDX;
 
 namespace Direct3DLib
 {
-	[System.ComponentModel.TypeConverter(typeof(BasicTypeConverter))]
+	[ToolboxItem(true)]
     public class Sphere : Shape
     {
 		// It's easier to internally store nLatLines as LatLines + 1.

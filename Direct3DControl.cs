@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Drawing;
+using System.Drawing.Design;
 using System.Data;
 using System.Text;
 using System.Windows.Forms;
@@ -22,6 +24,8 @@ namespace Direct3DLib
 
 		public Direct3DControl()
 		{
+			if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+				designTime = true;
 			engine = new Direct3DEngine(this);
 			InitializeComponent();
 			InitializeMouse();
@@ -34,6 +38,7 @@ namespace Direct3DLib
 			if (!designTime)
 			{
 				InitializeDevice();
+				InitializeShapes();
 			}
 		}
 
@@ -51,13 +56,23 @@ namespace Direct3DLib
 			}
 		}
 
+		private void InitializeShapes()
+		{
+			List<Shape> initialShapes = Shape.GetInitialShapes();
+			foreach (Shape shape in initialShapes)
+			{
+				if (!shape.IsDisposed && !engine.ShapeList.Contains(shape))
+					engine.ShapeList.Add(shape);
+			}
+		}
+
 		#region Public Properties
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public float CameraTilt { get { return engine.Camera.Tilt; } set { engine.Camera.Tilt = value; } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public float CameraPan { get { return engine.Camera.Pan; } set { engine.Camera.Pan = value; } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
-		public Vector3 CameraLocation { get { return engine.Camera.Location; } set { engine.Camera.Location = value; } }
+		public Float3 CameraLocation { get { return new Float3(engine.Camera.Location); } set { engine.Camera.Location = value.AsVector3(); } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public float Zoom { get { return engine.Camera.Zoom; } set { engine.Camera.Zoom = value; } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
@@ -65,24 +80,30 @@ namespace Direct3DLib
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public float ZClipFar { get { return engine.Camera.ZClipFar; } set { engine.Camera.ZClipFar = value; } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
+		[Browsable(false)]
 		public Matrix CameraView { get { return engine.Camera.View; } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
+		[Browsable(false)]
 		public Matrix CameraProjection { get { return engine.Camera.Proj; } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
-		public Vector3 LightDirection { get { return engine.LightDirection; } set { engine.LightDirection = value; } }
+		public Float3 LightDirection { get { return new Float3(engine.LightDirection); } set { engine.LightDirection = value.AsVector3(); } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public float LightDirectionalIntensity { get { return engine.LightDirectionalIntensity; } set { engine.LightDirectionalIntensity = value; } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public float LightAmbientIntensity { get { return engine.LightAmbientIntensity; } set { engine.LightAmbientIntensity = value; } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
-		public string[] TextureImageFilenames { get { return engine.ImageFilenames; } set { engine.ImageFilenames = value; } }
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+		[EditorAttribute(typeof(NoEditor),typeof(UITypeEditor))]
+		public Image[] TextureImages { get { return engine.TextureImages; } set { engine.TextureImages = value; } }
 
+		private object mSelectedObject = null;
+		[Browsable(false)]
+		public object SelectedObject { get { return mSelectedObject; } set { mSelectedObject = value; FireSelectedObjectChangedEvent(value); } }
+		[Browsable(false)]
 		public double RefreshRate { get { return engine.RefreshRate; } }
 		#endregion
 
 		#region Events
-		private object mSelectedObject = null;
-		public object SelectedObject { get { return mSelectedObject; } set { mSelectedObject = value; FireSelectedObjectChangedEvent(value); } }
 		public event PropertyChangedEventHandler SelectedObjectChanged;
 		private void FireSelectedObjectChangedEvent(object selectedObj)
 		{
@@ -95,6 +116,7 @@ namespace Direct3DLib
 			remove { Engine.Camera.CameraChanged -= value; }
 		}
 		#endregion
+
 
 		/// <summary>
 		/// Forces the control to render the scene. Otherwise, the scene is only rendered when the top level form

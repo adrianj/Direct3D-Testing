@@ -48,7 +48,7 @@ namespace Direct3DLib
 				byte [] bytes = ImageConverter.ConvertImageToBytes(bmp);
 				width = image.Width;
 				height = image.Height;
-				shape = new Shape(width*height*6);
+				shape = new Shape();
 				int[] prevRow = ReadRow(bmp, 0);
 				for (int y = 1; y < height; y++)
 				{

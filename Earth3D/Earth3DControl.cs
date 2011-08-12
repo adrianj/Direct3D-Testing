@@ -19,72 +19,6 @@ namespace Direct3DLib
 		#endregion
 
 		public string debugString = "";
-		/*
-		#region Direct3DControl Wrapped Properties, Events and Methods
-		
-		#region Properties
-		[CategoryAttribute("Camera, Lighting and Textures")]
-		public float CameraTilt { get { return engine.Tilt; } set { engine.Tilt = value; } }
-		[CategoryAttribute("Camera, Lighting and Textures")]
-		public float CameraPan { get { return engine.Pan; } set { engine.Pan = value; } }
-		[CategoryAttribute("Camera, Lighting and Textures")]
-		public Float3 CameraLocation { get { return new Float3(engine.CameraLocation); } }
-		[CategoryAttribute("Camera, Lighting and Textures")]
-		public float ZClipNear { get { return engine.ZClipNear; } set { engine.ZClipNear = value; } }
-		[CategoryAttribute("Camera, Lighting and Textures")]
-		public float ZClipFar { get { return engine.ZClipFar; } set { engine.ZClipFar = value; } }
-		[CategoryAttribute("Camera, Lighting and Textures")]
-		public Float3 LightDirection { get { return new Float3(engine.LightDirection); } set { engine.LightDirection = value.AsVector3(); } }
-		[CategoryAttribute("Camera, Lighting and Textures")]
-		public float LightDirectionalIntensity { get { return engine.LightDirectionalIntensity; } set { engine.LightDirectionalIntensity = value; } }
-		[CategoryAttribute("Camera, Lighting and Textures")]
-		public float LightAmbientIntensity { get { return engine.LightAmbientIntensity; } set { engine.LightAmbientIntensity = value; } }
-		[CategoryAttribute("Camera, Lighting and Textures")]
-		public string[] TextureImageFilenames { get { return GetTextureFilenames(); } set { SetTextureFilenames(value); } }
-		[CategoryAttribute("Mouse and Keyboard Functions")]
-		public Direct3DControl.MouseOption LeftMouseFunction { get { return engine.LeftMouseFunction; } set { engine.LeftMouseFunction = value; } }
-		/// <summary>
-		/// Function to pertorm when the right mouse button is clicked.
-		/// </summary>
-		[CategoryAttribute("Mouse and Keyboard Functions")]
-		public Direct3DControl.MouseOption RightMouseFunction { get { return engine.RightMouseFunction; } set { engine.RightMouseFunction = value; } }
-		/// <summary>
-		/// Function to perform when both mouse buttons are held down. NOTE: Select function does not work correctly
-		/// for both mouse buttons.
-		/// </summary>
-		[CategoryAttribute("Mouse and Keyboard Functions")]
-		public Direct3DControl.MouseOption BothMouseFunction { get { return engine.BothMouseFunction; } set { engine.BothMouseFunction = value; } }
-		[CategoryAttribute("Mouse and Keyboard Functions")]
-		public float MouseMovementSpeed { get { return engine.MouseMovementSpeed; } set { engine.MouseMovementSpeed = value; } }
-		[CategoryAttribute("Mouse and Keyboard Functions")]
-		public float KeyboardMovementSpeed { get { return engine.KeyboardMovementSpeed; } set { engine.KeyboardMovementSpeed = value; } }
-
-		public object SelectedObject { get { return engine.SelectedObject; } set { engine.SelectedObject = value; } }
-		//public List<Shape> ShapeList { get { return engine.Engine.ShapeList; } }
-		public double RefreshRate { get { return engine.Engine.RefreshRate; } }
-
-		#endregion
-
-		#region Events
-		public event EventHandler CameraChanged
-		{
-			add { engine.CameraChanged += value; }
-			remove { engine.CameraChanged -= value; }
-		}
-		public event PropertyChangedEventHandler SelectedObjectChanged
-		{
-			add { engine.SelectedObjectChanged += value; }
-			remove { engine.SelectedObjectChanged -= value; }
-		}
-		#endregion
-		 
-
-		#region Methods
-		public void UpdateShapes() { engine.Engine.UpdateShapes(); }
-		public void Render() { engine.Render(); }
-		#endregion
-		#endregion
-		 */
 		private double currentLat;
 		private double currentLong;
 		private double currentEle;
@@ -130,39 +64,7 @@ namespace Direct3DLib
 				earthTiles.UseTerrainData = value;
 			}
 		}
-		private List<Shape> shapeList = new List<Shape>();
-		[Category("Shapes"),Editor(typeof(ShapeCollectionEditor), typeof(System.Drawing.Design.UITypeEditor)),
-		DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
-		public List<Shape> ShapeList { get { return shapeList; } set { MessageBox.Show("added shapes"); shapeList = value; } }
 
-	
-
-		private string[] GetTextureFilenames()
-		{
-			return externalTextureFilenames.ToArray();
-		}
-
-		private void SetTextureFilenames(string[] filesNotIncludingLocalTextures)
-		{
-			externalTextureFilenames.Clear();
-			externalTextureFilenames.AddRange(filesNotIncludingLocalTextures);
-			CombineTextureFilenameListAndUpdate();
-		}
-
-		private void CombineTextureFilenameListAndUpdate()
-		{
-			string[] newFiles = new string[ShaderHelper.MAX_TEXTURES];
-			Array.Copy(TextureImageFilenames, newFiles, Math.Min(TextureImageFilenames.Length, ShaderHelper.MAX_TEXTURES));
-			for (int i = 0; i < Math.Min(externalTextureFilenames.Count, TEXTURE_OFFSET); i++)
-			{
-				newFiles[i] = externalTextureFilenames[i];
-			}
-			for (int i = 0; i < Math.Min(localTextureFilenames.Count, TEXTURE_OFFSET); i++)
-			{
-				newFiles[i + TEXTURE_OFFSET] = localTextureFilenames[i];
-			}
-			TextureImageFilenames = newFiles;
-		}
 
 
 		public Earth3DControl()
@@ -176,6 +78,7 @@ namespace Direct3DLib
 		private void InitializeOthers()
 		{
 			DoubleClick += Earth3DControl_DoubleClick;
+			CameraChanged +=new EventHandler(engine_CameraChanged);
 			optionsForm.FormClosing += (o, ev) =>
 			{
 				optionsForm.Hide();
@@ -194,7 +97,6 @@ namespace Direct3DLib
 					LatLong latLong = earthTiles.ConvertCameraLocationToLatLong(new Float3(CameraLocation));
 					latLong = EarthProjection.CalculateNearestLatLongAtDelta(latLong, earthTiles.Delta);
 					earthTiles.CameraLocationChanged(new Float3(CameraLocation));
-                    //debugString += earthTiles.currentTiles[0, 0];
 				}
 				UpdateDebugString();
 			}
@@ -249,29 +151,24 @@ namespace Direct3DLib
 			if (loc.Y < -100)
 			{
 				loc.Y = -100;
-				CameraLocation = loc.AsVector3();
+				CameraLocation = loc;
 			}
 			if (loc.Y > (float)EarthTiles.MAX_ELEVATION)
 			{
 				loc.Y = (float)EarthTiles.MAX_ELEVATION;
-				CameraLocation = loc.AsVector3();
+				CameraLocation = loc;
 			}
 		}
 
 		private void SetCameraLocation(Float3 camLoc)
 		{
-			CameraLocation = camLoc.AsVector3();
+			CameraLocation = camLoc;
 		}
 
 		private void Earth3DControl_Load(object sender, EventArgs e)
 		{
 			if (this.isInitialized)
 			{
-				foreach (Shape s in ShapeList)
-				{
-					Engine.ShapeList.Add(s);
-				}
-				Engine.UpdateShapes();
 				EarthControlOptionsForm.CheckGlobalSettings();
 				UseTerrainData = Properties.Settings.Default.UseGISData;
 				earthTiles.MapChanged += (o, ev) => { Engine.UpdateShapes(); };
@@ -321,9 +218,5 @@ namespace Direct3DLib
 			optionsForm.Delta = earthTiles.Delta;
 		}
 
-		private void engine_DragDrop(object sender, DragEventArgs e)
-		{
-			MessageBox.Show("Hello");
-		}
 	}
 }

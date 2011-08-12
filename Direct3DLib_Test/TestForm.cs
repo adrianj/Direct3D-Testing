@@ -40,7 +40,7 @@ namespace Direct3DLib_Test
 					textBox1.Text = "" + s;
 				}
             };
-			propertyGrid.SelectedObject = complexShape1;
+			propertyGrid.SelectedObject = hercules;
 			//AddHerc();
 			//AddSphere();
 			//AddWoomera();

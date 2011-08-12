@@ -12,7 +12,7 @@ namespace Direct3DLib
 	/// <summary>
 	/// A 3D Pipe shape. basically these are cylinders with a varying number of "corners", ie, 4 corners = a cubic box.
 	/// </summary>
-	[TypeConverter(typeof(BasicTypeConverter))]
+	[ToolboxItem(true)]
 	public class Pipe : Shape//, IComponent
 	{
 		/*
@@ -43,7 +43,7 @@ namespace Direct3DLib
 			}
 		}
 
-		public Pipe() : this(6) { }
+		public Pipe() : base() { Corners = 6; }
 		public Pipe(Color col) : this(6, col) { }
 		public Pipe(int corners, Color col) : this(corners) { SetUniformColor(col); }
 		public Pipe(int corners)
@@ -110,10 +110,9 @@ namespace Direct3DLib
 
 	}
 
-	[TypeConverter(typeof(BasicTypeConverter))]
 	public class ClosedPipe : Pipe
 	{
-		public ClosedPipe() : this(6) { }
+		public ClosedPipe() : base() { }
 		public ClosedPipe(Color col) : this(6, col) { }
 		public ClosedPipe(int corners, Color col) : this(corners) { SetUniformColor(col); }
 		public ClosedPipe(int corners)

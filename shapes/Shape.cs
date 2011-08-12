@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Collections.Generic;
 using SlimDX;
 using SlimDX.DXGI;
 using System.Runtime.InteropServices;
@@ -14,151 +15,149 @@ namespace Direct3DLib
     /// A class that consists of a number of ColoredVertices, and an index buffer specifying
     /// how it is made up of flat triangles.
     /// </summary>
-	[ToolboxItem(false)]
-    [TypeConverter(typeof(BasicTypeConverter))]
-    public class Shape : Object3D
-    {
-        private bool mPick = true;
-        public virtual bool CanPick { get { return mPick; } set { mPick = value; } }
-		private Vertex [] mSelectedVerts = new Vertex[3];
-		public Vertex[] SelectedVertices { get { return mSelectedVerts; }  }
+	//[TypeConverter(typeof(BasicTypeConverter))]
+	public class Shape : Object3D
+	{
+		private bool mPick = true;
+		public virtual bool CanPick { get { return mPick; } set { mPick = value; } }
+		private Vertex[] mSelectedVerts = new Vertex[3];
+		public Vertex[] SelectedVertices { get { return mSelectedVerts; } }
 
-        private VertexList mVList = new VertexList();
+		private VertexList mVList = new VertexList();
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public VertexList Vertices { get { return mVList; } set { mVList = value; } }
+		public VertexList Vertices { get { return mVList; } set { mVList = value; } }
 		private int selectedIndex = 0;
 		public int SelectedVertexIndex { get { return selectedIndex; } }
 
-        private Device mDevice;
+		private Device mDevice;
 		private ShaderSignature mSignature;
 		private Color mSolidColor = Color.Empty;
 		public Color SolidColor { get { return mSolidColor; } set { SetUniformColor(value); mSolidColor = value; Update(); } }
 
-        public virtual PrimitiveTopology Topology { get { return Vertices.Topology; } set { Vertices.Topology = value; AutoGenerateIndices(); Update(); } }
+		public virtual PrimitiveTopology Topology { get { return Vertices.Topology; } set { Vertices.Topology = value; AutoGenerateIndices(); Update(); } }
 
 		private int textureIndex = -1;
 		public int TextureIndex { get { return textureIndex; } set { textureIndex = value; } }
 
 		private BoundingBox preWorldTransformBox;
+		public BoundingBox MaxBoundingBox
+		{
+			get { return preWorldTransformBox; }
+		}
 
-        public void SetUniformColor(Color color)
-        {
-            for (int i = 0; i < Vertices.Count; i++)
-            {
-                Vertex v = Vertices[i];
+		public virtual void SetUniformColor(Color color)
+		{
+			for (int i = 0; i < Vertices.Count; i++)
+			{
+				Vertex v = Vertices[i];
 				if (color == Color.Empty)
 					v.Color = Vertex.FloatToColor(v.Position);
 				else
-	                v.Color = color;
-                Vertices[i] = v;
-            }
-                
-        }
+					v.Color = color;
+				Vertices[i] = v;
+			}
 
-        protected SlimDX.Direct3D10.Buffer vertexBuffer;
-        protected SlimDX.Direct3D10.Buffer indexBuffer;
-        protected InputLayout vertexLayout;
+		}
+
+		protected SlimDX.Direct3D10.Buffer vertexBuffer;
+		protected SlimDX.Direct3D10.Buffer indexBuffer;
+		protected InputLayout vertexLayout;
 
 
-		public Shape(int initialVertexCapacity)
+		public Shape()
 			: base()
 		{
-			Vertices = new VertexList(initialVertexCapacity);
+			Shape.AddInitialShape(this);
 		}
-        public Shape()
-            : base()
-        {
-            Vertices = new VertexList();
-        }
-        public Shape(Vertex[] vertices)
-            : this()
-        {
-            Vertices = new VertexList(vertices);
-        }
+		public Shape(Vertex[] vertices)
+			: this()
+		{
+			Vertices = new VertexList(vertices);
+		}
 
-        public virtual void AutoGenerateIndices()
-        {
-            Vertices.Indices = null;
-        }
+		public virtual void AutoGenerateIndices()
+		{
+			Vertices.Indices = null;
+		}
 
 
 		public void Update() { Update(mDevice, mSignature); }
 		//public virtual void Update(Device device) { Update(device, null); }
-        public virtual void Update(Device device, ShaderSignature effectSignature)
-        {
-            if (device == null || device.Disposed) return;
-			
-            mDevice = device;
+		public virtual void Update(Device device, ShaderSignature effectSignature)
+		{
+			if (device == null || device.Disposed) return;
+
+			mDevice = device;
 			mSignature = effectSignature;
-            // If there is less than 1 vertex then we can't make a point, let alone a shape!
-            if (Vertices == null || Vertices.Count < 1) return;
+			// If there is less than 1 vertex then we can't make a point, let alone a shape!
+			if (Vertices == null || Vertices.Count < 1) return;
 
 			CalculatePreTransformBoundingBox();
 
-            // Add Vertices to a datastream.
-            DataStream dataStream = new DataStream(Vertices.NumBytes, true, true);
-            dataStream.WriteRange(this.Vertices.ToArray());
-            dataStream.Position = 0;
+			// Add Vertices to a datastream.
+			DataStream dataStream = new DataStream(Vertices.NumBytes, true, true);
+			dataStream.WriteRange(this.Vertices.ToArray());
+			dataStream.Position = 0;
 
-            
-            // Create a new data buffer description and buffer
-            BufferDescription desc = new BufferDescription()
-            {
-                BindFlags = BindFlags.VertexBuffer,
-                CpuAccessFlags = CpuAccessFlags.None,
-                OptionFlags = ResourceOptionFlags.None,
-                //SizeInBytes = 3 * Marshal.SizeOf(typeof(ColoredVertex)),
-                SizeInBytes = Vertices.NumBytes,
-                Usage = ResourceUsage.Default
-            };
-            vertexBuffer = new SlimDX.Direct3D10.Buffer(device, dataStream, desc);
-            dataStream.Close();
 
-            // Get the shader effects signature
+			// Create a new data buffer description and buffer
+			BufferDescription desc = new BufferDescription()
+			{
+				BindFlags = BindFlags.VertexBuffer,
+				CpuAccessFlags = CpuAccessFlags.None,
+				OptionFlags = ResourceOptionFlags.None,
+				//SizeInBytes = 3 * Marshal.SizeOf(typeof(ColoredVertex)),
+				SizeInBytes = Vertices.NumBytes,
+				Usage = ResourceUsage.Default
+			};
+			vertexBuffer = new SlimDX.Direct3D10.Buffer(device, dataStream, desc);
+			dataStream.Close();
+
+			// Get the shader effects signature
 			//if(effect == null)
 			//	effect = Effect.FromFile(device, "RenderWithLighting.fx","fx_4_0");
-				//effect = Effect.FromString(device, Properties.Resources., "fx_4_0");
+			//effect = Effect.FromString(device, Properties.Resources., "fx_4_0");
 			//EffectPass effectPass = effect.GetTechniqueByIndex(0).GetPassByName("ColoredWithLighting");
 
 
-            if (Vertices != null && Vertices.Count > 0)
-            {
-                // Set the input layout.
-                InputElement[] inputElements = Vertices[0].GetInputElements();
-                vertexLayout = new InputLayout(device, effectSignature, inputElements);
+			if (Vertices != null && Vertices.Count > 0)
+			{
+				// Set the input layout.
+				InputElement[] inputElements = Vertices[0].GetInputElements();
+				vertexLayout = new InputLayout(device, effectSignature, inputElements);
 
-                // Draw Indexed
-                if (Vertices.Indices != null && Vertices.Indices.Count > 0)
-                {
-                    DataStream iStream = new DataStream(sizeof(int) * Vertices.Indices.Count, true, true);
-                    iStream.WriteRange(Vertices.Indices.ToArray());
-                    iStream.Position = 0;
-                    desc = new BufferDescription()
-                    {
-                        Usage = ResourceUsage.Default,
-                        SizeInBytes = sizeof(int) * Vertices.Indices.Count,
-                        BindFlags = BindFlags.IndexBuffer,
-                        CpuAccessFlags = CpuAccessFlags.None,
-                        OptionFlags = ResourceOptionFlags.None
-                    };
-                    indexBuffer = new Buffer(device, iStream, desc);
-                    iStream.Close();
+				// Draw Indexed
+				if (Vertices.Indices != null && Vertices.Indices.Count > 0)
+				{
+					DataStream iStream = new DataStream(sizeof(int) * Vertices.Indices.Count, true, true);
+					iStream.WriteRange(Vertices.Indices.ToArray());
+					iStream.Position = 0;
+					desc = new BufferDescription()
+					{
+						Usage = ResourceUsage.Default,
+						SizeInBytes = sizeof(int) * Vertices.Indices.Count,
+						BindFlags = BindFlags.IndexBuffer,
+						CpuAccessFlags = CpuAccessFlags.None,
+						OptionFlags = ResourceOptionFlags.None
+					};
+					indexBuffer = new Buffer(device, iStream, desc);
+					iStream.Close();
 
-                    
 
-                }
-                else
-                {
-                    if (indexBuffer != null) indexBuffer.Dispose();
-                    indexBuffer = null;
-                }
-            }
-            else
-            {
-                if (vertexBuffer != null) vertexBuffer.Dispose();
-                vertexBuffer = null;
-            }
-        }
+
+				}
+				else
+				{
+					if (indexBuffer != null) indexBuffer.Dispose();
+					indexBuffer = null;
+				}
+			}
+			else
+			{
+				if (vertexBuffer != null) vertexBuffer.Dispose();
+				vertexBuffer = null;
+			}
+		}
 
 
 
@@ -205,15 +204,15 @@ namespace Direct3DLib
 
 		}
 
-        public virtual bool RayIntersects(Ray ray, out float distance)
-        {
-            distance = float.MaxValue;
-            if (Vertices == null || Vertices.Count < 1) return false;
+		public virtual bool RayIntersects(Ray ray, out float distance)
+		{
+			distance = float.MaxValue;
+			if (Vertices == null || Vertices.Count < 1) return false;
 			if (!this.CanPick) return false;
 			if (!RayIntersectsBounds(ray, out distance)) return false;
 			bool ints = RayIntersectsShape(ray, out distance);
-            return ints;
-        }
+			return ints;
+		}
 
 		private bool RayIntersectsShape(Ray ray, out float distance)
 		{
@@ -259,13 +258,10 @@ namespace Direct3DLib
 			preWorldTransformBox = BoundingBox.FromPoints(vects);
 		}
 
-        public BoundingBox MaxBoundingBox
-        {
-			get { return preWorldTransformBox;}
-        }
-
 
 		private bool disposed = false;
+		[Browsable(false)]
+		public bool IsDisposed { get { return disposed; } }
 		protected override void Dispose(bool disposing)
 		{
 			try
@@ -283,12 +279,12 @@ namespace Direct3DLib
 			}
 		}
 
-        private void DisposeManaged()
-        {
-            if(vertexBuffer != null) vertexBuffer.Dispose();
-            if(indexBuffer != null) indexBuffer.Dispose();
-            if(vertexLayout != null) vertexLayout.Dispose();
-        }
+		private void DisposeManaged()
+		{
+			if (vertexBuffer != null) vertexBuffer.Dispose();
+			if (indexBuffer != null) indexBuffer.Dispose();
+			if (vertexLayout != null) vertexLayout.Dispose();
+		}
 
 
 		public void CopyShapeTo(Shape other)
@@ -309,6 +305,21 @@ namespace Direct3DLib
 			this.Update();
 		}
 
-    }
+
+		#region Shape Design Support
+		private static bool initialising = true;
+		private static List<Shape> initialShapes = new List<Shape>();
+		private static void AddInitialShape(Shape s)
+		{
+			if (initialising)
+				initialShapes.Add(s);
+		}
+		public static List<Shape> GetInitialShapes()
+		{
+			initialising = false;
+			return initialShapes;
+		}
+		#endregion
+	}
 
 }

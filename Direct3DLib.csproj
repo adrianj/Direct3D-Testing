@@ -275,7 +275,7 @@
     <Compile Include="shapes\Object3D.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="shapes\PictureTile.cs">
+    <Compile Include="shapes\Square.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="shapes\Pipe.cs">
@@ -309,11 +309,8 @@
     <EmbeddedResource Include="Earth3D\EarthControlOptionsForm.resx">
       <DependentUpon>EarthControlOptionsForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="NamedComponent.resx">
-      <DependentUpon>NamedComponent.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>

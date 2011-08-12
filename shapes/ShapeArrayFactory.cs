@@ -28,7 +28,7 @@ namespace Direct3DLib
 		{
 			width = data.GetLength(1);
 			height = data.GetLength(0);
-			shape = new Shape(width * height * 6);
+			shape = new Shape();
 			double[] prevRow = ReadRow(data, 0);
 			for (int y = 1; y < height; y++)
 			{

@@ -73,5 +73,12 @@ namespace Direct3DLib_Test.Properties {
                 return ((byte[])(obj));
             }
         }
+        
+        public static System.Drawing.Bitmap NoTexture {
+            get {
+                object obj = ResourceManager.GetObject("NoTexture", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }

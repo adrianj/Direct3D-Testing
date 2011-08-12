@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
+using System.ComponentModel;
 using SlimDX.Direct3D10;
 using SlimDX;
 
 namespace Direct3DLib
 {
-	public class PictureTile : Shape
+	[ToolboxItem(true)]
+	public class Square : Shape
 	{
-		public PictureTile() : this(new RectangleF(-0.5f, -0.5f, 1.0f, 1.0f)) { }
-		public PictureTile(RectangleF bounds)
+		public Square() : this(new RectangleF(-0.5f, -0.5f, 1.0f, 1.0f)) { }
+		public Square(RectangleF bounds)
 			: base()
 		{
 			float t = bounds.Top;
@@ -29,6 +31,19 @@ namespace Direct3DLib
 			this.Vertices.AddRange(new Vertex[] { v2, v1, v0, v2, v3, v1 });
 		}
 
+		public override void SetUniformColor(Color color)
+		{
+			if (color != Color.Empty)
+			{
+				for (int i = 0; i < Vertices.Count; i++)
+				{
+					Vertex v = Vertices[i];
+					v.Color = color;
+					Vertices[i] = v;
+				}
+			}
+
+		}
 
 	}
 }
