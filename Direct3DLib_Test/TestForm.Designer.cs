@@ -28,9 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-			Direct3DLib.Float3 float33 = new Direct3DLib.Float3();
-			Direct3DLib.LatLong latLong2 = new Direct3DLib.LatLong();
-			Direct3DLib.Float3 float34 = new Direct3DLib.Float3();
+			Direct3DLib.Float3 float31 = new Direct3DLib.Float3();
+			Direct3DLib.LatLong latLong1 = new Direct3DLib.LatLong();
+			Direct3DLib.Float3 float32 = new Direct3DLib.Float3();
 			this.textBox1 = new System.Windows.Forms.TextBox();
 			this.textBox2 = new System.Windows.Forms.TextBox();
 			this.propertyGrid = new System.Windows.Forms.PropertyGrid();
@@ -157,7 +157,6 @@
 			// 
 			// earth3DControl
 			// 
-			this.earth3DControl.AllowDrop = true;
 			this.earth3DControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
 						| System.Windows.Forms.AnchorStyles.Left)
 						| System.Windows.Forms.AnchorStyles.Right)));
@@ -165,25 +164,25 @@
 			this.earth3DControl.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
 			this.earth3DControl.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 			this.earth3DControl.BothMouseFunction = Direct3DLib.Direct3DControl.MouseOption.CameraTranslateXZ;
-			float33.X = 1.747E+07F;
-			float33.Y = 8000F;
-			float33.Z = -3680000F;
-			this.earth3DControl.CameraLocation = float33;
+			float31.X = 1.747E+07F;
+			float31.Y = 8000F;
+			float31.Z = -3680000F;
+			this.earth3DControl.CameraLocation = float31;
 			this.earth3DControl.CameraPan = 1.5F;
 			this.earth3DControl.CameraTilt = -2.870796F;
 			this.earth3DControl.CurrentElevation = 8000D;
-			latLong2.Latitude = -36.8D;
-			latLong2.Longitude = 174.7D;
-			this.earth3DControl.CurrentLatLong = latLong2;
+			latLong1.Latitude = -36.8D;
+			latLong1.Longitude = 174.7D;
+			this.earth3DControl.CurrentLatLong = latLong1;
 			this.earth3DControl.FixTerrain = false;
 			this.earth3DControl.FixZoom = false;
 			this.earth3DControl.KeyboardMovementSpeed = 5000F;
 			this.earth3DControl.LeftMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Select;
 			this.earth3DControl.LightAmbientIntensity = 0.7F;
-			float34.X = 1F;
-			float34.Y = 1F;
-			float34.Z = 1F;
-			this.earth3DControl.LightDirection = float34;
+			float32.X = 1F;
+			float32.Y = 1F;
+			float32.Z = 1F;
+			this.earth3DControl.LightDirection = float32;
 			this.earth3DControl.LightDirectionalIntensity = 0.3F;
 			this.earth3DControl.Location = new System.Drawing.Point(12, 214);
 			this.earth3DControl.MouseMovementSpeed = 5000F;
