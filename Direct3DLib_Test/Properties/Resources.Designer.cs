@@ -67,13 +67,6 @@ namespace Direct3DLib_Test.Properties {
             }
         }
         
-        public static byte[] hercules_LORES {
-            get {
-                object obj = ResourceManager.GetObject("hercules_LORES", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
         public static System.Drawing.Bitmap NoTexture {
             get {
                 object obj = ResourceManager.GetObject("NoTexture", resourceCulture);

@@ -9,7 +9,7 @@ namespace Direct3DLib
 	public partial class Earth3DControl : Direct3DControl
 	{
 		#region Private Fields
-		public const int TEXTURE_OFFSET = ShaderHelper.MAX_TEXTURES - (EarthTiles.TILE_COLUMNS * EarthTiles.TILE_ROWS);
+		public const int TEXTURE_OFFSET = ShaderHelper.MAX_TEXTURES - (EarthTiles.TILE_COUNT * EarthTiles.TILE_COUNT);
 		private List<string> localTextureFilenames = new List<string>();
 		private List<string> externalTextureFilenames = new List<string>();
 		private EarthTiles earthTiles = new EarthTiles();
@@ -64,6 +64,20 @@ namespace Direct3DLib
 				earthTiles.UseTerrainData = value;
 			}
 		}
+		[Editor(typeof(System.Windows.Forms.Design.FolderNameEditor),typeof(System.Drawing.Design.UITypeEditor))]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public string TerrainFolder
+		{
+			get { return Properties.Settings.Default.MapTerrainFolder; }
+			set { Properties.Settings.Default.MapTerrainFolder = value; if (!this.DesignMode)Properties.Settings.Default.Save(); }
+		}
+		[Editor(typeof(System.Windows.Forms.Design.FolderNameEditor), typeof(System.Drawing.Design.UITypeEditor))]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public string TextureFolder
+		{
+			get { return Properties.Settings.Default.MapTextureFolder; }
+			set { Properties.Settings.Default.MapTextureFolder = value; if(!this.DesignMode)Properties.Settings.Default.Save(); }
+		}
 
 
 
@@ -72,7 +86,7 @@ namespace Direct3DLib
 			InitializeComponent();
 			InitializeOthers();
 			Engine.Camera.IsFirstPerson = true;
-			earthTiles.EngineShapeList = Engine.ShapeList;
+			//earthTiles.EngineShapeList = Engine.ShapeList;
 		}
 
 		private void InitializeOthers()
@@ -94,8 +108,8 @@ namespace Direct3DLib
 				RestrictCameraElevation();
 				if (previousCameraLocation.X != CameraLocation.X || previousCameraLocation.Z != CameraLocation.Z || previousCameraLocation.Y != CameraLocation.Y)
 				{
-					LatLong latLong = earthTiles.ConvertCameraLocationToLatLong(new Float3(CameraLocation));
-					latLong = EarthProjection.CalculateNearestLatLongAtDelta(latLong, earthTiles.Delta);
+					//LatLong latLong = earthTiles.ConvertCameraLocationToLatLong(new Float3(CameraLocation));
+					//latLong = EarthProjection.CalculateNearestLatLongAtDelta(latLong, earthTiles.Delta);
 					earthTiles.CameraLocationChanged(new Float3(CameraLocation));
 				}
 				UpdateDebugString();
@@ -162,7 +176,11 @@ namespace Direct3DLib
 
 		private void SetCameraLocation(Float3 camLoc)
 		{
-			CameraLocation = camLoc;
+			//if (!camLoc.Equals(CameraLocation))
+			//{
+				CameraLocation = camLoc;
+				if(this.isInitialized) earthTiles.InitializeAtCameraLocation(new Float3(CameraLocation));
+			//}
 		}
 
 		private void Earth3DControl_Load(object sender, EventArgs e)
@@ -171,7 +189,20 @@ namespace Direct3DLib
 			{
 				EarthControlOptionsForm.CheckGlobalSettings();
 				UseTerrainData = Properties.Settings.Default.UseGISData;
-				earthTiles.MapChanged += (o, ev) => { Engine.UpdateShapes(); };
+				earthTiles.MapChanged += (o, ev) => {
+					if (ev.Action == ShapeChangeEventArgs.ChangeAction.Add)
+					{
+						if (!Engine.ShapeList.Contains(ev.ChangedShape))
+						{
+							Engine.ShapeList.Add(ev.ChangedShape);
+							Engine.UpdateShape(ev.ChangedShape);
+						}
+					}
+					if (ev.Action == ShapeChangeEventArgs.ChangeAction.Remove)
+					{
+						Engine.ShapeList.Remove(ev.ChangedShape);
+					}
+				};
 				earthTiles.InitializeAtCameraLocation(new Float3(CameraLocation));
 			}
 		}
@@ -185,7 +216,7 @@ namespace Direct3DLib
 		private void UpdateControlFromOptions()
 		{
 			EarthTiles.MaxGoogleZoom = optionsForm.MaxGoogleZoom;
-			earthTiles.Delta = optionsForm.Delta;
+			//earthTiles.Delta = optionsForm.Delta;
 			FixTerrain = optionsForm.FixTerrain;
 			KeyboardMovementSpeed = optionsForm.KeyboardSpeed;
 			if (UseTerrainData != optionsForm.UseGIS)
@@ -195,16 +226,14 @@ namespace Direct3DLib
 			}
 			FixZoom = optionsForm.FixZoom;
 			AutomaticallyDownloadMaps = optionsForm.AutomaticallyDownloadMaps;
-			Properties.Settings.Default.MapTerrainFolder = optionsForm.TerrainFolder;
-			Properties.Settings.Default.MapTextureFolder = optionsForm.TextureFolder;
-			Properties.Settings.Default.Save();
+			this.TerrainFolder = optionsForm.TerrainFolder;
+			this.TextureFolder = optionsForm.TextureFolder;
 			CurrentLatLong = optionsForm.GotoLatLong;
 			CurrentElevation = optionsForm.GotoElevation;
 			UpdateOptionsFromControl();
 		}
 		private void UpdateOptionsFromControl()
 		{
-			Console.WriteLine("" + CurrentLatLong);
 			optionsForm.GotoLatLong = CurrentLatLong;
 			optionsForm.AutomaticallyDownloadMaps = AutomaticallyDownloadMaps;
 			optionsForm.UseGIS = UseTerrainData;
@@ -213,9 +242,9 @@ namespace Direct3DLib
 			optionsForm.GotoElevation = CurrentElevation;
 			optionsForm.MaxGoogleZoom = EarthTiles.MaxGoogleZoom;
 			optionsForm.FixTerrain = FixTerrain;
-			optionsForm.TerrainFolder = Properties.Settings.Default.MapTerrainFolder;
-			optionsForm.TextureFolder = Properties.Settings.Default.MapTextureFolder;
-			optionsForm.Delta = earthTiles.Delta;
+			optionsForm.TerrainFolder = this.TerrainFolder;
+			optionsForm.TextureFolder = this.TextureFolder;
+			//optionsForm.Delta = earthTiles.Delta;
 		}
 
 	}

@@ -71,6 +71,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <NoWarn>1607</NoWarn>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -227,6 +228,7 @@
     <Compile Include="CameraControl.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Direct3DDesigner.cs" />
     <Compile Include="Earth3D\CombinedMapData.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -297,6 +299,7 @@
     <Compile Include="TextureHelper.cs" />
     <Compile Include="Vertex.cs" />
     <Compile Include="VertexList.cs" />
+    <Compile Include="WndProcMessage.cs" />
     <EmbeddedResource Include="Direct3DControl.resx">
       <DependentUpon>Direct3DControl.cs</DependentUpon>
     </EmbeddedResource>

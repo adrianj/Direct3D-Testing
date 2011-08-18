@@ -31,19 +31,15 @@ namespace Direct3DLib
 		public double LongitudeDelta { get { return longitudeDelta; } set { longitudeDelta = value; } }
 
 
+
 		private double unitsPerLatitude = 100000;	// Could be 111 km for example.
 		public double UnitsPerDegreeLatitude { get { return unitsPerLatitude; } set { unitsPerLatitude = value; } }
 
 		private double degreesLatitudePerPoint = 1/(double)(ROWS_PER_FILE-1);
 		
 		private float verticalScale = 1.0f;			// 1 m
-		//public float VerticalScale { get { return verticalScale; } set { verticalScale = value; } }
 		private float horizontalScale = 1.0f;
-		//public float HorizontalScale { get { return horizontalScale; } set { horizontalScale = value; } }
 
-
-		//private string filename;
-		//public string Filename { set { reader = new BinaryReaderBiEndian(value, true); } }
 		
 		private BinaryReaderBiEndian reader;
 		public Stream Stream { set { reader = new BinaryReaderBiEndian(value, true); } }
@@ -198,6 +194,9 @@ namespace Direct3DLib
 			nColumnsToRead = (int)(longitudeDelta * (double)COLUMNS_PER_FILE)+1;
 			if (nColumnsToRead + startCol > COLUMNS_PER_FILE+1)
 				nColumnsToRead = COLUMNS_PER_FILE - startCol;
+
+			if (nRowsToRead != nColumnsToRead)
+				Console.WriteLine("" + nRowsToRead + ", " + nColumnsToRead);
 		}
 
 
@@ -206,23 +205,6 @@ namespace Direct3DLib
 			return (float)(unitsPerLatitude * degreesLatitudePerPoint);
 		}
 
-		/*
-		private void InferRowsAndColumnsFromFileSize()
-		{
-			FileInfo info = new FileInfo(filename);
-			long nInts = info.Length / 2;
-			long maxDim = (int)Math.Sqrt(nInts);
-			long rows = 1;
-			for (int i = 1; i <= maxDim; i++)
-			{
-				if (nInts % i == 0)
-					rows = nInts / i;
-			}
-			nColumnsToRead = (int)rows;
-			nRowsToRead = (int)(nInts / rows);
-		}
-
-		 */
 		private Vertex[] ReadNextRowOfTriangles()
 		{
 			if (previousRow == null)
@@ -367,8 +349,8 @@ namespace Direct3DLib
 
 		public static short[,] Decimate(short[,] data, int factor)
 		{
-			int width = data.GetLength(1) / factor;
-			int height = data.GetLength(0) / factor;
+			int width = (data.GetLength(1)-1) / factor;
+			int height = (data.GetLength(0)-1) / factor;
 			short[,] ret = new short[width+1, height+1];
 			for(int x = 0; x < width+1; x++)
 				for (int y = 0; y < height+1; y++)

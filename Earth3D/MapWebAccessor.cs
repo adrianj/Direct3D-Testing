@@ -59,7 +59,10 @@ namespace Direct3DLib
 		{
 			if (downloadInProgress.Contains(descriptor))
 			{
-				Console.WriteLine("Download of " + descriptor + " already in progress");
+				return;
+			}
+			if (mostRecentError == WebError.Forbidden)
+			{
 				return;
 			}
 			downloadInProgress.Add(descriptor);
@@ -68,21 +71,17 @@ namespace Direct3DLib
 			worker.DoWork += (o, e) =>
 			{
 				MapDescriptor desc = e.Argument as MapDescriptor;
-				GetImageFromWeb(desc);
+				Image image = GetImageFromWeb(desc);
+				if(image != null) image.Dispose();
 				downloadInProgress.Remove(desc);
 			};
+			worker.RunWorkerCompleted += (o, e) => { worker.Dispose(); worker = null; };
 			worker.RunWorkerAsync(descriptor);
 		}
 
 
 		private Image GetImageFromWeb(MapDescriptor descriptor)
 		{
-			if (mostRecentError == WebError.Forbidden)
-			{
-				descriptor.MapState = MapDescriptor.MapImageState.Empty;
-				Console.WriteLine("Previous Error!");
-				return null;
-			}
 			try
 			{
 				Image image = null;
@@ -101,7 +100,6 @@ namespace Direct3DLib
 			catch (WebException webEx) { HandleWebException(webEx); }
 			catch (Exception ex) { HandleOtherException(ex); }
 			descriptor.MapState = MapDescriptor.MapImageState.Empty;
-			Console.WriteLine("Error!");
 			return null;
 		}
 
@@ -160,12 +158,17 @@ namespace Direct3DLib
 		public double Latitude { get { return lat; } set { lat = Fix(value, -90, 90); } }
 		public double Longitude { get { return lng; } set { lng = Wrap(value, -180, 180); } }
 		public int ZoomLevel { get; set; }
-		public MapDescriptor(double lat, double lng, int zoom)
+		private double delta = 1;
+		public double Delta { get { return delta; } set { delta = value; } }
+		public MapDescriptor(double lat, double lng, int zoom, double delta)
 		{
 			Latitude = lat;
 			Longitude = lng;
 			ZoomLevel = zoom;
+			Delta = delta;
 		}
+		public MapDescriptor(double lat, double lng, int zoom)
+			: this(lat, lng, zoom, 0.125) { }
 
 		public override string ToString()
 		{
@@ -187,6 +190,7 @@ namespace Direct3DLib
 			if (d.ZoomLevel != this.ZoomLevel) return false;
 			if (d.Longitude != this.Longitude) return false;
 			if (d.Latitude != this.Latitude) return false;
+			if (d.Delta != this.Delta) return false;
 			return true;
 		}
 

@@ -11,7 +11,7 @@ namespace Direct3DLib
 	public class CombinedMapData : Shape
 	{
 		private LatLong bottomLeft = new LatLong();
-		public LatLong BottomLeftPosition { get { return bottomLeft; } set { bottomLeft = value; } }
+		public LatLong BottomLeftLocation { get { return bottomLeft; } set { bottomLeft = value; } }
 	
 		private double shapeDelta = 0.125;
 		public double ShapeDelta { get { return shapeDelta; } set { shapeDelta = value; } }
@@ -22,9 +22,16 @@ namespace Direct3DLib
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public Image TextureImage { get { return image; } set { if (image != value && value != null) updateRequired = true; image = value; } }
 
-		public CombinedMapData()
+		public CombinedMapData() : base()
 		{
 			image = null;
+		}
+		public CombinedMapData(CombinedMapData copy) : this()
+		{
+			this.ShapeDelta = copy.ShapeDelta;
+			this.TextureIndex = copy.TextureIndex;
+			this.ZoomLevel = copy.ZoomLevel;
+			this.BottomLeftLocation = copy.BottomLeftLocation;
 		}
 
 		public override bool Equals(object obj)
@@ -37,7 +44,7 @@ namespace Direct3DLib
 		public bool Equals(CombinedMapData other)
 		{
 			if (!other.ShapeDelta.Equals(this.ShapeDelta)) return false;
-			if (!other.BottomLeftPosition.Equals(this.bottomLeft)) return false;
+			if (!other.BottomLeftLocation.Equals(this.bottomLeft)) return false;
 			if (other.ZoomLevel != this.ZoomLevel) return false;
 			if (other.image != this.image) return false;
 			return base.Equals(other);
@@ -46,14 +53,14 @@ namespace Direct3DLib
 		public bool IsSameShape(CombinedMapData other)
 		{
 			if (!other.ShapeDelta.Equals(this.ShapeDelta)) return false;
-			if (!other.BottomLeftPosition.Equals(this.bottomLeft)) return false;
+			if (!other.BottomLeftLocation.Equals(this.bottomLeft)) return false;
 			return true;
 		}
 
 		public bool IsSameTexture(CombinedMapData other)
 		{
 			if (other.shapeDelta != this.shapeDelta) return false;
-			if (!other.BottomLeftPosition.Equals(this.bottomLeft)) return false;
+			if (!other.BottomLeftLocation.Equals(this.bottomLeft)) return false;
 			if (other.ZoomLevel != this.ZoomLevel) return false;
 			if (other.TextureImage == null) return false;
 			return true;
@@ -72,23 +79,35 @@ namespace Direct3DLib
 		private void SetTextureInSeperateThread(SlimDX.Direct3D10.Device device, ShaderHelper helper)
 		{
 			updateRequired = false;
+			if (this.image == null)
+			{
+				return;
+			}
 			BackgroundWorker worker = new BackgroundWorker();
-			SlimDX.Direct3D10.Texture2D tex = null;
 			worker.DoWork += (o, e) =>
 			{
 				Image img = (Image)e.Argument;
 				try
 				{
-					if (TextureIndex >= 0 && img != null)
+					if (TextureIndex >= 0)
 					{
 						byte[] bytes = ImageConverter.ConvertImageToBytes(img);
-						tex = ImageConverter.ConvertBytesToTexture2D(device, bytes);
+						SlimDX.Direct3D10.Texture2D tex = ImageConverter.ConvertBytesToTexture2D(device, bytes);
 						helper.TextureSet[TextureIndex].TextureImage = tex;
+						img.Dispose();
+						img = null;
 					}
 				}
 				catch (SlimDX.Direct3D10.Direct3D10Exception) { }
 			};
-			worker.RunWorkerAsync(image);
+			worker.RunWorkerCompleted += (o, e) => { worker.Dispose(); };
+			worker.RunWorkerAsync(this.image);
+		}
+
+		public MapDescriptor GetMapDescriptor()
+		{
+			MapDescriptor md = new MapDescriptor(BottomLeftLocation.Latitude, BottomLeftLocation.Longitude, ZoomLevel, ShapeDelta);
+			return md;
 		}
 
 

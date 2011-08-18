@@ -36,6 +36,20 @@ namespace Direct3DLib
 			result.Z = f;
 			return true;
 		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj is SlimDX.Vector3)
+				return this.AsVector3().Equals(obj);
+			if (obj is Float3)
+				return this.vec.Equals((obj as Float3).AsVector3());
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			return vec.GetHashCode();
+		}
 	}
 
 	public class Float3TypeConverter : GenericTypeConverter

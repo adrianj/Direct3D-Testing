@@ -19,19 +19,11 @@ namespace Direct3DLib
 			get { return sourceFile; }
 			set
 			{
-				if (this.DesignTime)
-				{
-					// Do nothing with sourceFile now - it will be checked at Run-Time.
-					sourceFile = value;
-				}
-				else
-				{
-					SetShapeAtRuntime(value);
-				}
+				SetShape(value);
 			}
 		}
 
-		private void SetShapeAtRuntime(string value)
+		private void SetShape(string value)
 		{
 			bool success = SetShapeFromResource(value);
 			if (!success)
@@ -49,12 +41,13 @@ namespace Direct3DLib
 			{
 				using (Stream stream = FindResourceStream(resourcePath))
 				{
-					using(Shape s = ComplexShapeFactory.CreateFromStream(stream,resourcePath))
+					using (Shape s = ComplexShapeFactory.CreateFromStream(stream, resourcePath))
 						this.Vertices = s.Vertices;
 				}
 				return true;
 			}
-			catch (MissingManifestResourceException) {  }
+			catch (MissingManifestResourceException) { }
+			catch (Exception ex) { MessageBox.Show("" + ex);  }
 			return false;
 		}
 
@@ -79,6 +72,7 @@ namespace Direct3DLib
 
 		private string FindMatchingResourcePath(string resourcePath, Assembly asm)
 		{
+			if (asm == null) return "";
 			List<string> res = new List<string>(asm.GetManifestResourceNames());
 			if(res.Contains(resourcePath)) return resourcePath;
 			resourcePath = resourcePath.Replace(Path.DirectorySeparatorChar, '.');
@@ -100,10 +94,17 @@ namespace Direct3DLib
 					return true;
 				}
 			}
-			catch (FileNotFoundException ex) { MessageBox.Show("" + ex); }
-			catch (DirectoryNotFoundException ex) { MessageBox.Show("" + ex); }
-			catch (ArgumentException ex) { MessageBox.Show("" + ex); }
+			catch (FileNotFoundException ex) { HandleException(ex); }
+			catch (DirectoryNotFoundException ex) { HandleException(ex); }
+			catch (ArgumentException ex) { HandleException(ex); }
+			if (this.DesignTime) return true; 
 			return false;
+		}
+
+		private void HandleException(Exception ex)
+		{
+			if (!this.DesignTime)
+				MessageBox.Show("" + ex);
 		}
 
 		public ComplexShape()

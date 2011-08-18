@@ -41,9 +41,6 @@ namespace Direct3DLib_Test
 				}
             };
 			propertyGrid.SelectedObject = hercules;
-			//AddHerc();
-			//AddSphere();
-			//AddWoomera();
 			earth3DControl.UpdateShapes();
         }
 
@@ -94,6 +91,20 @@ namespace Direct3DLib_Test
 					earth3DControl.BothMouseFunction = (Direct3DControl.MouseOption)comboBox3.SelectedItem;
             }
         }
+
+		private void earth3DControl_Load(object sender, EventArgs e)
+		{
+
+
+
+
+
+
+
+
+
+		}
+
 
 
 

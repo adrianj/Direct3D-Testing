@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
 			Direct3DLib.Float3 float31 = new Direct3DLib.Float3();
-			Direct3DLib.LatLong latLong1 = new Direct3DLib.LatLong();
 			Direct3DLib.Float3 float32 = new Direct3DLib.Float3();
 			this.textBox1 = new System.Windows.Forms.TextBox();
 			this.textBox2 = new System.Windows.Forms.TextBox();
@@ -157,6 +156,7 @@
 			// 
 			// earth3DControl
 			// 
+			this.earth3DControl.AllowDrop = true;
 			this.earth3DControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
 						| System.Windows.Forms.AnchorStyles.Left)
 						| System.Windows.Forms.AnchorStyles.Right)));
@@ -164,16 +164,13 @@
 			this.earth3DControl.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
 			this.earth3DControl.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 			this.earth3DControl.BothMouseFunction = Direct3DLib.Direct3DControl.MouseOption.CameraTranslateXZ;
-			float31.X = 1.747E+07F;
-			float31.Y = 8000F;
-			float31.Z = -3680000F;
+			float31.X = 1.74814E+07F;
+			float31.Y = 5000F;
+			float31.Z = -3682200F;
 			this.earth3DControl.CameraLocation = float31;
-			this.earth3DControl.CameraPan = 1.5F;
-			this.earth3DControl.CameraTilt = -2.870796F;
-			this.earth3DControl.CurrentElevation = 8000D;
-			latLong1.Latitude = -36.8D;
-			latLong1.Longitude = 174.7D;
-			this.earth3DControl.CurrentLatLong = latLong1;
+			this.earth3DControl.CameraPan = 1.653334F;
+			this.earth3DControl.CameraTilt = -1.610595F;
+			this.earth3DControl.CurrentElevation = 5000D;
 			this.earth3DControl.FixTerrain = false;
 			this.earth3DControl.FixZoom = false;
 			this.earth3DControl.KeyboardMovementSpeed = 5000F;
@@ -188,8 +185,7 @@
 			this.earth3DControl.MouseMovementSpeed = 5000F;
 			this.earth3DControl.Name = "earth3DControl";
 			this.earth3DControl.RightMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Rotate;
-			this.earth3DControl.SelectedObject = null;
-			this.earth3DControl.Size = new System.Drawing.Size(774, 432);
+			this.earth3DControl.Size = new System.Drawing.Size(774, 433);
 			this.earth3DControl.TabIndex = 15;
 			this.earth3DControl.TextureImages = new System.Drawing.Image[] {
         ((System.Drawing.Image)(global::Direct3DLib_Test.Properties.Resources.Chrysanthemum)),
@@ -211,15 +207,16 @@
 			this.earth3DControl.ZClipFar = 1E+07F;
 			this.earth3DControl.ZClipNear = 5F;
 			this.earth3DControl.Zoom = 5F;
+			this.earth3DControl.Load += new System.EventHandler(this.earth3DControl_Load);
 			// 
 			// hercules
 			// 
 			this.hercules.CanPick = true;
-			this.hercules.Location = new SlimDX.Vector3(1.747E+07F, 6000F, -3680000F);
-			this.hercules.Rotation = new SlimDX.Vector3(4.583185F, 0F, 0F);
+			this.hercules.Location = new SlimDX.Vector3(1.747E+07F, 8000F, -3680000F);
+			this.hercules.Rotation = new SlimDX.Vector3(4.783185F, 0F, 0F);
 			this.hercules.Scale = new SlimDX.Vector3(100F, 100F, 100F);
 			this.hercules.SolidColor = System.Drawing.Color.Empty;
-			this.hercules.SourceFile = "Resources/hercules_LORES.stl";
+			this.hercules.SourceFile = "Resources.hercules.stl";
 			this.hercules.TextureIndex = -1;
 			this.hercules.Topology = SlimDX.Direct3D10.PrimitiveTopology.TriangleList;
 			// 

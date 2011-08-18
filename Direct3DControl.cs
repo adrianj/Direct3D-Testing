@@ -14,6 +14,7 @@ using System.Reflection;
 
 namespace Direct3DLib
 {
+	[Designer(typeof(Direct3DDesigner),typeof(IDesigner))]
 	public partial class Direct3DControl : UserControl
 	{
 		private Direct3DEngine engine;
@@ -35,11 +36,11 @@ namespace Direct3DLib
 
 		void Direct3DControl_Load(object sender, EventArgs e)
 		{
-			if (!designTime)
-			{
+			//if (!designTime)
+			//{
 				InitializeDevice();
 				InitializeShapes();
-			}
+			//}
 		}
 
 		private void InitializeDevice()
@@ -68,13 +69,13 @@ namespace Direct3DLib
 
 		#region Public Properties
 		[CategoryAttribute("Camera, Lighting and Textures")]
-		public float CameraTilt { get { return engine.Camera.Tilt; } set { engine.Camera.Tilt = value; } }
+		public float CameraTilt { get { return engine.Camera.Tilt; } set { engine.Camera.Tilt = value; if (designTime) this.Invalidate(); } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
-		public float CameraPan { get { return engine.Camera.Pan; } set { engine.Camera.Pan = value; } }
+		public float CameraPan { get { return engine.Camera.Pan; } set { engine.Camera.Pan = value; if (designTime) this.Invalidate(); } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
-		public Float3 CameraLocation { get { return new Float3(engine.Camera.Location); } set { engine.Camera.Location = value.AsVector3(); } }
+		public Float3 CameraLocation { get { return new Float3(engine.Camera.Location); } set { engine.Camera.Location = value.AsVector3(); if (designTime) this.Invalidate(); } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
-		public float Zoom { get { return engine.Camera.Zoom; } set { engine.Camera.Zoom = value; } }
+		public float Zoom { get { return engine.Camera.Zoom; } set { engine.Camera.Zoom = value; if (designTime) this.Invalidate(); } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public float ZClipNear { get { return engine.Camera.ZClipNear; } set { engine.Camera.ZClipNear = value; } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
@@ -97,7 +98,7 @@ namespace Direct3DLib
 		public Image[] TextureImages { get { return engine.TextureImages; } set { engine.TextureImages = value; } }
 
 		private object mSelectedObject = null;
-		[Browsable(false)]
+		[TypeConverter(typeof(BasicTypeConverter))]
 		public object SelectedObject { get { return mSelectedObject; } set { mSelectedObject = value; FireSelectedObjectChangedEvent(value); } }
 		[Browsable(false)]
 		public double RefreshRate { get { return engine.RefreshRate; } }
@@ -130,7 +131,7 @@ namespace Direct3DLib
 		public void Render()
 		{
 			// Only render if the Engine is initialized and this application is the active form, or user forces it to.
-			if (IsInitialized && (Form.ActiveForm != null || forceRender) && this.Visible)
+			if (IsInitialized && (Form.ActiveForm != null || forceRender || this.designTime) && this.Visible)
 			{
 				engine.Render();
 				forceRender = false;
@@ -139,7 +140,7 @@ namespace Direct3DLib
 		}
 		public void UpdateShapes()
 		{
-			engine.UpdateShapes();
+			engine.UpdateAllShapes();
 		}
 
 
@@ -182,6 +183,19 @@ namespace Direct3DLib
 			this.Leave += new EventHandler(Direct3DControl_Leave);
 		}
 
+		public void RotateCamera(float pan, float tilt)
+		{
+			CameraPan += pan;
+			CameraTilt += tilt;
+		}
+
+		public void TranslateCamera(float x, float y, float z)
+		{
+			engine.Camera.Translate(x, y, z);
+			if (this.designTime) Invalidate();
+		}
+
+
 		void Direct3DControl_Leave(object sender, EventArgs e)
 		{
 			keyDownList.Clear();
@@ -191,7 +205,6 @@ namespace Direct3DLib
 		void this_MouseUp(object sender, MouseEventArgs e)
 		{
 			// Attempt to select an object at the mouse location.
-
 			if ((e.Button == MouseButtons.Left && LeftMouseFunction == MouseOption.Select)
 				|| (e.Button == MouseButtons.Right && RightMouseFunction == MouseOption.Select))
 			{
@@ -200,6 +213,7 @@ namespace Direct3DLib
 					SelectedObject = obj;
 			}
 		}
+
 
 		void this_MouseMove(object sender, MouseEventArgs e)
 		{
@@ -213,14 +227,13 @@ namespace Direct3DLib
 				{
 					float panChange = xDiff / 100f;
 					float tiltChange = yDiff / 30f;
-					engine.Camera.Pan -= panChange;
-					engine.Camera.Tilt -= tiltChange;
+					RotateCamera(-panChange,-tiltChange);
 				}
 				else if ((e.Button == MouseButtons.Left && LeftMouseFunction == MouseOption.CameraTranslateXZ)
 					|| (e.Button == MouseButtons.Right && RightMouseFunction == MouseOption.CameraTranslateXZ)
 					|| (e.Button == (MouseButtons.Left | MouseButtons.Right) && BothMouseFunction == MouseOption.CameraTranslateXZ))
 				{
-					engine.Camera.Translate(xDiff / 50 * mouseSpeed, 0, yDiff / 50 * mouseSpeed);
+					TranslateCamera(xDiff / 50 * mouseSpeed, 0, yDiff / 50 * mouseSpeed);
 				}
 				else if ((e.Button == MouseButtons.Left && LeftMouseFunction == MouseOption.Zoom)
 					|| (e.Button == MouseButtons.Right && RightMouseFunction == MouseOption.Zoom)
@@ -233,7 +246,58 @@ namespace Direct3DLib
 		}
 		#endregion
 
-
+		#region Design Time Mouse Clicks
+		public void ProcessDesignTimeMouseMessage(ref Message m)
+		{
+			if (m.Msg >= WndProcMessage.MIN_MOUSE && m.Msg <= WndProcMessage.MAX_MOUSE)
+			{
+				if (m.Msg == WndProcMessage.WM_MOUSEMOVE)
+				{
+					OnMouseMove(BuildArgs(m));
+				}
+				if (m.Msg == WndProcMessage.WM_LBUTTONDOWN)
+				{
+					OnMouseDown(BuildArgs(m));
+				}
+				if (m.Msg == WndProcMessage.WM_LBUTTONUP)
+				{
+					OnMouseUp(BuildArgs(m,MouseButtons.Left));
+				}
+				if (m.Msg == WndProcMessage.WM_RBUTTONDOWN)
+				{
+					OnMouseDown(BuildArgs(m));
+				}
+				if (m.Msg == WndProcMessage.WM_RBUTTONUP)
+				{
+					OnMouseUp(BuildArgs(m, MouseButtons.Left));
+				}
+			}
+		}
+		private MouseEventArgs BuildArgs(Message m)
+		{
+			return BuildArgs(m, MouseButtons.None);
+		}
+		private MouseEventArgs BuildArgs(Message m, MouseButtons sourceButton)
+		{
+			MouseButtons mb = sourceButton;
+			Point p = new Point(m.LParam.ToInt32());
+			int wParam = m.WParam.ToInt32();
+			if ((wParam & 0x0001) == 0x0001)
+				mb |= MouseButtons.Left;
+			if ((wParam & 0x0002) == 0x0002)
+				mb |= MouseButtons.Right;
+			if ((wParam & 0x0010) == 0x0010)
+				mb |= MouseButtons.Middle;
+			if ((wParam & 0x0020) == 0x0020)
+				mb |= MouseButtons.XButton1;
+			if ((wParam & 0x0040) == 0x0040)
+				mb |= MouseButtons.XButton2;
+			
+			MouseEventArgs e = new MouseEventArgs(mb, 1, p.X, p.Y, 0);
+			
+			return e;
+		}
+		#endregion
 		#region Key Presses
 
 		private List<Keys> keyDownList = new List<Keys>();
@@ -273,12 +337,11 @@ namespace Direct3DLib
 				keyQE += f;
 			if (keyShift)
 			{
-				engine.Camera.Tilt += keyWS;
-				engine.Camera.Pan -= keyAD;
+				RotateCamera(-keyAD, keyWS);
 			}
 			else
 			{
-				engine.Camera.Translate(-keyAD * keySpeed, keyQE * keySpeed, keyWS * keySpeed);
+				TranslateCamera(-keyAD * keySpeed, keyQE * keySpeed, keyWS * keySpeed);
 			}
 		}
 
@@ -312,6 +375,7 @@ namespace Direct3DLib
 			}
 		}
 		#endregion
+
 
 
 	}

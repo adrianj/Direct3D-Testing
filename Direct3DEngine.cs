@@ -119,10 +119,18 @@ namespace Direct3DLib
 		#endregion
 
 
-		public void UpdateShapes()
+		public void UpdateAllShapes()
 		{
 			foreach (Shape s in shapeList)
+				UpdateShape(s);
+		}
+
+		public void UpdateShape(Shape s)
+		{
+			if (shapeList.Contains(s))
+			{
 				s.Update(device, shaderSignature);
+			}
 		}
 
 		public Shape PickObjectAt(Point screenLocation)
@@ -209,7 +217,7 @@ namespace Direct3DLib
 
 				UpdateTextures();
 
-				UpdateShapes();
+				UpdateAllShapes();
 			}
 			catch (Direct3D10Exception ex)
 			{
@@ -280,30 +288,48 @@ namespace Direct3DLib
 			UpdateRefreshRate();
             if (IsInitialized)
             {
-                // Clear the view, resetting to the background colour.
-				Color4 back = new Color4(mParent.BackColor);
-                device.ClearRenderTargetView(renderView, back);
-                device.ClearDepthStencilView(renderDepth, DepthStencilClearFlags.Depth, 1, 0);
-				shaderHelper.ConstantBufferSet.ViewProj = Camera.World;
-				RenderAllShapes();
-                // Present!
-                swapChain.Present(0, PresentFlags.None);
+				try
+				{
+					// Clear the view, resetting to the background colour.
+					Color4 back = new Color4(mParent.BackColor);
+					device.ClearRenderTargetView(renderView, back);
+					device.ClearDepthStencilView(renderDepth, DepthStencilClearFlags.Depth, 1, 0);
+					shaderHelper.ConstantBufferSet.ViewProj = Camera.World;
+					RenderAllShapes();
+					// Present!
+					swapChain.Present(0, PresentFlags.None);
+				}
+				catch (Direct3D10Exception dex) { MessageBox.Show("" + dex); throw; }
             }
         }
 
+		int count = 0;
 		private void RenderAllShapes()
 		{
+			List<Shape> disposedShapes = new List<Shape>();
 			foreach (Shape shape in shapeList)
 			{
-				BoundingBox bbInWorld = Direct3DEngine.BoundingBoxMultiplyMatrix(shape.MaxBoundingBox, shape.World); 
-				bool onScreen = BoundingBoxOnScreenFine(bbInWorld);
-				if(!onScreen)
-					onScreen = BoundingBoxOnScreenCoarse(bbInWorld);
-				if (onScreen)
+				if (shape.IsDisposed)
+					disposedShapes.Add(shape);
+				else
 				{
-					shape.Render(device, shaderHelper);
+					BoundingBox bbInWorld = Direct3DEngine.BoundingBoxMultiplyMatrix(shape.MaxBoundingBox, shape.World);
+					bool onScreen = BoundingBoxOnScreenFine(bbInWorld);
+					if (!onScreen)
+						onScreen = BoundingBoxOnScreenCoarse(bbInWorld);
+					if (onScreen)
+					{
+						shape.Render(device, shaderHelper);
+					}
 				}
 			}
+			foreach (Shape shape in disposedShapes)
+			{
+				shapeList.Remove(shape);
+			}
+			if (count != shapeList.Count)
+				Console.WriteLine("Rendering " + shapeList.Count + "shapes");
+			count = shapeList.Count;
 		}
 
 		private bool BoundingBoxOnScreenCoarse(BoundingBox bb)

@@ -39,7 +39,7 @@ namespace Direct3DLib
 		
 		public override object CreateInstance(ITypeDescriptorContext context, System.Collections.IDictionary propertyValues)
 		{
-			MessageBox.Show("CreateInstance: cType: " + cType + ", CompType: " + context.PropertyDescriptor.ComponentType + ", instance" + context.Instance);
+			//MessageBox.Show("CreateInstance: cType: " + cType + ", CompType: " + context.PropertyDescriptor.ComponentType + ", instance" + context.Instance);
 			object value = Activator.CreateInstance(cType);
 			foreach (KeyValuePair<object, object> pair in propertyValues)
 			{
@@ -52,7 +52,7 @@ namespace Direct3DLib
 
 		public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)
 		{
-			MessageBox.Show("ConvertFrom: cType: " + cType + ", CompType: " + context.PropertyDescriptor.ComponentType + ", instance" + context.Instance+", value: "+value);
+			//MessageBox.Show("ConvertFrom: cType: " + cType + ", CompType: " + context.PropertyDescriptor.ComponentType + ", instance" + context.Instance+", value: "+value);
 			object t = Activator.CreateInstance(cType);
 			if (value.GetType() == typeof(string))
 			{

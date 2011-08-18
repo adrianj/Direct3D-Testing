@@ -7,14 +7,13 @@ using System.Reflection;
 
 namespace Direct3DLib
 {
-	[TypeConverter(typeof(LatLongTypeConverter))]
-	public class LatLong
+	public struct LatLong
 	{
-		private double lat = 0.0;
-		private double lng = 0.0;
+		private double lat;
+		private double lng;
 		public double Latitude { get { return lat; } set { lat = value; } }
 		public double Longitude { get { return lng; } set { lng = value; } }
-		public LatLong() { }
+		//public LatLong() { }
 		public LatLong(double lat, double lng) :this() { this.lat = lat; this.lng = lng; }
 		public LatLong(LatLong latLong) : this(latLong.Latitude, latLong.Longitude) { }
 
@@ -39,7 +38,7 @@ namespace Direct3DLib
 
 		public static bool TryParse(string s, out LatLong value)
 		{
-			value = null;
+			value = new LatLong();
 			try
 			{
 				value = LatLong.Parse(s);
@@ -60,6 +59,22 @@ namespace Direct3DLib
 			value.Longitude = d;
 			return value;
 		}
+
+		public static LatLong Min(LatLong a, LatLong b)
+		{
+			return new LatLong(Math.Min(a.Latitude, b.Latitude), Math.Min(a.Longitude, b.Longitude));
+		}
+		public static LatLong Subtract(LatLong a, LatLong b)
+		{
+			return new LatLong(a.Latitude - b.Latitude, a.Longitude - b.Longitude);
+		}
+		public static LatLong Add(LatLong a, LatLong b)
+		{
+			return new LatLong(a.Latitude + b.Latitude, a.Longitude + b.Longitude);
+		}
+
+		public static LatLong MinValue = new LatLong(-90, -180);
+		public static LatLong MaxValue = new LatLong(90, 180);
 	}
 
 	public class LatLongTypeConverter : GenericTypeConverter

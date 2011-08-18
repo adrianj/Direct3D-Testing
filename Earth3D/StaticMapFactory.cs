@@ -31,8 +31,8 @@ namespace Direct3DLib
 		private NullImage nullImage = new NullImage();
 
 		private int initialZoomLevel = 0;
+		private int StandardZoomLevel = 9;
 
-		private string nullString = "";
 		private bool automaticallyDownloadMaps = false;
 		public bool AutomaticallyDownloadMaps
 		{
@@ -40,71 +40,80 @@ namespace Direct3DLib
 			set { automaticallyDownloadMaps = value; }
 		}
 
-		public Image GetTiledImage(LatLong bottomLeftLocation, int desiredZoomLevel, int logDelta)
+		public Image GetTiledImage(LatLong bottomLeftLocation, int desiredZoomLevel, int logDelta, out int actualZoomLevel)
 		{
 			initialZoomLevel = desiredZoomLevel;
-			nullString = "bottomLeft: " + bottomLeftLocation + "\ndesiredZoom: " + desiredZoomLevel;
-			return RecursivelyGetTiledImage(bottomLeftLocation, desiredZoomLevel, logDelta);
+			nullImage.Text = "bottomLeft: " + bottomLeftLocation + "\ndesiredZoom: " + desiredZoomLevel;
+			return RecursivelyGetTiledImage(bottomLeftLocation, desiredZoomLevel, logDelta, out actualZoomLevel);
 		}
 
-		private Image RecursivelyGetTiledImage(LatLong bottomLeftLocation, int desiredZoomLevel, int logDelta)
+		private Image RecursivelyGetTiledImage(LatLong bottomLeftLocation, int desiredZoomLevel, int logDelta, out int actualZoomLevel)
 		{
 			if (desiredZoomLevel < 0)
 			{
+				actualZoomLevel = -1;
 				return nullImage.ImageClone;
 			}
 			int minZoomLevel = CalculateZoomFromLogDelta(logDelta);
 			if (minZoomLevel == desiredZoomLevel)
 			{
-				return GetImageFromSource(bottomLeftLocation, desiredZoomLevel, logDelta);
+				return GetImageFromSource(bottomLeftLocation, desiredZoomLevel, logDelta, out actualZoomLevel);
 			}
 			else if (minZoomLevel > desiredZoomLevel)
 			{
-				return CropFromLargerImage(bottomLeftLocation, desiredZoomLevel, logDelta);
+				return CropFromLargerImage(bottomLeftLocation, desiredZoomLevel, logDelta, out actualZoomLevel);
 			}
 			else
 			{
-				return StitchFromImageTiles(bottomLeftLocation, desiredZoomLevel, logDelta);
+				return StitchFromImageTiles(bottomLeftLocation, desiredZoomLevel, logDelta, out actualZoomLevel);
 			}
 		}
 
 
-		private Image CropFromLargerImage(LatLong bottomLeftLocation, int desiredZoomLevel, int logDelta)
+		private Image CropFromLargerImage(LatLong bottomLeftLocation, int desiredZoomLevel, int logDelta, out int actualZoomLevel)
 		{
 			double delta = Math.Pow(2.0,logDelta+1);
 			LatLong newLocation = EarthProjection.CalculateNearestLatLongAtDelta(bottomLeftLocation, delta,false);
-			Image image = RecursivelyGetTiledImage(newLocation, desiredZoomLevel, logDelta+1);
-			float width = image.Width / 2;
-			if (width < MIN_TEXTURE_SIZE) width = MIN_TEXTURE_SIZE;
-			float height = image.Height / 2;
-			if (height < MIN_TEXTURE_SIZE) height = MIN_TEXTURE_SIZE;
-			float yOffset = height;
-			if (bottomLeftLocation.Latitude > newLocation.Latitude) yOffset = 0;
-			float xOffset = 0;
-			if (bottomLeftLocation.Longitude > newLocation.Longitude) xOffset = width;
-			return ImageConverter.CropImage(image,new RectangleF(xOffset,yOffset,width,height));
+			using (Image image = RecursivelyGetTiledImage(newLocation, desiredZoomLevel, logDelta + 1,out actualZoomLevel))
+			{
+				float width = image.Width / 2;
+				if (width < MIN_TEXTURE_SIZE) width = MIN_TEXTURE_SIZE;
+				float height = image.Height / 2;
+				if (height < MIN_TEXTURE_SIZE) height = MIN_TEXTURE_SIZE;
+				float yOffset = height;
+				if (bottomLeftLocation.Latitude > newLocation.Latitude) yOffset = 0;
+				float xOffset = 0;
+				if (bottomLeftLocation.Longitude > newLocation.Longitude) xOffset = width;
+				Image ret = ImageConverter.CropImage(image, new RectangleF(xOffset, yOffset, width, height));
+				return ret;
+			}
 		}
 
-		private Image StitchFromImageTiles(LatLong bottomLeftLocation, int desiredZoomLevel, int logDelta)
+		private Image StitchFromImageTiles(LatLong bottomLeftLocation, int desiredZoomLevel, int logDelta, out int actualZoomLevel)
 		{
 			int nTiles = 2;
 			Image[] imageTiles = new Image[nTiles * nTiles];
 			int newLogDelta = logDelta - 1;
 			double delta = Math.Pow(2.0, newLogDelta);
+			actualZoomLevel = desiredZoomLevel;
 			for (int i = 0; i < nTiles; i++)
 			{
 				for (int k = 0; k < nTiles; k++)
 				{
 					LatLong tileLocation = new LatLong(bottomLeftLocation.Latitude + delta * i, bottomLeftLocation.Longitude + delta * k);
-					imageTiles[(nTiles - i - 1) * nTiles + k] = RecursivelyGetTiledImage(tileLocation,desiredZoomLevel,newLogDelta);
+					imageTiles[(nTiles - i - 1) * nTiles + k] = RecursivelyGetTiledImage(tileLocation,desiredZoomLevel,newLogDelta, out actualZoomLevel);
 				}
 			}
-			return ImageConverter.StitchImages(imageTiles,nTiles,nTiles);
+			Image ret = ImageConverter.StitchImages(imageTiles,nTiles,nTiles);
+			foreach (Image image in imageTiles)
+				if (image != null) image.Dispose();
+			return ret;
 		}
 
 
-		private Image GetImageFromSource(LatLong bottomLeftLocation, int desiredZoomLevel, int logDelta)
+		private Image GetImageFromSource(LatLong bottomLeftLocation, int desiredZoomLevel, int logDelta, out int actualZoomLevel)
 		{
+			actualZoomLevel = desiredZoomLevel;
 			int imageDelta = CalculateLogDeltaFromZoom(desiredZoomLevel);
 			LatLong centreLocation = CalculateCentreLocation(bottomLeftLocation, imageDelta);
 			MapDescriptor d = new MapDescriptor(centreLocation.Latitude, centreLocation.Longitude, desiredZoomLevel);
@@ -112,7 +121,7 @@ namespace Direct3DLib
 			if (image == null)
 			{
 				FetchImageFromWeb(d);
-				return RecursivelyGetTiledImage(bottomLeftLocation, desiredZoomLevel - 1, logDelta);
+				return RecursivelyGetTiledImage(bottomLeftLocation, desiredZoomLevel - 1, logDelta, out actualZoomLevel);
 			}
 			return image;
 		}
@@ -128,12 +137,12 @@ namespace Direct3DLib
 
 		private int CalculateZoomFromLogDelta(int logDelta)
 		{
-			return 9 - logDelta;
+			return StandardZoomLevel - logDelta;
 		}
 
 		private int CalculateLogDeltaFromZoom(int zoomLevel)
 		{
-			return 9 - zoomLevel;
+			return StandardZoomLevel - zoomLevel;
 		}
 
 		private LatLong CalculateCentreLocation(LatLong bottomLeftLocation, int logDelta)
@@ -146,13 +155,15 @@ namespace Direct3DLib
 
 		public Image GetImageFromFile(MapDescriptor description)
 		{
-			nullImage.Text = nullString + "\n" + description;
+			nullImage.Text += "\n" + description;
 			description.MapState = MapDescriptor.MapImageState.Partial;
-			Image image = fileAccessor.GetImage(description);
-			if (image == null) return null;
-			RectangleF bounds = EarthProjection.CalculateImageBoundsAtLatitude(image.Width,image.Height,description.Latitude);
-			image = ImageConverter.CropImage(image, bounds);
-			return image;
+			using (Image image = fileAccessor.GetImage(description))
+			{
+				if (image == null) return null;
+				RectangleF bounds = EarthProjection.CalculateImageBoundsAtLatitude(image.Width, image.Height, description.Latitude);
+				Image ret = ImageConverter.CropImage(image, bounds);
+				return ret;
+			}
 		}
 
 	}
