@@ -61,15 +61,18 @@ namespace Direct3DLib_Test
 			return shape;
 		}
 
+		Float3 loc = new Float3();
         private void PreRenderTest()
         {
+			//loc.X += 10;
+			if (loc.X > 1.75e7)
+				loc.X = 1.74809e7f;
+			cone1.BroadLocation = loc;
 			textBox1.Text = earth3DControl.debugString;
 			textBox2.Text = "Refresh Rate: " + String.Format("{0:#00}", earth3DControl.RefreshRate)
-				+ "\tLightDir: " + earth3DControl.LightDirection
-				+ "\tCamTarget: " + earth3DControl.CameraLocation
-				+ "\tCamTilt: " + earth3DControl.CameraTilt
-				+ "\tCamPan: " + earth3DControl.CameraPan
-				+ "\nControl Status: "+earth3DControl.Visible;
+				+ "\t"+cone1.BroadLocation
+				+"\t"+cone1.Location
+				+"\t"+cone1.Rotation;
         }
 
         public override void Render()
@@ -94,14 +97,8 @@ namespace Direct3DLib_Test
 
 		private void earth3DControl_Load(object sender, EventArgs e)
 		{
-
-
-
-
-
-
-
-
+			loc = cone1.NarrowLocation;
+			loc.Y = 0;
 
 		}
 

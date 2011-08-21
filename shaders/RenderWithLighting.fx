@@ -32,6 +32,23 @@ Texture2D <float4> Texture_13;
 Texture2D <float4> Texture_14;
 Texture2D <float4> Texture_15;
 
+//
+// Blending
+//
+    BlendState SrcAlphaBlendingAdd
+    {
+        BlendEnable[0] = TRUE;
+        SrcBlend = SRC_ALPHA;
+        DestBlend = INV_SRC_ALPHA;
+        BlendOp = ADD;
+        SrcBlendAlpha = ZERO;
+        DestBlendAlpha = ZERO;
+        BlendOpAlpha = ADD;
+        RenderTargetWriteMask[0] = 0x0F;
+    };
+
+
+
 SamplerState TextureSampler
 {
     Filter = MIN_MAG_MIP_LINEAR;
@@ -128,10 +145,11 @@ float4 CalculateColor(float4 inColor)
 float4 PS( PS_IN input ) : SV_Target
 {
 	float4 final;
+	float finalIntensity = 1.0f;
 	float4 color = CalculateColor(input.col);
-	float finalIntensity = CalculateIntensity(input.norm);
+	finalIntensity = CalculateIntensity(input.norm);
 	final =  finalIntensity*color;
-
+	final.w = input.col.w;
 	return final;
 }
  
@@ -142,5 +160,6 @@ technique10 Render
 		SetGeometryShader( 0 );
 		SetVertexShader( CompileShader( vs_4_0, VS() ) );
 		SetPixelShader( CompileShader( ps_4_0, PS() ) );
+		SetBlendState( SrcAlphaBlendingAdd, float4( 0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF );
 	}
 }

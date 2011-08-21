@@ -69,34 +69,16 @@ namespace Direct3DLib
         }
 
         /// <summary>
-        /// Default implementation applies the transformations in the order
-        /// specified by translateFirst.
-        /// </summary>
-        /// <param name="translateFirst">false (default when no param supplied) will Rotate->Translate->Scale.
-        /// true will Translate->Rotate->Scale.</param>
-        protected virtual void updateWorld(bool translateFirst)
-        {
-            // Start with identity matrix and apply the various transformations.
-            Matrix m = Matrix.Identity;
-            if (translateFirst)
-            {
-                m = m * Matrix.Scaling(mScale);
-                m = m * Matrix.Translation(mLocation);
-                m = m * Matrix.RotationYawPitchRoll(mRotation.Y, mRotation.X, mRotation.Z);
-            }
-            else
-            {
-                m = m * Matrix.Scaling(mScale);
-                m = m * Matrix.RotationYawPitchRoll(mRotation.Y, mRotation.X, mRotation.Z);
-                m = m * Matrix.Translation(mLocation);
-            }
-            mWorld = m;
-        }
-        /// <summary>
         /// Default implementation applies the transformations in the order:
         /// Rotation -> Translation -> Scaling
         /// </summary>
-        protected virtual void updateWorld() { updateWorld(false); }
+		protected virtual void updateWorld()
+		{
+			Matrix m = Matrix.Scaling(mScale);
+			m = m * RotationMatrix;
+			m = m * Matrix.Translation(Location);
+			mWorld = m;
+		}
 
 		
     }

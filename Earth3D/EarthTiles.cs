@@ -83,7 +83,7 @@ namespace Direct3DLib
 		{
 			LatLong newPos = new LatLong(pos.Latitude - currentDelta * (row - 1), pos.Longitude - currentDelta * (col - 1));
 			CombinedMapData expectedMap = mapFactory.CreateEmptyMapAtLocation(newPos, elevation, currentDelta);
-			currentZoomLevel = expectedMap.ZoomLevel;
+			currentZoomLevel = EarthProjection.GetZoomFromElevation(elevation);
 			if (TerrainUpdateRequired(currentTiles[row, col], expectedMap))
 			{
 				if (currentTiles[row, col] != null)
@@ -167,12 +167,10 @@ namespace Direct3DLib
 			currentLocation = ConvertCameraLocationToLatLong(newCameraLocation);
 			currentElevation = newCameraLocation.Y;
 			MapPosition direction = CalculateTravelDirection(currentLocation, previousLocation,currentElevation,previousElevation);
+			currentZoomLevel = EarthProjection.GetZoomFromElevation(currentElevation);
 			if (direction != MapPosition.None && !FixTerrain)
 			{
 				MoveTerrainInDirection(direction, currentLocation, currentElevation);
-			}
-			if(HasElevationChanged(currentElevation,previousElevation) != MapPosition.None)
-			{
 			}
 			UpdateAllTextures(currentElevation);
 			previousLocation = currentLocation;

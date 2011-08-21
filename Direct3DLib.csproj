@@ -205,8 +205,10 @@
     <SignManifests>true</SignManifests>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DTALib">
-      <HintPath>..\Mp3Organiser\depends\DTALib.dll</HintPath>
+    <Reference Include="DTALib, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\AdriansLib\AdriansLib\bin\Release\DTALib.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="envdte100, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -258,6 +260,9 @@
     <Compile Include="NullImage.cs" />
     <Compile Include="ObjectCollectionEditor.cs" />
     <Compile Include="shapes\ComplexShape.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="shapes\Cone.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="shapes\ShapeArrayFactory.cs" />

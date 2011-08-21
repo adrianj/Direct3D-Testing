@@ -115,7 +115,6 @@ namespace Direct3DLib
 		{
 			Vertex[] triangle = new Vertex[3];
 			Vector3 norm = new Plane(corners[0].Position, corners[1].Position, corners[2].Position).Normal;
-			//Vector3 norm = new Vector3(0, 1, 0);
 			for (int i = 0; i < 3; i++)
 			{
 				Color4 col = GetColorFromVertex(corners[i]);
@@ -129,8 +128,7 @@ namespace Direct3DLib
 		{
 			float rScale = 1.0f / (shapeWidth);
 			float gScale = 1.0f / (shapeHeight);
-			//float bScale = 1.0f / (float)0x8000;
-			//Color4 col = new Color4(1 - vertex.Position.X * rScale, vertex.Position.Z * gScale, vertex.Position.Y * bScale);
+
 			Color4 col = new Color4(1 - vertex.Position.X * rScale, vertex.Position.Z * gScale, 1.0f);
 			return col;
 		}

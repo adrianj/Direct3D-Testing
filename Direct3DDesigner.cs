@@ -13,8 +13,8 @@ namespace Direct3DLib
 	public class Direct3DDesigner : ControlDesigner
 	{
 
-		private bool enableContextMenu = false;
-		private bool enableControlDrag = false;
+		private bool enableContextMenu = true;
+		private bool enableControlDrag = true;
 		private Direct3DControl d3dControl;
 
 		public Direct3DDesigner()

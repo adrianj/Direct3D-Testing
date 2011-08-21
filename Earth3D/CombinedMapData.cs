@@ -89,7 +89,7 @@ namespace Direct3DLib
 				Image img = (Image)e.Argument;
 				try
 				{
-					if (TextureIndex >= 0)
+					if (TextureIndex >= 0 && img != null)
 					{
 						byte[] bytes = ImageConverter.ConvertImageToBytes(img);
 						SlimDX.Direct3D10.Texture2D tex = ImageConverter.ConvertBytesToTexture2D(device, bytes);
@@ -101,7 +101,7 @@ namespace Direct3DLib
 				catch (SlimDX.Direct3D10.Direct3D10Exception) { }
 			};
 			worker.RunWorkerCompleted += (o, e) => { worker.Dispose(); };
-			worker.RunWorkerAsync(this.image);
+			worker.RunWorkerAsync(this.image.Clone());
 		}
 
 		public MapDescriptor GetMapDescriptor()

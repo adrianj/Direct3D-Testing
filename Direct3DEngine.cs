@@ -207,7 +207,6 @@ namespace Direct3DLib
 				Device context = device;
 
 				shaderEffect = ShaderHelper.GetEffect(device);
-				//Effect.FromString(device, Properties.Resources.RenderWithLighting, "fx_4_0");
 				shaderHelper.Initialize(device, shaderEffect);
 				shaderSignature = shaderEffect.GetTechniqueByIndex(0).GetPassByIndex(0).Description.Signature;
 

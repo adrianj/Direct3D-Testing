@@ -13,4 +13,7 @@
   <PropertyGroup>
     <EnableSecurityDebugging>false</EnableSecurityDebugging>
   </PropertyGroup>
+  <PropertyGroup>
+    <ReferencePath>C:\Users\adrianj\Documents\Visual Studio 2010\Projects\AdriansLib\AdriansLib\bin\Release\</ReferencePath>
+  </PropertyGroup>
 </Project>

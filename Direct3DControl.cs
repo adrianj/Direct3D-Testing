@@ -36,11 +36,11 @@ namespace Direct3DLib
 
 		void Direct3DControl_Load(object sender, EventArgs e)
 		{
-			//if (!designTime)
-			//{
+			if (!designTime)
+			{
 				InitializeDevice();
 				InitializeShapes();
-			//}
+			}
 		}
 
 		private void InitializeDevice()
@@ -63,7 +63,10 @@ namespace Direct3DLib
 			foreach (Shape shape in initialShapes)
 			{
 				if (!shape.IsDisposed && !engine.ShapeList.Contains(shape))
+				{
 					engine.ShapeList.Add(shape);
+					engine.UpdateShape(shape);
+				}
 			}
 		}
 
@@ -211,6 +214,8 @@ namespace Direct3DLib
 				Shape obj = this.PickObjectAt(e.Location);
 				if (obj != null)
 					SelectedObject = obj;
+				else
+					SelectedObject = null;
 			}
 		}
 

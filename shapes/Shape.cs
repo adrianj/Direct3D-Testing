@@ -31,13 +31,18 @@ namespace Direct3DLib
 
 		private Device mDevice;
 		private ShaderSignature mSignature;
+		
+		protected byte mTrans = 255;
+		public byte Transparency { get { return mTrans; } set { mTrans = value; SetSolidColor(mSolidColor); Update(); } }
+
 		private Color mSolidColor = Color.Empty;
-		public Color SolidColor { get { return mSolidColor; } set { SetUniformColor(value); mSolidColor = value; Update(); } }
+		public Color SolidColor { get { return mSolidColor; } set { mSolidColor = value; SetSolidColor(value); Update(); } }
 
 		public virtual PrimitiveTopology Topology { get { return Vertices.Topology; } set { Vertices.Topology = value; AutoGenerateIndices(); Update(); } }
 
 		private int textureIndex = -1;
 		public int TextureIndex { get { return textureIndex; } set { textureIndex = value; } }
+
 
 		private BoundingBox preWorldTransformBox;
 		public BoundingBox MaxBoundingBox
@@ -45,8 +50,11 @@ namespace Direct3DLib
 			get { return preWorldTransformBox; }
 		}
 
-		public virtual void SetUniformColor(Color color)
+		public virtual void SetSolidColor(Color color)
 		{
+			if (color != Color.Empty)
+				color = Color.FromArgb(Transparency, color.R, color.G, color.B);
+
 			for (int i = 0; i < Vertices.Count; i++)
 			{
 				Vertex v = Vertices[i];
@@ -82,7 +90,7 @@ namespace Direct3DLib
 
 
 		public void Update() { Update(mDevice, mSignature); }
-		//public virtual void Update(Device device) { Update(device, null); }
+
 		public virtual void Update(Device device, ShaderSignature effectSignature)
 		{
 			if (device == null || device.Disposed) return;
@@ -106,18 +114,11 @@ namespace Direct3DLib
 				BindFlags = BindFlags.VertexBuffer,
 				CpuAccessFlags = CpuAccessFlags.None,
 				OptionFlags = ResourceOptionFlags.None,
-				//SizeInBytes = 3 * Marshal.SizeOf(typeof(ColoredVertex)),
 				SizeInBytes = Vertices.NumBytes,
 				Usage = ResourceUsage.Default
 			};
 			vertexBuffer = new SlimDX.Direct3D10.Buffer(device, dataStream, desc);
 			dataStream.Close();
-
-			// Get the shader effects signature
-			//if(effect == null)
-			//	effect = Effect.FromFile(device, "RenderWithLighting.fx","fx_4_0");
-			//effect = Effect.FromString(device, Properties.Resources., "fx_4_0");
-			//EffectPass effectPass = effect.GetTechniqueByIndex(0).GetPassByName("ColoredWithLighting");
 
 
 			if (Vertices != null && Vertices.Count > 0)

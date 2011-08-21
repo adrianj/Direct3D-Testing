@@ -31,7 +31,7 @@ namespace Direct3DLib
 			this.Vertices.AddRange(new Vertex[] { v2, v1, v0, v2, v3, v1 });
 		}
 
-		public override void SetUniformColor(Color color)
+		public override void SetSolidColor(Color color)
 		{
 			if (color != Color.Empty)
 			{

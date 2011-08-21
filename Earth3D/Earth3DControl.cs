@@ -108,8 +108,6 @@ namespace Direct3DLib
 				RestrictCameraElevation();
 				if (previousCameraLocation.X != CameraLocation.X || previousCameraLocation.Z != CameraLocation.Z || previousCameraLocation.Y != CameraLocation.Y)
 				{
-					//LatLong latLong = earthTiles.ConvertCameraLocationToLatLong(new Float3(CameraLocation));
-					//latLong = EarthProjection.CalculateNearestLatLongAtDelta(latLong, earthTiles.Delta);
 					earthTiles.CameraLocationChanged(new Float3(CameraLocation));
 				}
 				UpdateDebugString();
@@ -194,7 +192,7 @@ namespace Direct3DLib
 					{
 						if (!Engine.ShapeList.Contains(ev.ChangedShape))
 						{
-							Engine.ShapeList.Add(ev.ChangedShape);
+							Engine.ShapeList.Insert(0,ev.ChangedShape);
 							Engine.UpdateShape(ev.ChangedShape);
 						}
 					}
