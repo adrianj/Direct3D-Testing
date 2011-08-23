@@ -40,7 +40,8 @@ namespace Direct3DLib
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public double CurrentElevation
 		{
-			get { currentEle = CameraLocation.Y; return currentEle; }
+			get { 
+				currentEle = earthTiles.ConvertCameraLocationToElevation(CameraLocation); return currentEle; }
 			set
 			{
 				currentEle = value;
@@ -192,13 +193,12 @@ namespace Direct3DLib
 					{
 						if (!Engine.ShapeList.Contains(ev.ChangedShape))
 						{
-							Engine.ShapeList.Insert(0,ev.ChangedShape);
-							Engine.UpdateShape(ev.ChangedShape);
+							this.InsertShape(0,ev.ChangedShape);
 						}
 					}
 					if (ev.Action == ShapeChangeEventArgs.ChangeAction.Remove)
 					{
-						Engine.ShapeList.Remove(ev.ChangedShape);
+						this.RemoveShape(ev.ChangedShape);
 					}
 				};
 				earthTiles.InitializeAtCameraLocation(new Float3(CameraLocation));

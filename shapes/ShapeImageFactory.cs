@@ -17,6 +17,8 @@ namespace Direct3DLib
 		private float shapeHeight = 1.0f;
 		public PointF ShapeSize { get { return new PointF(shapeWidth, shapeHeight); } set { shapeHeight = value.Y; shapeWidth = value.X; } }
 		private Shape shape;
+		private double verticalScale = 1.0;
+		public double VerticalScale { get { return verticalScale; } set { verticalScale = value; } }
 
 		public static Shape CreateFromStream(Stream stream) { return CreateFromStream(stream, new PointF(1.0f, 1.0f)); }
 		public static Shape CreateFromStream(Stream stream, PointF outputShapeSize)
@@ -82,8 +84,6 @@ namespace Direct3DLib
 			{
 				Color c = bmp.GetPixel(x, row);
 				int elevation = (int)BitConverter.ToInt16(new byte[] { c.B, c.G, c.R, c.A }, 0);
-				if (c.B > 0 || c.G > 0 || c.A > 0 || c.R > 0)
-					Console.WriteLine("read Color: " + c + "," + c.A + "," + c.R+","+c.G+","+c.B+","+elevation);
 				ret[x] = elevation;
 			}
 			return ret;
@@ -93,7 +93,7 @@ namespace Direct3DLib
 		{
 			float xScale = shapeWidth / (float)(width-1);
 			float zScale = shapeHeight / (float)(height-1);
-			Vector3 vect = new Vector3((float)x * xScale, (float)elevation, (float)y * zScale);
+			Vector3 vect = new Vector3((float)x * xScale, (float)(elevation*verticalScale), (float)y * zScale);
 			return vect;
 		}
 

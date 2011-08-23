@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System;
 using System.Collections.Generic;
 using SlimDX;
 using SlimDX.DXGI;
@@ -33,10 +34,10 @@ namespace Direct3DLib
 		private ShaderSignature mSignature;
 		
 		protected byte mTrans = 255;
-		public byte Transparency { get { return mTrans; } set { mTrans = value; SetSolidColor(mSolidColor); Update(); } }
+		public byte Transparency { get { return mTrans; } set { mTrans = value; UpdateColor(); Update(); } }
 
 		private Color mSolidColor = Color.Empty;
-		public Color SolidColor { get { return mSolidColor; } set { mSolidColor = value; SetSolidColor(value); Update(); } }
+		public Color SolidColor { get { return mSolidColor; } set { mSolidColor = value; UpdateColor(); Update(); } }
 
 		public virtual PrimitiveTopology Topology { get { return Vertices.Topology; } set { Vertices.Topology = value; AutoGenerateIndices(); Update(); } }
 
@@ -50,18 +51,29 @@ namespace Direct3DLib
 			get { return preWorldTransformBox; }
 		}
 
-		public virtual void SetSolidColor(Color color)
+		public event ShapeChangeEventHandler ShapeUpdated;
+		private void FireShapeChangeEvent(ShapeChangeEventArgs e)
 		{
-			if (color != Color.Empty)
-				color = Color.FromArgb(Transparency, color.R, color.G, color.B);
+			if (ShapeUpdated != null) ShapeUpdated(this, e);
+		}
 
+		public virtual void UpdateColor()
+		{
 			for (int i = 0; i < Vertices.Count; i++)
 			{
 				Vertex v = Vertices[i];
-				if (color == Color.Empty)
-					v.Color = Vertex.FloatToColor(v.Position);
-				else
+				if (mSolidColor == Color.Empty)
+				{
+					Color color = v.Color;
+					color = Color.FromArgb(Transparency, color.R, color.G, color.B);
 					v.Color = color;
+				}
+				else
+				{
+					Color color = mSolidColor;
+					color = Color.FromArgb(Transparency, color.R, color.G, color.B);
+					v.Color = color;
+				}
 				Vertices[i] = v;
 			}
 
@@ -93,71 +105,76 @@ namespace Direct3DLib
 
 		public virtual void Update(Device device, ShaderSignature effectSignature)
 		{
-			if (device == null || device.Disposed) return;
-
-			mDevice = device;
-			mSignature = effectSignature;
-			// If there is less than 1 vertex then we can't make a point, let alone a shape!
-			if (Vertices == null || Vertices.Count < 1) return;
-
-			CalculatePreTransformBoundingBox();
-
-			// Add Vertices to a datastream.
-			DataStream dataStream = new DataStream(Vertices.NumBytes, true, true);
-			dataStream.WriteRange(this.Vertices.ToArray());
-			dataStream.Position = 0;
-
-
-			// Create a new data buffer description and buffer
-			BufferDescription desc = new BufferDescription()
+			if (device != null && !device.Disposed)
 			{
-				BindFlags = BindFlags.VertexBuffer,
-				CpuAccessFlags = CpuAccessFlags.None,
-				OptionFlags = ResourceOptionFlags.None,
-				SizeInBytes = Vertices.NumBytes,
-				Usage = ResourceUsage.Default
-			};
-			vertexBuffer = new SlimDX.Direct3D10.Buffer(device, dataStream, desc);
-			dataStream.Close();
 
-
-			if (Vertices != null && Vertices.Count > 0)
-			{
-				// Set the input layout.
-				InputElement[] inputElements = Vertices[0].GetInputElements();
-				vertexLayout = new InputLayout(device, effectSignature, inputElements);
-
-				// Draw Indexed
-				if (Vertices.Indices != null && Vertices.Indices.Count > 0)
+				mDevice = device;
+				mSignature = effectSignature;
+				// If there is less than 1 vertex then we can't make a point, let alone a shape!
+				if (Vertices != null && Vertices.Count > 0)
 				{
-					DataStream iStream = new DataStream(sizeof(int) * Vertices.Indices.Count, true, true);
-					iStream.WriteRange(Vertices.Indices.ToArray());
-					iStream.Position = 0;
-					desc = new BufferDescription()
+
+					CalculatePreTransformBoundingBox();
+
+					// Add Vertices to a datastream.
+					DataStream dataStream = new DataStream(Vertices.NumBytes, true, true);
+					dataStream.WriteRange(this.Vertices.ToArray());
+					dataStream.Position = 0;
+
+
+					// Create a new data buffer description and buffer
+					BufferDescription desc = new BufferDescription()
 					{
-						Usage = ResourceUsage.Default,
-						SizeInBytes = sizeof(int) * Vertices.Indices.Count,
-						BindFlags = BindFlags.IndexBuffer,
+						BindFlags = BindFlags.VertexBuffer,
 						CpuAccessFlags = CpuAccessFlags.None,
-						OptionFlags = ResourceOptionFlags.None
+						OptionFlags = ResourceOptionFlags.None,
+						SizeInBytes = Vertices.NumBytes,
+						Usage = ResourceUsage.Default
 					};
-					indexBuffer = new Buffer(device, iStream, desc);
-					iStream.Close();
+					vertexBuffer = new SlimDX.Direct3D10.Buffer(device, dataStream, desc);
+					dataStream.Close();
+
+
+					if (Vertices != null && Vertices.Count > 0)
+					{
+						// Set the input layout.
+						InputElement[] inputElements = Vertices[0].GetInputElements();
+						vertexLayout = new InputLayout(device, effectSignature, inputElements);
+
+						// Draw Indexed
+						if (Vertices.Indices != null && Vertices.Indices.Count > 0)
+						{
+							DataStream iStream = new DataStream(sizeof(int) * Vertices.Indices.Count, true, true);
+							iStream.WriteRange(Vertices.Indices.ToArray());
+							iStream.Position = 0;
+							desc = new BufferDescription()
+							{
+								Usage = ResourceUsage.Default,
+								SizeInBytes = sizeof(int) * Vertices.Indices.Count,
+								BindFlags = BindFlags.IndexBuffer,
+								CpuAccessFlags = CpuAccessFlags.None,
+								OptionFlags = ResourceOptionFlags.None
+							};
+							indexBuffer = new Buffer(device, iStream, desc);
+							iStream.Close();
 
 
 
-				}
-				else
-				{
-					if (indexBuffer != null) indexBuffer.Dispose();
-					indexBuffer = null;
+						}
+						else
+						{
+							if (indexBuffer != null) indexBuffer.Dispose();
+							indexBuffer = null;
+						}
+					}
+					else
+					{
+						if (vertexBuffer != null) vertexBuffer.Dispose();
+						vertexBuffer = null;
+					}
 				}
 			}
-			else
-			{
-				if (vertexBuffer != null) vertexBuffer.Dispose();
-				vertexBuffer = null;
-			}
+			FireShapeChangeEvent(new ShapeChangeEventArgs(this, ShapeChangeEventArgs.ChangeAction.Update));
 		}
 
 
@@ -306,6 +323,11 @@ namespace Direct3DLib
 			this.Update();
 		}
 
+		protected override void updateWorld()
+		{
+			base.updateWorld();
+			FireShapeChangeEvent(new ShapeChangeEventArgs(this, ShapeChangeEventArgs.ChangeAction.Update));
+		}
 
 		#region Shape Design Support
 		private static bool initialising = true;
@@ -323,4 +345,18 @@ namespace Direct3DLib
 		#endregion
 	}
 
+	public delegate void ShapeChangeEventHandler(object sender, ShapeChangeEventArgs e);
+	public class ShapeChangeEventArgs : EventArgs
+	{
+		public enum ChangeAction { None, Add, Remove, Swap, Update };
+		private ChangeAction action = ChangeAction.None;
+		public ChangeAction Action { get { return action; } }
+		private Shape changedShape;
+		public Shape ChangedShape { get { return changedShape; } }
+		public ShapeChangeEventArgs(Shape changedShape, ChangeAction action)
+		{
+			this.changedShape = changedShape;
+			this.action = action;
+		}
+	}
 }

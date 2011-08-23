@@ -294,7 +294,9 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="shapes\ShapeImageFactory.cs" />
-    <Compile Include="shapes\ShapeCollection.cs" />
+    <Compile Include="shapes\ShapeCollection.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="shapes\ShapeSTLFactory.cs" />
     <Compile Include="shapes\Sphere.cs">
       <SubType>Component</SubType>

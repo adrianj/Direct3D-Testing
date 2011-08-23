@@ -33,14 +33,15 @@ namespace Direct3DLib
 
 
 		private double unitsPerLatitude = 100000;	// Could be 111 km for example.
-		public double UnitsPerDegreeLatitude { get { return unitsPerLatitude; } set { unitsPerLatitude = value; } }
+		public double UnitsPerDegreeLatitude { get { return 1/unitsPerLatitude; } set { unitsPerLatitude = 1/value; } }
 
 		private double degreesLatitudePerPoint = 1/(double)(ROWS_PER_FILE-1);
 		
 		private float verticalScale = 1.0f;			// 1 m
 		private float horizontalScale = 1.0f;
 
-		
+		public double UnitsPerMetreElevation { get { return verticalScale; } set { verticalScale = (float)value; } }
+
 		private BinaryReaderBiEndian reader;
 		public Stream Stream { set { reader = new BinaryReaderBiEndian(value, true); } }
 		private Shape shape;
@@ -161,7 +162,7 @@ namespace Direct3DLib
 			}
 			float latScale = (float)(UnitsPerDegreeLatitude * LatitudeDelta);
 			float longScale = (float)(UnitsPerDegreeLatitude * LongitudeDelta);
-			shape = ShapeArrayFactory.CreateFromArray(data, new PointF(latScale, longScale));
+			shape = ShapeArrayFactory.CreateFromArray(data, new PointF(latScale, longScale),verticalScale);
 			return shape;
 		}
 

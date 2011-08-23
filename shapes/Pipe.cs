@@ -29,7 +29,7 @@ namespace Direct3DLib
 
 		public Pipe() : base() { Corners = 6; }
 		public Pipe(Color col) : this(6, col) { }
-		public Pipe(int corners, Color col) : this(corners) { SetSolidColor(col); }
+		public Pipe(int corners, Color col) : this(corners) { UpdateColor(); }
 		public Pipe(int corners)
 			: base()
 		{
@@ -98,7 +98,7 @@ namespace Direct3DLib
 	{
 		public ClosedPipe() : base() { }
 		public ClosedPipe(Color col) : this(6, col) { }
-		public ClosedPipe(int corners, Color col) : this(corners) { SetSolidColor(col); }
+		public ClosedPipe(int corners, Color col) : this(corners) { UpdateColor(); }
 		public ClosedPipe(int corners)
 			: base(corners)
 		{

@@ -18,7 +18,7 @@ namespace Direct3DLib
 		private float width = 1;
 		public float Width { get { return width; } set { width = value; updateWorld(); } }
 
-		protected int mCorners = 6;
+		protected int mCorners = 12;
 		public int Corners { get{return mCorners;} 
 			set
 			{
@@ -27,7 +27,9 @@ namespace Direct3DLib
 				Regenerate();
 			}
 		}
-		public Cone() : base() { }
+		public Cone() : base() {
+			Corners = 12;
+		}
 
 
 		private void Regenerate()
@@ -53,6 +55,7 @@ namespace Direct3DLib
 				Vertices.Add(new Vertex(c0, norm));
 				 */
 			}
+			UpdateColor();
 			base.Update();
 		}
 

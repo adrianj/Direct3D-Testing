@@ -15,7 +15,8 @@ namespace Direct3DLib
 		public static int MaxGoogleZoom = 14;
 		private int MaxDeltaFactor = 15;
 		public static int MinLogDelta = -4;
-		private double unitsPerDegreeLatitude = 100000;
+		private double unitsPerDegreeLatitude = 100;
+		private double unitsPerMetreElevation = 0.001;
 		private CombinedMapDataFactory mapFactory = CombinedMapDataFactory.Instance;
 		public CombinedMapData[,] currentTiles = new CombinedMapData[TILE_COUNT, TILE_COUNT];
 		public bool UseTerrainData
@@ -58,6 +59,7 @@ namespace Direct3DLib
 		public EarthTiles()
 		{
 			mapFactory.UnitsPerDegreeLatitude = unitsPerDegreeLatitude;
+			mapFactory.UnitsPerMetreElevation = unitsPerMetreElevation;
 			mapFactory.MapUpdateCompleted += new ShapeChangeEventHandler(mapFactory_MapUpdateCompleted);
 		}
 
@@ -159,13 +161,14 @@ namespace Direct3DLib
 		public void InitializeAtCameraLocation(Float3 cameraLocation)
 		{
 			LatLong latLong = ConvertCameraLocationToLatLong(cameraLocation);
-			InitializeAtGivenLatLongElevation(latLong,cameraLocation.Y);
+			double elevation = ConvertCameraLocationToElevation(cameraLocation);
+			InitializeAtGivenLatLongElevation(latLong, elevation);
 		}
 
 		public void CameraLocationChanged(Float3 newCameraLocation)
 		{
 			currentLocation = ConvertCameraLocationToLatLong(newCameraLocation);
-			currentElevation = newCameraLocation.Y;
+			currentElevation = ConvertCameraLocationToElevation(newCameraLocation); ;
 			MapPosition direction = CalculateTravelDirection(currentLocation, previousLocation,currentElevation,previousElevation);
 			currentZoomLevel = EarthProjection.GetZoomFromElevation(currentElevation);
 			if (direction != MapPosition.None && !FixTerrain)
@@ -352,30 +355,20 @@ namespace Direct3DLib
 			return new LatLong(cameraLocation.Z / units, cameraLocation.X / units);
 		}
 
+		public double ConvertCameraLocationToElevation(Float3 cameraLocation)
+		{
+			return cameraLocation.Y / unitsPerMetreElevation;
+		}
 		
 		public Float3 ConvertLatLongElevationToCameraLocation(LatLong latLong, double elevation)
 		{
 			float units = (float)mapFactory.UnitsPerDegreeLatitude;
-			return new Float3((float)latLong.Longitude * units, (float)elevation, (float)latLong.Latitude * units);
+			return new Float3((float)latLong.Longitude * units, (float)(elevation * unitsPerMetreElevation), (float)latLong.Latitude * units);
 		}
 		
 
 
 	}
 
-	public delegate void ShapeChangeEventHandler(object sender, ShapeChangeEventArgs e);
-	public class ShapeChangeEventArgs : EventArgs
-	{
-		public enum ChangeAction { None, Add, Remove, Swap };
-		private ChangeAction action = ChangeAction.None;
-		public ChangeAction Action { get { return action; } }
-		private Shape changedShape;
-		public Shape ChangedShape { get { return changedShape; } }
-		public ShapeChangeEventArgs(Shape changedShape, ChangeAction action)
-		{
-			this.changedShape = changedShape;
-			this.action = action;
-		}
-	}
 
 }

@@ -79,6 +79,22 @@ namespace Direct3DLib
 			return "" + mPosition;
 		}
 
+		public static Vertex TransformCoordinate(Vertex v, Matrix m)
+		{
+			Vector3 pos = Vector3.TransformCoordinate(v.Position, m);
+			Vector3 norm = Vector3.TransformCoordinate(v.Normal, m);
+			return new Vertex(pos, v.Color, norm);
+		}
+
+		public static Vertex[] TransformTriangle(Vertex[] v, Matrix m)
+		{
+			Vector3 v0 = Vector3.TransformCoordinate(v[0].Position, m);
+			Vector3 v1 = Vector3.TransformCoordinate(v[1].Position, m);
+			Vector3 v2 = Vector3.TransformCoordinate(v[2].Position, m);
+			Vector3 norm = new Plane(v0, v1, v2).Normal;
+			return new Vertex[] { new Vertex(v0, v[0].Color, norm), new Vertex(v1, v[1].Color, norm), new Vertex(v2, v[2].Color, norm) };
+		}
+
     }
 
 

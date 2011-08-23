@@ -119,7 +119,7 @@ namespace Direct3DLib
 			}
 			Vertices = new VertexList(verts);
 			Topology = top;
-			SetSolidColor(SolidColor);
+			UpdateColor();
 		}
 
 

@@ -18,6 +18,7 @@ namespace Direct3DLib
 			textureFactory.AutomaticallyDownloadMaps = value; } }
 
 		public double UnitsPerDegreeLatitude { get { return shapeFactory.UnitsPerDegreeLatitude; } set { shapeFactory.UnitsPerDegreeLatitude = value; } }
+		public double UnitsPerMetreElevation { get { return shapeFactory.UnitsPerMetreElevation; } set { shapeFactory.UnitsPerMetreElevation = value; } }
 
 		private Dictionary<MapDescriptor, Shape> TerrainToProcess = new Dictionary<MapDescriptor, Shape>();
 		private Dictionary<MapDescriptor, CombinedMapData> TexturesToProcess = new Dictionary<MapDescriptor, CombinedMapData>();

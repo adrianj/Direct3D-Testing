@@ -24,7 +24,6 @@ namespace Direct3DLib_Test
             comboBox1.SelectedItem = earth3DControl.LeftMouseFunction;
 			comboBox2.SelectedItem = earth3DControl.RightMouseFunction;
 			comboBox3.SelectedItem = earth3DControl.BothMouseFunction;
-                InitTest();
           
         }
 
@@ -40,7 +39,7 @@ namespace Direct3DLib_Test
 					textBox1.Text = "" + s;
 				}
             };
-			propertyGrid.SelectedObject = hercules;
+			propertyGrid.SelectedObject = earth3DControl;
 			earth3DControl.UpdateShapes();
         }
 
@@ -67,12 +66,6 @@ namespace Direct3DLib_Test
 			//loc.X += 10;
 			if (loc.X > 1.75e7)
 				loc.X = 1.74809e7f;
-			cone1.BroadLocation = loc;
-			textBox1.Text = earth3DControl.debugString;
-			textBox2.Text = "Refresh Rate: " + String.Format("{0:#00}", earth3DControl.RefreshRate)
-				+ "\t"+cone1.BroadLocation
-				+"\t"+cone1.Location
-				+"\t"+cone1.Rotation;
         }
 
         public override void Render()
@@ -97,9 +90,13 @@ namespace Direct3DLib_Test
 
 		private void earth3DControl_Load(object sender, EventArgs e)
 		{
-			loc = cone1.NarrowLocation;
 			loc.Y = 0;
 
+		}
+
+		private void TestForm_Load(object sender, EventArgs e)
+		{
+			InitTest();
 		}
 
 

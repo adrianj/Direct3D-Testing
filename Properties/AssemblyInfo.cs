@@ -7,7 +7,7 @@ using System.Resources;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Direct3DControl")]
-[assembly: AssemblyDescription("A sample that shows a minimal Direct3D10 program in SlimDX.")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("NZDF Defence Technology Agency")]
 [assembly: AssemblyProduct("Direct3DControl")]

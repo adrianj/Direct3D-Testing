@@ -28,10 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-			Direct3DLib.Float3 float31 = new Direct3DLib.Float3();
-			Direct3DLib.Float3 float32 = new Direct3DLib.Float3();
-			Direct3DLib.Float3 float33 = new Direct3DLib.Float3();
-			Direct3DLib.Float3 float34 = new Direct3DLib.Float3();
+			Direct3DLib.Float3 float37 = new Direct3DLib.Float3();
+			Direct3DLib.Float3 float38 = new Direct3DLib.Float3();
 			this.textBox1 = new System.Windows.Forms.TextBox();
 			this.textBox2 = new System.Windows.Forms.TextBox();
 			this.propertyGrid = new System.Windows.Forms.PropertyGrid();
@@ -45,7 +43,6 @@
 			this.button2 = new System.Windows.Forms.Button();
 			this.earth3DControl = new Direct3DLib.Earth3DControl();
 			this.hercules = new Direct3DLib.ComplexShape();
-			this.cone1 = new Direct3DLib.Cone();
 			this.SuspendLayout();
 			// 
 			// textBox1
@@ -167,25 +164,25 @@
 			this.earth3DControl.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
 			this.earth3DControl.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 			this.earth3DControl.BothMouseFunction = Direct3DLib.Direct3DControl.MouseOption.CameraTranslateXZ;
-			float31.X = 1.74814E+07F;
-			float31.Y = 5000F;
-			float31.Z = -3682200F;
-			this.earth3DControl.CameraLocation = float31;
+			float37.X = 17481F;
+			float37.Y = 2F;
+			float37.Z = -3682F;
+			this.earth3DControl.CameraLocation = float37;
 			this.earth3DControl.CameraPan = 1.653334F;
 			this.earth3DControl.CameraTilt = -1.610595F;
-			this.earth3DControl.CurrentElevation = 5000D;
+			this.earth3DControl.CurrentElevation = 2000D;
 			this.earth3DControl.FixTerrain = false;
 			this.earth3DControl.FixZoom = false;
-			this.earth3DControl.KeyboardMovementSpeed = 5000F;
+			this.earth3DControl.KeyboardMovementSpeed = 50F;
 			this.earth3DControl.LeftMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Select;
 			this.earth3DControl.LightAmbientIntensity = 0.7F;
-			float32.X = 1F;
-			float32.Y = 1F;
-			float32.Z = 1F;
-			this.earth3DControl.LightDirection = float32;
+			float38.X = 1F;
+			float38.Y = 1F;
+			float38.Z = 1F;
+			this.earth3DControl.LightDirection = float38;
 			this.earth3DControl.LightDirectionalIntensity = 0.3F;
 			this.earth3DControl.Location = new System.Drawing.Point(12, 214);
-			this.earth3DControl.MouseMovementSpeed = 5000F;
+			this.earth3DControl.MouseMovementSpeed = 50F;
 			this.earth3DControl.Name = "earth3DControl";
 			this.earth3DControl.RightMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Rotate;
 			this.earth3DControl.SelectedObject = null;
@@ -208,47 +205,22 @@
         null,
         null,
         null};
-			this.earth3DControl.ZClipFar = 1E+07F;
-			this.earth3DControl.ZClipNear = 5F;
+			this.earth3DControl.ZClipFar = 100000F;
+			this.earth3DControl.ZClipNear = 0.05F;
 			this.earth3DControl.Zoom = 5F;
 			this.earth3DControl.Load += new System.EventHandler(this.earth3DControl_Load);
 			// 
 			// hercules
 			// 
 			this.hercules.CanPick = true;
-			this.hercules.Location = new SlimDX.Vector3(1.748E+07F, 8200F, -3680000F);
+			this.hercules.Location = new SlimDX.Vector3(17480F, 8F, -3680F);
 			this.hercules.Rotation = new SlimDX.Vector3(4.783185F, 0F, 0F);
-			this.hercules.Scale = new SlimDX.Vector3(100F, 100F, 100F);
+			this.hercules.Scale = new SlimDX.Vector3(0.1F, 0.1F, 0.1F);
 			this.hercules.SolidColor = System.Drawing.Color.Silver;
 			this.hercules.SourceFile = "Resources.hercules.stl";
 			this.hercules.TextureIndex = -1;
 			this.hercules.Topology = SlimDX.Direct3D10.PrimitiveTopology.TriangleList;
 			this.hercules.Transparency = ((byte)(255));
-			// 
-			// cone1
-			// 
-			float33.X = 1.748E+07F;
-			float33.Y = 0F;
-			float33.Z = -3688000F;
-			this.cone1.BroadLocation = float33;
-			this.cone1.CanPick = true;
-			this.cone1.Corners = 6;
-			this.cone1.diff = new SlimDX.Vector3(0F, -8000F, -8000F);
-			this.cone1.distance = 11313.708984375D;
-			this.cone1.Location = new SlimDX.Vector3(1.748E+07F, 8000F, -3680000F);
-			float34.X = 1.748E+07F;
-			float34.Y = 8000F;
-			float34.Z = -3680000F;
-			this.cone1.NarrowLocation = float34;
-			this.cone1.Rotation = new SlimDX.Vector3(0F, 0F, 0F);
-			this.cone1.rotX = 2.356194F;
-			this.cone1.rotY = 3.141593F;
-			this.cone1.Scale = new SlimDX.Vector3(500F, 11313.71F, 500F);
-			this.cone1.SolidColor = System.Drawing.Color.Lime;
-			this.cone1.TextureIndex = -1;
-			this.cone1.Topology = SlimDX.Direct3D10.PrimitiveTopology.TriangleList;
-			this.cone1.Transparency = ((byte)(255));
-			this.cone1.Width = 500F;
 			// 
 			// TestForm
 			// 
@@ -270,6 +242,7 @@
 			this.Name = "TestForm";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
 			this.Text = "TestForm";
+			this.Load += new System.EventHandler(this.TestForm_Load);
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -290,6 +263,5 @@
 		private System.Windows.Forms.Button button2;
 		private Direct3DLib.Earth3DControl earth3DControl;
 		private Direct3DLib.ComplexShape hercules;
-		private Direct3DLib.Cone cone1;
     }
 }

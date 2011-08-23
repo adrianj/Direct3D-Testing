@@ -16,10 +16,16 @@ namespace Direct3DLib
 		public PointF ShapeSize { get { return new PointF(shapeWidth, shapeHeight); } set { shapeHeight = value.Y; shapeWidth = value.X; } }
 		private Shape shape;
 
+		private double verticalScale = 1.0;
+		public double VerticalScale { get { return verticalScale; } set { verticalScale = value; } }
+
 		public static Shape CreateFromArray(Array data) { return CreateFromArray(data, new PointF(1.0f, 1.0f)); }
-		public static Shape CreateFromArray(Array data, PointF outputShapeSize)
+		public static Shape CreateFromArray(Array data, PointF outputShapeSize) { return CreateFromArray(data, outputShapeSize, 1.0); }
+
+		public static Shape CreateFromArray(Array data, PointF outputShapeSize, double verticalScale)
 		{
 			ShapeArrayFactory factory = new ShapeArrayFactory();
+			factory.VerticalScale = verticalScale;
 			factory.ShapeSize = outputShapeSize;
 			return factory.ConvertArrayToShape(data);
 		}
@@ -62,7 +68,7 @@ namespace Direct3DLib
 			{
 				object o = data.GetValue(x, row);
 				double elevation = Convert.ToDouble(o);
-				ret[x] = elevation;
+				ret[x] = elevation * verticalScale;
 			}
 			return ret;
 		}

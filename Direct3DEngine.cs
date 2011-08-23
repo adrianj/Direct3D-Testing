@@ -151,7 +151,10 @@ namespace Direct3DLib
                     ret = s;
                 }
             }
-
+			//if (ret != null && ret is ShapeCollection)
+			//{
+			//	ret = (ret as ShapeCollection).SelectedShape;
+			//}
             return ret;
         }
 
@@ -291,6 +294,7 @@ namespace Direct3DLib
 				{
 					// Clear the view, resetting to the background colour.
 					Color4 back = new Color4(mParent.BackColor);
+					back.Alpha = 0;
 					device.ClearRenderTargetView(renderView, back);
 					device.ClearDepthStencilView(renderDepth, DepthStencilClearFlags.Depth, 1, 0);
 					shaderHelper.ConstantBufferSet.ViewProj = Camera.World;

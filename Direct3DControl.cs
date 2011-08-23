@@ -64,11 +64,11 @@ namespace Direct3DLib
 			{
 				if (!shape.IsDisposed && !engine.ShapeList.Contains(shape))
 				{
-					engine.ShapeList.Add(shape);
-					engine.UpdateShape(shape);
+					AddShape(shape);
 				}
 			}
 		}
+
 
 		#region Public Properties
 		[CategoryAttribute("Camera, Lighting and Textures")]
@@ -122,6 +122,23 @@ namespace Direct3DLib
 		#endregion
 
 
+		public void AddShape(Shape s)
+		{
+			engine.ShapeList.Add(s);
+			engine.UpdateShape(s);
+		}
+
+		public void InsertShape(int index,Shape s)
+		{
+			engine.ShapeList.Insert(index,s);
+			engine.UpdateShape(s);
+		}
+
+		public bool RemoveShape(Shape s)
+		{
+			bool ret = engine.ShapeList.Remove(s);
+			return ret;
+		}
 		/// <summary>
 		/// Forces the control to render the scene. Otherwise, the scene is only rendered when the top level form
 		/// is the currently active form.
@@ -365,9 +382,9 @@ namespace Direct3DLib
 				if (SelectedObject != null && SelectedObject is Shape)
 				{
 					Shape shape = SelectedObject as Shape;
-					if (engine.ShapeList.Contains(shape))
+					if (RemoveShape(shape))
 					{
-						engine.ShapeList.Remove(shape);
+						shape.Dispose();
 						SelectedObject = null;
 					}
 				}
