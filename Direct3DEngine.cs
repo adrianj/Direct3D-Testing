@@ -79,10 +79,10 @@ namespace Direct3DLib
 		private List<Shape> shapeList = new List<Shape>();
 		public List<Shape> ShapeList { get { return shapeList; } set { shapeList = value; } }
 
-		private long prevTick1 = 100;
-		private long prevTick2 = 99;
-		private double refreshRate = 100;
-		public double RefreshRate { get { return refreshRate; } }
+		//private long prevTick1 = 100;
+		//private long prevTick2 = 99;
+		//private double refreshRate = 100;
+		//public double RefreshRate { get { return refreshRate; } }
 
 		public ShaderHelper Shader { get { return shaderHelper; } }
 
@@ -115,6 +115,8 @@ namespace Direct3DLib
 		private ShaderHelper shaderHelper = new ShaderHelper();
 		private ShaderSignature shaderSignature;
 		private Effect shaderEffect;
+		private RasterizerState rasterCW;
+		private RasterizerState rasterCCW;
 
 		#endregion
 
@@ -151,10 +153,6 @@ namespace Direct3DLib
                     ret = s;
                 }
             }
-			//if (ret != null && ret is ShapeCollection)
-			//{
-			//	ret = (ret as ShapeCollection).SelectedShape;
-			//}
             return ret;
         }
 
@@ -216,6 +214,7 @@ namespace Direct3DLib
 				// Scale the buffers appropriately to the size of the parent control.
 				isInitialized = true;
 				ResizeBuffers();
+				EnableAlphaBlending();
 
 				UpdateTextures();
 
@@ -285,9 +284,27 @@ namespace Direct3DLib
             }
         }
 
+		private void EnableAlphaBlending()
+		{
+			BlendStateDescription blendState = new BlendStateDescription()
+			{
+				BlendOperation = BlendOperation.Add,
+				SourceBlend = BlendOption.SourceAlpha,
+				DestinationBlend = BlendOption.InverseSourceAlpha,
+				IsAlphaToCoverageEnabled = false,
+				AlphaBlendOperation = BlendOperation.Add,
+				SourceAlphaBlend = BlendOption.Zero,
+				DestinationAlphaBlend = BlendOption.Zero,
+				
+			};
+			blendState.SetBlendEnable(0, true);
+			blendState.SetWriteMask(0, ColorWriteMaskFlags.All);
+			device.OutputMerger.BlendState = BlendState.FromDescription(device, blendState);
+		}
+
         public void Render()
         {
-			UpdateRefreshRate();
+			//UpdateRefreshRate();
             if (IsInitialized)
             {
 				try
@@ -306,7 +323,6 @@ namespace Direct3DLib
             }
         }
 
-		int count = 0;
 		private void RenderAllShapes()
 		{
 			List<Shape> disposedShapes = new List<Shape>();
@@ -330,9 +346,6 @@ namespace Direct3DLib
 			{
 				shapeList.Remove(shape);
 			}
-			if (count != shapeList.Count)
-				Console.WriteLine("Rendering " + shapeList.Count + "shapes");
-			count = shapeList.Count;
 		}
 
 		private bool BoundingBoxOnScreenCoarse(BoundingBox bb)
@@ -356,19 +369,7 @@ namespace Direct3DLib
 			BoundingBox bbCam = new BoundingBox(new Vector3(-1.0f, -1.0f, 0), new Vector3(1.0f, 1.0f, 1.0f));
 			return BoundingBox.Intersects(newBB, bbCam);
 		}
-		private void UpdateRefreshRate()
-		{
-			prevTick2 = prevTick1;
-			prevTick1 = DateTime.Now.Ticks;
-			double newRef = 0;
-			if (prevTick1 == prevTick2) newRef = 100;
-			else
-			{
-				long diff = prevTick1 - prevTick2;
-				newRef = Math.Round(1000000.0 / (double)(diff), 2);
-			}
-			refreshRate = (refreshRate * 0.9) + (0.1 * newRef);
-		}
+		
 
 		public static BoundingBox BoundingBoxMultiplyMatrix(BoundingBox bb, Matrix m)
 		{
@@ -378,7 +379,7 @@ namespace Direct3DLib
 				corners[i] = Vector3.TransformCoordinate(corners[i], m);
 			}
 
-			return BoundingBox.FromPoints(corners);// BoundingBoxFromVertices(corners);
+			return BoundingBox.FromPoints(corners);
 		}
     }
 	 

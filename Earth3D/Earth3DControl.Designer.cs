@@ -35,12 +35,12 @@
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.SystemColors.ActiveBorder;
-			this.KeyboardMovementSpeed = 5000F;
-			this.MouseMovementSpeed = 5000F;
+			this.KeyboardMovementSpeed = 5F;
+			this.MouseMovementSpeed = 5F;
 			this.Name = "Earth3DControl";
 			this.Size = new System.Drawing.Size(667, 432);
-			this.ZClipFar = 1000000F;
-			this.ZClipNear = 5F;
+			this.ZClipFar = 10000F;
+			this.ZClipNear = 0.05F;
 			this.Load += new System.EventHandler(this.Earth3DControl_Load);
 			this.ResumeLayout(false);
 

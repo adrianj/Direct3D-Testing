@@ -41,11 +41,46 @@ namespace Direct3DLib
 		private MapTypes mapType = MapTypes.hybrid;
 		public MapTypes MapType { get { return mapType; } set { mapType = value; } }
 
-		private List<MapDescriptor> downloadInProgress = new List<MapDescriptor>();
+		private Queue<MapDescriptor> downloadInProgress = new Queue<MapDescriptor>();
+
+		private BackgroundWorker worker = new BackgroundWorker() { WorkerSupportsCancellation = true };
 
 
 		// An example URL
 		private const string example = "http://maps.googleapis.com/maps/api/staticmap?center=-36.825000,174.790000&size=512x512&zoom=14&maptype=hybrid&sensor=false";
+
+		public MapWebAccessor()
+		{
+			worker.DoWork += new DoWorkEventHandler(worker_DoWork);
+			worker.RunWorkerCompleted += (o, e) => { worker.Dispose(); };
+			worker.RunWorkerAsync();
+		}
+
+		public void EmptyQueue()
+		{
+			downloadInProgress.Clear();
+		}
+
+		private void worker_DoWork(object sender, DoWorkEventArgs e)
+		{
+			while (!worker.CancellationPending)
+			{
+				if (downloadInProgress.Count > 0)
+				{
+					try
+					{
+						MapDescriptor desc = downloadInProgress.Peek();
+						Image image = GetImageFromWeb(desc);
+						if (image != null) image.Dispose();
+						downloadInProgress.Dequeue();
+					}
+					catch (InvalidOperationException)
+					{
+					}
+				}
+				System.Threading.Thread.Sleep(10);
+			}
+		}
 
 		public Image GetImage(MapDescriptor descriptor)
 		{
@@ -65,18 +100,8 @@ namespace Direct3DLib
 			{
 				return;
 			}
-			downloadInProgress.Add(descriptor);
+			downloadInProgress.Enqueue(descriptor);
 			accessCount++;
-			BackgroundWorker worker = new BackgroundWorker();
-			worker.DoWork += (o, e) =>
-			{
-				MapDescriptor desc = e.Argument as MapDescriptor;
-				Image image = GetImageFromWeb(desc);
-				if(image != null) image.Dispose();
-				downloadInProgress.Remove(desc);
-			};
-			worker.RunWorkerCompleted += (o, e) => { worker.Dispose(); worker = null; };
-			worker.RunWorkerAsync(descriptor);
 		}
 
 
@@ -87,19 +112,20 @@ namespace Direct3DLib
 				Image image = null;
 				string url = ConstructURL(descriptor);
 				string filename = descriptor.CalculateFilename();
-				Console.WriteLine(""+DateTime.Now+": Fetching map from web:\n" + url);
+				Console.WriteLine("MapWebAccessor: " + url);
 				using (Stream stream = OpenWebStream(url))
 				{
 					image = Image.FromStream(stream);
 				}
 				image.Save(filename, System.Drawing.Imaging.ImageFormat.Png);
 				descriptor.MapState = MapDescriptor.MapImageState.Correct;
-				Console.WriteLine("Image saved to "+filename);
+				Console.WriteLine("MapWebAccessor: Image saved to "+filename);
 				return image;
 			}
 			catch (WebException webEx) { HandleWebException(webEx); }
 			catch (Exception ex) { HandleOtherException(ex); }
 			descriptor.MapState = MapDescriptor.MapImageState.Empty;
+			Console.WriteLine("MapWebAccessor: Error: " + mostRecentError);
 			return null;
 		}
 
@@ -160,6 +186,11 @@ namespace Direct3DLib
 		public int ZoomLevel { get; set; }
 		private double delta = 1;
 		public double Delta { get { return delta; } set { delta = value; } }
+
+		public LatLong LatLong { get { return new LatLong(lat, lng); } set { lat = value.Latitude; lng = value.Longitude; } }
+
+		public object Tag { get; set; }
+
 		public MapDescriptor(double lat, double lng, int zoom, double delta)
 		{
 			Latitude = lat;
@@ -196,7 +227,7 @@ namespace Direct3DLib
 
 		public override int GetHashCode()
 		{
-			return lat.GetHashCode() ^ lng.GetHashCode() ^ ZoomLevel.GetHashCode();
+			return lat.GetHashCode() ^ lng.GetHashCode() ^ ZoomLevel.GetHashCode() ^ Delta.GetHashCode();
 		}
 
 		public string CalculateFilename()

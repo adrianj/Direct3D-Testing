@@ -17,6 +17,17 @@ namespace Direct3DLib
 
 		}
 
+		public List<Shape> ShapeList
+		{
+			get
+			{
+				List<Shape> ret = new List<Shape>();
+				foreach (IndexedShape ishape in allShapes)
+					ret.Add(ishape.shape);
+				return ret;
+			}
+		}
+
 		public void AddShape(Shape s)
 		{
 			IndexedShape ishape = new IndexedShape(s, this.Vertices.Count);
@@ -67,6 +78,16 @@ namespace Direct3DLib
 			}
 		}
 
+		public void ClearAndDispose()
+		{
+			foreach (IndexedShape s in allShapes)
+			{
+				Shape shape = s.shape;
+				shape.Dispose();
+			}
+			allShapes.Clear();
+		}
+
 		public Shape SelectedShape
 		{
 			get
@@ -90,6 +111,12 @@ namespace Direct3DLib
 			return ret;
 		}
 
+		protected override void Dispose(bool disposing)
+		{
+			foreach (IndexedShape ishape in allShapes)
+				ishape.shape.Dispose();
+			base.Dispose(disposing);
+		}
 	}
 
 	internal class IndexedShape

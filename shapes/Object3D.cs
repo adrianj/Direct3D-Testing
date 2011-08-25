@@ -19,7 +19,17 @@ namespace Direct3DLib
 		[Browsable(false)]
         public virtual Matrix World { get { return mWorld; }  }
 		[Browsable(false)]
-		public virtual Matrix RotationMatrix { get { return Matrix.RotationYawPitchRoll(mRotation.Y, mRotation.X, mRotation.Z); } }
+		public virtual Matrix RotationMatrix
+		{
+			get
+			{
+				Matrix m = Matrix.RotationX(mRotation.Y);
+				m = m * Matrix.RotationY(mRotation.X);
+				m = m * Matrix.RotationZ(mRotation.Z);
+				return m;
+				//return Matrix.RotationYawPitchRoll(mRotation.X, mRotation.Y, mRotation.Z);
+			}
+		}
 
 
         protected Vector3 mScale = new Vector3(1, 1, 1);
@@ -51,10 +61,11 @@ namespace Direct3DLib
         public virtual Vector3 Rotation
         {
             get { return mRotation; }
-            set {
-                mRotation = new Vector3(UnwrapPhase(value.X), UnwrapPhase(value.Y), UnwrapPhase(value.Z));
-                updateWorld();
-            }
+			set
+			{
+				mRotation = new Vector3(UnwrapPhase(value.X), UnwrapPhase(value.Y), UnwrapPhase(value.Z));
+				updateWorld();
+			}
         }
 
 		public Object3D() : base() { }

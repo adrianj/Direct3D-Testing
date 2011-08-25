@@ -299,8 +299,8 @@ namespace Direct3DLib
 
 		public Shape GenerateNullShape()
 		{
-			float latExtent = (float)(unitsPerLatitude * latitudeDelta);
-			float longExtent = (float)(unitsPerLatitude * longitudeDelta);
+			float latExtent = (float)(UnitsPerDegreeLatitude * latitudeDelta);
+			float longExtent = (float)(UnitsPerDegreeLatitude * longitudeDelta);
 			Shape shape = new Square(new System.Drawing.RectangleF(0,0,longExtent,latExtent));
 			return shape;
 		}

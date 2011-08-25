@@ -180,11 +180,6 @@
             0,
             0,
             0});
-			this.keySpeedBox.Minimum = new decimal(new int[] {
-            10,
-            0,
-            0,
-            0});
 			this.keySpeedBox.Name = "keySpeedBox";
 			this.keySpeedBox.Size = new System.Drawing.Size(307, 20);
 			this.keySpeedBox.TabIndex = 19;
@@ -298,7 +293,7 @@
 			this.tableLayoutPanel1.SetColumnSpan(this.maxZoomBox, 2);
 			this.maxZoomBox.Location = new System.Drawing.Point(159, 129);
 			this.maxZoomBox.Maximum = new decimal(new int[] {
-            21,
+            20,
             0,
             0,
             0});

@@ -23,6 +23,8 @@ namespace Direct3DLib
 		private bool designTime = false;
 		private bool forceRender = true;
 
+		public double RefreshRate { get { return highFrequencyTimer1.CallsPerSecond; } }
+
 		public Direct3DControl()
 		{
 			if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
@@ -31,6 +33,7 @@ namespace Direct3DLib
 			InitializeComponent();
 			InitializeMouse();
 			InitializeKeyboard();
+			highFrequencyTimer1.Restart();
 			this.Load += new EventHandler(Direct3DControl_Load);
 		}
 
@@ -59,6 +62,7 @@ namespace Direct3DLib
 
 		private void InitializeShapes()
 		{
+			/*
 			List<Shape> initialShapes = Shape.GetInitialShapes();
 			foreach (Shape shape in initialShapes)
 			{
@@ -67,6 +71,7 @@ namespace Direct3DLib
 					AddShape(shape);
 				}
 			}
+			 */
 		}
 
 
@@ -103,8 +108,12 @@ namespace Direct3DLib
 		private object mSelectedObject = null;
 		[TypeConverter(typeof(BasicTypeConverter))]
 		public object SelectedObject { get { return mSelectedObject; } set { mSelectedObject = value; FireSelectedObjectChangedEvent(value); } }
-		[Browsable(false)]
-		public double RefreshRate { get { return engine.RefreshRate; } }
+		//[Browsable(false)]
+		//public double RefreshRate { get { return engine.RefreshRate; } }
+
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
+		[Editor(typeof(ShapeCollectionEditor), typeof(UITypeEditor))]
+		public List<Shape> ShapeList { get { return engine.ShapeList; } set { engine.ShapeList = value; } }
 		#endregion
 
 		#region Events
@@ -153,10 +162,10 @@ namespace Direct3DLib
 			// Only render if the Engine is initialized and this application is the active form, or user forces it to.
 			if (IsInitialized && (Form.ActiveForm != null || forceRender || this.designTime) && this.Visible)
 			{
+				highFrequencyTimer1.GetCallsPerSecond();
 				engine.Render();
 				forceRender = false;
 			}
-
 		}
 		public void UpdateShapes()
 		{

@@ -87,7 +87,7 @@ namespace Direct3DLib
 		public Shape()
 			: base()
 		{
-			Shape.AddInitialShape(this);
+			//Shape.AddInitialShape(this);
 		}
 		public Shape(Vertex[] vertices)
 			: this()
@@ -117,22 +117,24 @@ namespace Direct3DLib
 					CalculatePreTransformBoundingBox();
 
 					// Add Vertices to a datastream.
-					DataStream dataStream = new DataStream(Vertices.NumBytes, true, true);
-					dataStream.WriteRange(this.Vertices.ToArray());
-					dataStream.Position = 0;
-
-
-					// Create a new data buffer description and buffer
-					BufferDescription desc = new BufferDescription()
+					using (DataStream dataStream = new DataStream(Vertices.NumBytes, true, true))
 					{
-						BindFlags = BindFlags.VertexBuffer,
-						CpuAccessFlags = CpuAccessFlags.None,
-						OptionFlags = ResourceOptionFlags.None,
-						SizeInBytes = Vertices.NumBytes,
-						Usage = ResourceUsage.Default
-					};
-					vertexBuffer = new SlimDX.Direct3D10.Buffer(device, dataStream, desc);
-					dataStream.Close();
+						dataStream.WriteRange(this.Vertices.ToArray());
+						dataStream.Position = 0;
+
+
+						// Create a new data buffer description and buffer
+						BufferDescription desc = new BufferDescription()
+						{
+							BindFlags = BindFlags.VertexBuffer,
+							CpuAccessFlags = CpuAccessFlags.None,
+							OptionFlags = ResourceOptionFlags.None,
+							SizeInBytes = Vertices.NumBytes,
+							Usage = ResourceUsage.Default
+						};
+						vertexBuffer = new SlimDX.Direct3D10.Buffer(device, dataStream, desc);
+						//dataStream.Close();
+					}
 
 
 					if (Vertices != null && Vertices.Count > 0)
@@ -140,24 +142,26 @@ namespace Direct3DLib
 						// Set the input layout.
 						InputElement[] inputElements = Vertices[0].GetInputElements();
 						vertexLayout = new InputLayout(device, effectSignature, inputElements);
+						
 
 						// Draw Indexed
 						if (Vertices.Indices != null && Vertices.Indices.Count > 0)
 						{
-							DataStream iStream = new DataStream(sizeof(int) * Vertices.Indices.Count, true, true);
-							iStream.WriteRange(Vertices.Indices.ToArray());
-							iStream.Position = 0;
-							desc = new BufferDescription()
+							using (DataStream iStream = new DataStream(sizeof(int) * Vertices.Indices.Count, true, true))
 							{
-								Usage = ResourceUsage.Default,
-								SizeInBytes = sizeof(int) * Vertices.Indices.Count,
-								BindFlags = BindFlags.IndexBuffer,
-								CpuAccessFlags = CpuAccessFlags.None,
-								OptionFlags = ResourceOptionFlags.None
-							};
-							indexBuffer = new Buffer(device, iStream, desc);
-							iStream.Close();
-
+								iStream.WriteRange(Vertices.Indices.ToArray());
+								iStream.Position = 0;
+								BufferDescription desc = new BufferDescription()
+								{
+									Usage = ResourceUsage.Default,
+									SizeInBytes = sizeof(int) * Vertices.Indices.Count,
+									BindFlags = BindFlags.IndexBuffer,
+									CpuAccessFlags = CpuAccessFlags.None,
+									OptionFlags = ResourceOptionFlags.None
+								};
+								indexBuffer = new Buffer(device, iStream, desc);
+								//iStream.Close();
+							}
 
 
 						}
@@ -174,7 +178,7 @@ namespace Direct3DLib
 					}
 				}
 			}
-			FireShapeChangeEvent(new ShapeChangeEventArgs(this, ShapeChangeEventArgs.ChangeAction.Update));
+			FireShapeChangeEvent(new ShapeChangeEventArgs(this, ShapeChangeEventArgs.ChangeAction.None));
 		}
 
 
@@ -326,9 +330,10 @@ namespace Direct3DLib
 		protected override void updateWorld()
 		{
 			base.updateWorld();
-			FireShapeChangeEvent(new ShapeChangeEventArgs(this, ShapeChangeEventArgs.ChangeAction.Update));
+			FireShapeChangeEvent(new ShapeChangeEventArgs(this, ShapeChangeEventArgs.ChangeAction.None));
 		}
 
+		/*
 		#region Shape Design Support
 		private static bool initialising = true;
 		private static List<Shape> initialShapes = new List<Shape>();
@@ -343,12 +348,13 @@ namespace Direct3DLib
 			return initialShapes;
 		}
 		#endregion
+		 */
 	}
 
 	public delegate void ShapeChangeEventHandler(object sender, ShapeChangeEventArgs e);
 	public class ShapeChangeEventArgs : EventArgs
 	{
-		public enum ChangeAction { None, Add, Remove, Swap, Update };
+		public enum ChangeAction { None, Add, Remove };
 		private ChangeAction action = ChangeAction.None;
 		public ChangeAction Action { get { return action; } }
 		private Shape changedShape;

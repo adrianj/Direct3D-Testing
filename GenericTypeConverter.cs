@@ -31,15 +31,12 @@ namespace Direct3DLib
 		{
 			if(destinationType.Equals(typeof(string)))
 				return true;
-			//if (destinationType == typeof(InstanceDescriptor))
-			//	return true;
 			return base.CanConvertTo(context,destinationType);
 		}
 
 		
 		public override object CreateInstance(ITypeDescriptorContext context, System.Collections.IDictionary propertyValues)
 		{
-			//MessageBox.Show("CreateInstance: cType: " + cType + ", CompType: " + context.PropertyDescriptor.ComponentType + ", instance" + context.Instance);
 			object value = Activator.CreateInstance(cType);
 			foreach (KeyValuePair<object, object> pair in propertyValues)
 			{
@@ -52,7 +49,6 @@ namespace Direct3DLib
 
 		public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)
 		{
-			//MessageBox.Show("ConvertFrom: cType: " + cType + ", CompType: " + context.PropertyDescriptor.ComponentType + ", instance" + context.Instance+", value: "+value);
 			object t = Activator.CreateInstance(cType);
 			if (value.GetType() == typeof(string))
 			{
@@ -79,23 +75,8 @@ namespace Direct3DLib
 		{
 			if (destinationType == typeof(string))
 				return "" + value;
-			//if (destinationType == typeof(InstanceDescriptor))
-			//{
-			//	return new InstanceDescriptor(value.GetType().GetConstructor(new Type[] { }), null, false);
-			//}
 			return base.ConvertTo(context, culture, value, destinationType);
 		}
-		/*
-		public override bool GetPropertiesSupported(ITypeDescriptorContext context)
-		{
-			return true;
-		}
-
-		public override PropertyDescriptorCollection GetProperties(ITypeDescriptorContext context, object value, Attribute[] attributes)
-		{
-			return TypeDescriptor.GetProperties(value.GetType());
-		}
-		 */
 
 		public static MethodInfo GetTryParseMethod(Type typeWithMethods)
 		{

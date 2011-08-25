@@ -23,31 +23,37 @@ namespace Direct3DLib
 		private double currentLong;
 		private double currentEle;
 		[CategoryAttribute("Camera, Lighting and Textures")]
+		[Description("The latitude and longitude of the camera")]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public LatLong CurrentLatLong
 		{
 			get
 			{
-				LatLong ll = earthTiles.ConvertCameraLocationToLatLong(new Float3(CameraLocation));
+				LatLong ll = EarthProjection.ConvertCameraLocationToLatLong(new Float3(CameraLocation));
 				currentLat = ll.Latitude; currentLong = ll.Longitude;
 				return new LatLong(currentLat, currentLong);
 			}
 			set
 			{
 				currentLat = value.Latitude; currentLong = value.Longitude;
-				SetCameraLocation(earthTiles.ConvertLatLongElevationToCameraLocation(value, CurrentElevation));
+				SetCameraLocation(EarthProjection.ConvertLatLongElevationToCameraLocation(value, CurrentElevation));
 			}
 		}
 		[CategoryAttribute("Camera, Lighting and Textures")]
+		[Description("The elevation of the camera in metres")]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public double CurrentElevation
 		{
-			get { 
-				currentEle = earthTiles.ConvertCameraLocationToElevation(CameraLocation); return currentEle; }
+			get {
+				currentEle = EarthProjection.ConvertCameraLocationToElevation(CameraLocation); return currentEle;
+			}
 			set
 			{
 				currentEle = value;
-				SetCameraLocation(earthTiles.ConvertLatLongElevationToCameraLocation(CurrentLatLong, value));
+				SetCameraLocation(EarthProjection.ConvertLatLongElevationToCameraLocation(CurrentLatLong, value));
 			}
 		}
+		public int MaxTextureZoom { get { return EarthTiles.MaxGoogleZoom; } set { if(value <= 20 && value >= 0) EarthTiles.MaxGoogleZoom = value; } }
 		public bool AutomaticallyDownloadMaps
 		{
 			get { return earthTiles.AutomaticallyDownloadMaps; }
@@ -213,8 +219,7 @@ namespace Direct3DLib
 
 		private void UpdateControlFromOptions()
 		{
-			EarthTiles.MaxGoogleZoom = optionsForm.MaxGoogleZoom;
-			//earthTiles.Delta = optionsForm.Delta;
+			this.MaxTextureZoom = optionsForm.MaxGoogleZoom;
 			FixTerrain = optionsForm.FixTerrain;
 			KeyboardMovementSpeed = optionsForm.KeyboardSpeed;
 			if (UseTerrainData != optionsForm.UseGIS)
@@ -238,11 +243,10 @@ namespace Direct3DLib
 			optionsForm.FixZoom = FixZoom;
 			optionsForm.KeyboardSpeed = (int)KeyboardMovementSpeed;
 			optionsForm.GotoElevation = CurrentElevation;
-			optionsForm.MaxGoogleZoom = EarthTiles.MaxGoogleZoom;
+			optionsForm.MaxGoogleZoom = this.MaxTextureZoom;
 			optionsForm.FixTerrain = FixTerrain;
 			optionsForm.TerrainFolder = this.TerrainFolder;
 			optionsForm.TextureFolder = this.TextureFolder;
-			//optionsForm.Delta = earthTiles.Delta;
 		}
 
 	}

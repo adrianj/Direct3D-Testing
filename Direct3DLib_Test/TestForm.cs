@@ -32,7 +32,11 @@ namespace Direct3DLib_Test
 			earth3DControl.SelectedObjectChanged += (o, e) =>
             {
 				object obj = earth3DControl.SelectedObject;
-				if (obj is Shape)
+				if (obj == null)
+				{
+					propertyGrid.SelectedObject = earth3DControl;
+				}
+				else if (obj is Shape)
 				{
 					Shape s = obj as Shape;
 					propertyGrid.SelectedObject = s;
@@ -63,6 +67,7 @@ namespace Direct3DLib_Test
 		Float3 loc = new Float3();
         private void PreRenderTest()
         {
+			textBox2.Text = "" + earth3DControl.RefreshRate;
 			//loc.X += 10;
 			if (loc.X > 1.75e7)
 				loc.X = 1.74809e7f;

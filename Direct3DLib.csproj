@@ -247,12 +247,16 @@
     <Compile Include="Earth3D\EarthControlOptionsForm.Designer.cs">
       <DependentUpon>EarthControlOptionsForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Earth3D\EarthProjection.cs" />
     <Compile Include="Earth3D\EarthTiles.cs" />
     <Compile Include="Earth3D\Float3.cs" />
     <Compile Include="Earth3D\LatLong.cs" />
     <Compile Include="Earth3D\MapFileAccessor.cs" />
     <Compile Include="Earth3D\StaticMapFactory.cs" />
     <Compile Include="GenericTypeConverter.cs" />
+    <Compile Include="HighFrequencyTimer.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="ImageConverter.cs" />
     <Compile Include="NamedComponent.cs">
       <SubType>Component</SubType>
@@ -304,6 +308,9 @@
     <Compile Include="Earth3D\MapWebAccessor.cs" />
     <Compile Include="TestCode\TestShapeImageFactory.cs" />
     <Compile Include="TextureHelper.cs" />
+    <Compile Include="Triangle.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Vertex.cs" />
     <Compile Include="VertexList.cs" />
     <Compile Include="WndProcMessage.cs" />

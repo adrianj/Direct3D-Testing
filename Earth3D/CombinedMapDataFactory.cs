@@ -20,8 +20,10 @@ namespace Direct3DLib
 		public double UnitsPerDegreeLatitude { get { return shapeFactory.UnitsPerDegreeLatitude; } set { shapeFactory.UnitsPerDegreeLatitude = value; } }
 		public double UnitsPerMetreElevation { get { return shapeFactory.UnitsPerMetreElevation; } set { shapeFactory.UnitsPerMetreElevation = value; } }
 
-		private Dictionary<MapDescriptor, Shape> TerrainToProcess = new Dictionary<MapDescriptor, Shape>();
-		private Dictionary<MapDescriptor, CombinedMapData> TexturesToProcess = new Dictionary<MapDescriptor, CombinedMapData>();
+		//private Dictionary<MapDescriptor, Shape> TerrainToProcess = new Dictionary<MapDescriptor, Shape>();
+		private Queue<MapDescriptor> TerrainToProcess = new Queue<MapDescriptor>();
+		private Queue<MapDescriptor> TexturesToProcess = new Queue<MapDescriptor>();
+		//private Dictionary<MapDescriptor, CombinedMapData> TexturesToProcess = new Dictionary<MapDescriptor, CombinedMapData>();
 		private BackgroundWorker terrainWorker = new BackgroundWorker();
 		private BackgroundWorker textureWorker = new BackgroundWorker();
 
@@ -70,7 +72,11 @@ namespace Direct3DLib
 			terrainWorker.CancelAsync();
 		}
 		#endregion
-		
+
+		public void EmptyQueue()
+		{
+			textureFactory.EmptyQueue();
+		}
 
 		public CombinedMapData CreateEmptyMapAtLocation(LatLong location, double elevation, double delta)
 		{
@@ -106,8 +112,8 @@ namespace Direct3DLib
 		{
 			if (mapToUpdate.ZoomLevel > EarthTiles.MaxGoogleZoom) mapToUpdate.ZoomLevel = EarthTiles.MaxGoogleZoom;
 			MapDescriptor desc = mapToUpdate.GetMapDescriptor();
-			if (!TexturesToProcess.ContainsKey(desc))
-				TexturesToProcess.Add(desc, mapToUpdate);
+			if (!TexturesToProcess.Contains(desc))
+				TexturesToProcess.Enqueue(desc);
 
 
 		}
@@ -115,21 +121,22 @@ namespace Direct3DLib
 		{
 			while (!textureWorker.CancellationPending)
 			{
-				MapDescriptor desc = GetFirstKeyOrNull(TexturesToProcess.Keys);
-				if (desc != null)
+				if (TexturesToProcess.Count > 0)
 				{
-					CombinedMapData target = TexturesToProcess[desc];
-					int logDelta = (int)Math.Log(target.ShapeDelta, 2.0);
-					int actualZoom = target.ZoomLevel;
-					Image image = textureFactory.GetTiledImage(target.BottomLeftLocation, target.ZoomLevel, logDelta, out actualZoom);
-					target.ZoomLevel = actualZoom;
-					target.TextureImage = image;
-					TexturesToProcess.Remove(desc);
+					try
+					{
+						MapDescriptor desc = TexturesToProcess.Peek();
+						CombinedMapData target = desc.Tag as CombinedMapData;
+						int logDelta = (int)Math.Log(target.ShapeDelta, 2.0);
+						int actualZoom = target.ZoomLevel;
+						Image image = textureFactory.GetTiledImage(target.BottomLeftLocation, target.ZoomLevel, logDelta, out actualZoom);
+						target.ZoomLevel = actualZoom;
+						target.TextureImage = image;
+						TexturesToProcess.Dequeue();
+					}
+					catch (InvalidOperationException) { }
 				}
-				else
-				{
-					System.Threading.Thread.Sleep(10);
-				}
+				System.Threading.Thread.Sleep(10);
 			}
 		}
 
@@ -137,48 +144,57 @@ namespace Direct3DLib
 		public void UpdateMapTerrain(CombinedMapData mapToUpdate)
 		{
 			MapDescriptor desc = mapToUpdate.GetMapDescriptor();
-			if(!TerrainToProcess.ContainsKey(desc))
-				TerrainToProcess.Add(desc, mapToUpdate);
+			if (!TerrainToProcess.Contains(desc))
+			{
+				desc.Tag = mapToUpdate;
+				TerrainToProcess.Enqueue(desc);
+			}
 		}
 
 		private void UpdateMapTerrainThread(object o, DoWorkEventArgs e)
 		{
 			while (!terrainWorker.CancellationPending)
 			{
-				MapDescriptor desc = GetFirstKeyOrNull(TerrainToProcess.Keys);
-				if (desc != null)
+				if (TerrainToProcess.Count > 0)
 				{
-					Shape target = TerrainToProcess[desc];
-					Shape shape = null;
-					shapeFactory.BottomLeftLatitude = desc.Latitude;
-					shapeFactory.BottomLeftLongitude = desc.Longitude;
-					shapeFactory.LatitudeDelta = desc.Delta;
-					shapeFactory.LongitudeDelta = desc.Delta;
-					if (!UseTerrainData)
-						shape = shapeFactory.GenerateNullShape();
-					else
+					try
 					{
-						shape = GenerateShapeFromFile(desc);
+						MapDescriptor desc = TerrainToProcess.Peek();
+						Shape target = desc.Tag as CombinedMapData;
+						Shape shape = null;
+						shapeFactory.BottomLeftLatitude = desc.Latitude;
+						shapeFactory.BottomLeftLongitude = desc.Longitude;
+						shapeFactory.LatitudeDelta = desc.Delta;
+						shapeFactory.LongitudeDelta = desc.Delta;
+						if (!UseTerrainData)
+							shape = shapeFactory.GenerateNullShape();
+						else
+						{
+							shape = GenerateShapeFromFile(desc);
+						}
+						Float3 location = new Float3((float)(desc.Longitude * UnitsPerDegreeLatitude), 0, (float)(desc.Latitude * UnitsPerDegreeLatitude));
+						shape.Location = location.AsVector3();
+						target.CopyShapeFrom(shape);
+						FireMapUpdateCompletedEvent(new ShapeChangeEventArgs(target, ShapeChangeEventArgs.ChangeAction.Add));
+						TerrainToProcess.Dequeue();
 					}
-					Float3 location = new Float3((float)(desc.Longitude * UnitsPerDegreeLatitude), 0, (float)(desc.Latitude * UnitsPerDegreeLatitude));
-					shape.Location = location.AsVector3();
-					target.CopyShapeFrom(shape);
-					//target.Scale = new SlimDX.Vector3(1, 2, 1);
-					FireMapUpdateCompletedEvent(new ShapeChangeEventArgs(target, ShapeChangeEventArgs.ChangeAction.Add));
-					TerrainToProcess.Remove(desc);
+					catch (InvalidOperationException) { }
 				}
-				else
-				{
-					System.Threading.Thread.Sleep(10);
-				}
+				System.Threading.Thread.Sleep(10);
+
 			}
 		}
 
 		private MapDescriptor GetFirstKeyOrNull(ICollection<MapDescriptor> Keys)
 		{
-			IEnumerator<MapDescriptor> en = Keys.GetEnumerator();
-			en.MoveNext();
-			return en.Current;
+			try
+			{
+				IEnumerator<MapDescriptor> en = Keys.GetEnumerator();
+				en.MoveNext();
+				return en.Current;
+			}
+			catch (InvalidOperationException) { }
+			return null;
 		}
 
 		private Shape GenerateShapeFromFile(MapDescriptor desc)

@@ -29,6 +29,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+			this.highFrequencyTimer1 = new Direct3DLib.HighFrequencyTimer();
 			this.SuspendLayout();
 			// 
 			// Direct3DControl
@@ -43,6 +44,8 @@
         }
 
         #endregion
+
+		private HighFrequencyTimer highFrequencyTimer1;
 
 
 	}

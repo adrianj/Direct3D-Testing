@@ -7,6 +7,7 @@ using System.Reflection;
 
 namespace Direct3DLib
 {
+	[TypeConverter(typeof(LatLongTypeConverter))]
 	public struct LatLong
 	{
 		private double lat;
