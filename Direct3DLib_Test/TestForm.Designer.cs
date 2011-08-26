@@ -44,10 +44,9 @@
 			this.button1 = new System.Windows.Forms.Button();
 			this.button2 = new System.Windows.Forms.Button();
 			this.earth3DControl = new Direct3DLib.Earth3DControl();
-			this.pipe1 = new Direct3DLib.Pipe();
 			this.cone1 = new Direct3DLib.Cone();
-			this.closedPipe1 = new Direct3DLib.ClosedPipe();
 			this.herc = new Direct3DLib.ComplexShape();
+			this.spher = new Direct3DLib.Sphere();
 			this.SuspendLayout();
 			// 
 			// textBox1
@@ -169,12 +168,12 @@
 			this.earth3DControl.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
 			this.earth3DControl.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 			this.earth3DControl.BothMouseFunction = Direct3DLib.Direct3DControl.MouseOption.CameraTranslateXZ;
-			float31.X = 13678.5F;
-			float31.Y = 5F;
-			float31.Z = -3109.99F;
+			float31.X = 13678.22F;
+			float31.Y = 7F;
+			float31.Z = -3117.709F;
 			this.earth3DControl.CameraLocation = float31;
 			this.earth3DControl.CameraPan = 1.653334F;
-			this.earth3DControl.CameraTilt = -1.610595F;
+			this.earth3DControl.CameraTilt = -1.210595F;
 			this.earth3DControl.FixTerrain = false;
 			this.earth3DControl.FixZoom = false;
 			this.earth3DControl.KeyboardMovementSpeed = 5F;
@@ -191,10 +190,9 @@
 			this.earth3DControl.Name = "earth3DControl";
 			this.earth3DControl.RightMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Rotate;
 			this.earth3DControl.SelectedObject = null;
-			this.earth3DControl.ShapeList.Add(this.pipe1);
 			this.earth3DControl.ShapeList.Add(this.cone1);
-			this.earth3DControl.ShapeList.Add(this.closedPipe1);
 			this.earth3DControl.ShapeList.Add(this.herc);
+			this.earth3DControl.ShapeList.Add(this.spher);
 			this.earth3DControl.Size = new System.Drawing.Size(774, 433);
 			this.earth3DControl.TabIndex = 15;
 			this.earth3DControl.TextureImages = new System.Drawing.Image[] {
@@ -219,36 +217,24 @@
 			this.earth3DControl.Zoom = 1F;
 			this.earth3DControl.Load += new System.EventHandler(this.earth3DControl_Load);
 			// 
-			// pipe1
-			// 
-			this.pipe1.CanPick = true;
-			this.pipe1.Corners = 60;
-			this.pipe1.Location = new SlimDX.Vector3(13678.5F, 3F, -3109.99F);
-			this.pipe1.Rotation = new SlimDX.Vector3(0F, 0F, 0F);
-			this.pipe1.Scale = new SlimDX.Vector3(1F, 1F, 1F);
-			this.pipe1.SolidColor = System.Drawing.Color.Red;
-			this.pipe1.TextureIndex = -1;
-			this.pipe1.Topology = SlimDX.Direct3D10.PrimitiveTopology.TriangleList;
-			this.pipe1.Transparency = ((byte)(128));
-			// 
 			// cone1
 			// 
+			this.cone1.Azimuth = -3.141593F;
 			float33.X = 13678F;
 			float33.Y = 0F;
 			float33.Z = -3109.99F;
 			this.cone1.BroadLocation = float33;
 			this.cone1.CanPick = true;
 			this.cone1.Corners = 12;
-			this.cone1.diff = new SlimDX.Vector3(0F, -5F, 0F);
-			this.cone1.distance = 5D;
+			this.cone1.Elevation = -1.570796F;
+			this.cone1.Length = 5F;
 			this.cone1.Location = new SlimDX.Vector3(13678F, 5F, -3109.99F);
+			this.cone1.Name = "cone1";
 			float34.X = 13678F;
 			float34.Y = 5F;
 			float34.Z = -3109.99F;
 			this.cone1.NarrowLocation = float34;
 			this.cone1.Rotation = new SlimDX.Vector3(0F, 0F, 0F);
-			this.cone1.rotX = 3.141593F;
-			this.cone1.rotY = 0F;
 			this.cone1.Scale = new SlimDX.Vector3(2F, 5F, 2F);
 			this.cone1.SolidColor = System.Drawing.Color.Lime;
 			this.cone1.TextureIndex = -1;
@@ -256,22 +242,11 @@
 			this.cone1.Transparency = ((byte)(128));
 			this.cone1.Width = 2F;
 			// 
-			// closedPipe1
-			// 
-			this.closedPipe1.CanPick = true;
-			this.closedPipe1.Corners = 6;
-			this.closedPipe1.Location = new SlimDX.Vector3(13678.5F, 5F, -3109F);
-			this.closedPipe1.Rotation = new SlimDX.Vector3(0F, 0F, 0F);
-			this.closedPipe1.Scale = new SlimDX.Vector3(1F, 1F, 1F);
-			this.closedPipe1.SolidColor = System.Drawing.Color.Aqua;
-			this.closedPipe1.TextureIndex = -1;
-			this.closedPipe1.Topology = SlimDX.Direct3D10.PrimitiveTopology.TriangleList;
-			this.closedPipe1.Transparency = ((byte)(128));
-			// 
 			// herc
 			// 
 			this.herc.CanPick = true;
 			this.herc.Location = new SlimDX.Vector3(13678.5F, 7F, -3109F);
+			this.herc.Name = "herc";
 			this.herc.Rotation = new SlimDX.Vector3(0F, 0F, 0F);
 			this.herc.Scale = new SlimDX.Vector3(0.1F, 0.1F, 0.1F);
 			this.herc.SolidColor = System.Drawing.Color.Empty;
@@ -279,6 +254,21 @@
 			this.herc.TextureIndex = -1;
 			this.herc.Topology = SlimDX.Direct3D10.PrimitiveTopology.TriangleList;
 			this.herc.Transparency = ((byte)(255));
+			// 
+			// spher
+			// 
+			this.spher.CanPick = true;
+			this.spher.Corners = 6;
+			this.spher.LatLines = 2;
+			this.spher.Location = new SlimDX.Vector3(13678.5F, 7F, -3109F);
+			this.spher.LongLines = 6;
+			this.spher.Name = "spher";
+			this.spher.Rotation = new SlimDX.Vector3(0F, 0F, 0F);
+			this.spher.Scale = new SlimDX.Vector3(1F, 1F, 1F);
+			this.spher.SolidColor = System.Drawing.Color.Empty;
+			this.spher.TextureIndex = -1;
+			this.spher.Topology = SlimDX.Direct3D10.PrimitiveTopology.TriangleList;
+			this.spher.Transparency = ((byte)(255));
 			// 
 			// TestForm
 			// 
@@ -320,9 +310,8 @@
 		private System.Windows.Forms.Button button1;
 		private System.Windows.Forms.Button button2;
 		private Direct3DLib.Earth3DControl earth3DControl;
-		private Direct3DLib.Pipe pipe1;
 		private Direct3DLib.Cone cone1;
-		private Direct3DLib.ClosedPipe closedPipe1;
 		private Direct3DLib.ComplexShape herc;
+		private Direct3DLib.Sphere spher;
     }
 }

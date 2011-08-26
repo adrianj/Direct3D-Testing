@@ -170,7 +170,7 @@ namespace Direct3DLib
 
 		public void CameraLocationChanged(Float3 newCameraLocation)
 		{
-			long start = System.Diagnostics.Stopwatch.GetTimestamp();
+			//long start = System.Diagnostics.Stopwatch.GetTimestamp();
 			currentLocation = EarthProjection.ConvertCameraLocationToLatLong(newCameraLocation);
 			currentElevation = EarthProjection.ConvertCameraLocationToElevation(newCameraLocation); ;
 			MapPosition direction = CalculateTravelDirection(currentLocation, previousLocation,currentElevation,previousElevation);
@@ -182,8 +182,8 @@ namespace Direct3DLib
 			UpdateAllTextures(currentElevation);
 			previousLocation = currentLocation;
 			previousElevation = currentElevation;
-			long end = System.Diagnostics.Stopwatch.GetTimestamp();
-			Console.WriteLine("time: " + (end - start));
+			//long end = System.Diagnostics.Stopwatch.GetTimestamp();
+			//Console.WriteLine("time: " + (end - start));
 		}
 
 		private void MoveTerrainInDirection(MapPosition direction, LatLong location, double elevation)
@@ -268,6 +268,7 @@ namespace Direct3DLib
 		private CombinedMapData SwapTileToNewLocation(CombinedMapData prevTile, LatLong newLocation)
 		{
 			CombinedMapData newTile = new CombinedMapData(prevTile);
+			Console.WriteLine("swapTile: " + prevTile.ZoomLevel + ", " + newTile.ZoomLevel+", "+prevTile.ShapeDelta+", "+newTile.ShapeDelta);
 			newTile.BottomLeftLocation = newLocation;
 			mapFactory.RetrieveOrUpdateMapTerrain(newTile);
 			AddTileToEngine(newTile);

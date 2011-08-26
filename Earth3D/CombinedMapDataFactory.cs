@@ -135,6 +135,7 @@ namespace Direct3DLib
 						TexturesToProcess.Dequeue();
 					}
 					catch (InvalidOperationException) { }
+					catch (NullReferenceException) { }
 				}
 				System.Threading.Thread.Sleep(10);
 			}

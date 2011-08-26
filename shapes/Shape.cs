@@ -132,6 +132,8 @@ namespace Direct3DLib
 							SizeInBytes = Vertices.NumBytes,
 							Usage = ResourceUsage.Default
 						};
+						if (vertexBuffer != null)
+							vertexBuffer.Dispose();
 						vertexBuffer = new SlimDX.Direct3D10.Buffer(device, dataStream, desc);
 						//dataStream.Close();
 					}
@@ -141,6 +143,8 @@ namespace Direct3DLib
 					{
 						// Set the input layout.
 						InputElement[] inputElements = Vertices[0].GetInputElements();
+						if (vertexLayout != null)
+							vertexLayout.Dispose();
 						vertexLayout = new InputLayout(device, effectSignature, inputElements);
 						
 
@@ -159,6 +163,8 @@ namespace Direct3DLib
 									CpuAccessFlags = CpuAccessFlags.None,
 									OptionFlags = ResourceOptionFlags.None
 								};
+								if (indexBuffer != null)
+									indexBuffer.Dispose();
 								indexBuffer = new Buffer(device, iStream, desc);
 								//iStream.Close();
 							}

@@ -27,7 +27,7 @@ namespace Direct3DLib
 				designTime = true;
 			this.InitializeComponent();
 		}
-		
+
 		public NamedComponent(IContainer container)
 			: base()
 		{
@@ -37,15 +37,29 @@ namespace Direct3DLib
 			this.InitializeComponent();
 		}
 
-		
+
 		private void InitializeComponent()
 		{
-			
 		}
 		#endregion
 
-		
-		 
+		private string name;
+		public string Name
+		{
+			get
+			{
+				if (this.Site != null)
+					name = this.Site.Name;
+				return name;
+			}
+			set
+			{
+				if (this.Site != null) name = this.Site.Name;
+				else name = value; 
+			}
+		}
+
+
 
 	}
 }

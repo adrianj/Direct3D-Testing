@@ -12,12 +12,9 @@ namespace Direct3DLib
 	{
 		private MapDescriptor desc = new MapDescriptor(0, 0, 10,0.125);
 
-		//private LatLong bottomLeft = new LatLong();
 		public LatLong BottomLeftLocation { get { return desc.LatLong; } set { desc.LatLong = value; } }
 	
-		//private double shapeDelta = 0.125;
 		public double ShapeDelta { get { return desc.Delta; } set { desc.Delta = value; } }
-		//private int tileRes = -2;
 		public int ZoomLevel { get { return desc.ZoomLevel; } set { desc.ZoomLevel = value; } }
 		private bool updateRequired = true;
 		private Image image;
@@ -30,13 +27,8 @@ namespace Direct3DLib
 		}
 		public CombinedMapData(CombinedMapData copy) : this()
 		{
-			MapDescriptor md = new MapDescriptor(copy.BottomLeftLocation.Latitude, copy.BottomLeftLocation.Longitude, copy.ZoomLevel, copy.ShapeDelta);
+			desc = new MapDescriptor(copy.BottomLeftLocation.Latitude, copy.BottomLeftLocation.Longitude, copy.ZoomLevel, copy.ShapeDelta);
 			this.TextureIndex = copy.TextureIndex;
-			/*
-			this.ShapeDelta = copy.ShapeDelta;
-			this.ZoomLevel = copy.ZoomLevel;
-			this.BottomLeftLocation = copy.BottomLeftLocation;
-			 */
 		}
 
 		public override bool Equals(object obj)
@@ -49,9 +41,6 @@ namespace Direct3DLib
 		public bool Equals(CombinedMapData other)
 		{
 			if (!other.GetMapDescriptor().Equals(desc)) return false;
-			//if (!other.ShapeDelta.Equals(this.ShapeDelta)) return false;
-			//if (!other.BottomLeftLocation.Equals(this.BottomLeftLocation)) return false;
-			//if (other.ZoomLevel != this.ZoomLevel) return false;
 			if (other.image != this.image) return false;
 			return base.Equals(other);
 		}
