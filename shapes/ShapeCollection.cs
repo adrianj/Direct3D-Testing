@@ -86,6 +86,8 @@ namespace Direct3DLib
 				shape.Dispose();
 			}
 			allShapes.Clear();
+			this.Vertices.Clear();
+			this.Update();
 		}
 
 		public Shape SelectedShape
