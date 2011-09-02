@@ -23,9 +23,9 @@ namespace Direct3DLib
 		{
 			get
 			{
-				Matrix m = Matrix.RotationX(mRotation.Y);
-				m = m * Matrix.RotationY(mRotation.X);
+				Matrix m = Matrix.RotationX(-mRotation.Y);
 				m = m * Matrix.RotationZ(mRotation.Z);
+				m = m * Matrix.RotationY(mRotation.X);
 				return m;
 				//return Matrix.RotationYawPitchRoll(mRotation.X, mRotation.Y, mRotation.Z);
 			}
