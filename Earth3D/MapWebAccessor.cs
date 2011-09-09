@@ -72,6 +72,7 @@ namespace Direct3DLib
 						MapDescriptor desc = downloadInProgress.Peek();
 						Image image = GetImageFromWeb(desc);
 						if (image != null) image.Dispose();
+						Console.WriteLine("Maps Remaining: " + (downloadInProgress.Count-1));
 						downloadInProgress.Dequeue();
 					}
 					catch (InvalidOperationException)

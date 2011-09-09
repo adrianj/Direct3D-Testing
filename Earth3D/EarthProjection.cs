@@ -9,7 +9,7 @@ namespace Direct3DLib
 	public class EarthProjection
 	{
 		private static double XScale = 256.0 / 360.0;
-		public static double UnitsPerDegreeLatitude = 100;
+		public static double UnitsPerDegreeLatitude = 110;
 		public static double UnitsPerMetreElevation = 0.001;
 		public static float ShapeScale = (float)UnitsPerMetreElevation;
 

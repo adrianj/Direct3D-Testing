@@ -48,40 +48,36 @@ namespace Direct3DLib
 
 		private void InitializeDevice()
 		{
-			try
+			DialogResult result = DialogResult.Retry;
+			while (result == DialogResult.Retry)
 			{
-				engine.InitializeDevice();
-				if (!engine.IsInitialized) throw new Exception("Unknown Error");
-			}
-			catch (Exception ex)
-			{
-
-				MessageBox.Show("Direct3D Engine Initialization Failed\n\n" + ex);
+				try
+				{
+					engine.InitializeDevice();
+					result = DialogResult.Ignore;
+					if (!engine.IsInitialized) throw new Exception("Unknown Error");
+				}
+				catch (Exception ex)
+				{
+					
+					MessageBox.Show("Direct3D Engine Initialization Failed\n\n" + ex);
+					result = DialogResult.Abort;
+				}
 			}
 		}
 
 		private void InitializeShapes()
 		{
-			/*
-			List<Shape> initialShapes = Shape.GetInitialShapes();
-			foreach (Shape shape in initialShapes)
-			{
-				if (!shape.IsDisposed && !engine.ShapeList.Contains(shape))
-				{
-					AddShape(shape);
-				}
-			}
-			 */
 		}
 
 
 		#region Public Properties
 		[CategoryAttribute("Camera, Lighting and Textures")]
-		public float CameraTilt { get { return engine.Camera.Tilt; } set { engine.Camera.Tilt = value; if (designTime) this.Invalidate(); } }
+		public virtual float CameraTilt { get { return engine.Camera.Tilt; } set { engine.Camera.Tilt = value; if (designTime) this.Invalidate(); } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
-		public float CameraPan { get { return engine.Camera.Pan; } set { engine.Camera.Pan = value; if (designTime) this.Invalidate(); } }
+		public virtual float CameraPan { get { return engine.Camera.Pan; } set { engine.Camera.Pan = value; if (designTime) this.Invalidate(); } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
-		public Float3 CameraLocation { get { return new Float3(engine.Camera.Location); } set { engine.Camera.Location = value.AsVector3(); if (designTime) this.Invalidate(); } }
+		public virtual Float3 CameraLocation { get { return new Float3(engine.Camera.Location); } set { engine.Camera.Location = value.AsVector3(); if (designTime) this.Invalidate(); } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		public float Zoom { get { return engine.Camera.Zoom; } set { engine.Camera.Zoom = value; if (designTime) this.Invalidate(); } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
@@ -103,13 +99,11 @@ namespace Direct3DLib
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[EditorAttribute(typeof(NoEditor),typeof(UITypeEditor))]
-		public Image[] TextureImages { get { return engine.TextureImages; } set { engine.TextureImages = value; } }
+		public virtual Image[] TextureImages { get { return engine.TextureImages; } set { engine.TextureImages = value; } }
 
 		private object mSelectedObject = null;
 		[TypeConverter(typeof(BasicTypeConverter))]
 		public object SelectedObject { get { return mSelectedObject; } set { mSelectedObject = value; FireSelectedObjectChangedEvent(value); } }
-		//[Browsable(false)]
-		//public double RefreshRate { get { return engine.RefreshRate; } }
 
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
 		[Editor(typeof(ShapeCollectionEditor), typeof(UITypeEditor))]
@@ -212,13 +206,14 @@ namespace Direct3DLib
 			this.Leave += new EventHandler(Direct3DControl_Leave);
 		}
 
-		public void RotateCamera(float pan, float tilt)
+
+		public virtual void RotateCamera(float pan, float tilt)
 		{
 			CameraPan += pan;
 			CameraTilt += tilt;
 		}
 
-		public void TranslateCamera(float x, float y, float z)
+		public virtual void TranslateCamera(float x, float y, float z)
 		{
 			engine.Camera.Translate(x, y, z);
 			if (this.designTime) Invalidate();

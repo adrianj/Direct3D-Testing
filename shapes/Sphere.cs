@@ -123,7 +123,7 @@ namespace Direct3DLib
 		}
 
 
-		public override void AutoGenerateIndices()
+		protected override void AutoGenerateIndices()
 		{
 			if (Topology == PrimitiveTopology.LineList)
 			{

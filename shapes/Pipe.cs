@@ -63,7 +63,7 @@ namespace Direct3DLib
 			}
 		}
 
-		public override void AutoGenerateIndices()
+		protected override void AutoGenerateIndices()
 		{
 			base.AutoGenerateIndices();
 			if (Topology == PrimitiveTopology.TriangleStrip)

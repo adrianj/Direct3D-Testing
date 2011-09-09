@@ -37,6 +37,8 @@ namespace Direct3DLib
 			this.InitializeComponent();
 		}
 
+		public object Tag { get; set; }
+
 
 		private void InitializeComponent()
 		{

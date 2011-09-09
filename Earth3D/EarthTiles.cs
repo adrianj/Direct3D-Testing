@@ -11,7 +11,7 @@ namespace Direct3DLib
 	{
 		public enum MapPosition { None=0x00, N=0x01, NE=0x03, E=0x02, SE=0x06, S=0x04, SW=0x0C, W=0x08, NW=0x09, Up=0x10, Down = 0x20 };
 		public const int TILE_COUNT = 3;
-		public const double MAX_ELEVATION = 65000;
+		public const double MAX_ELEVATION = 20;
 		public static int MaxGoogleZoom = 14;
 		private int MaxDeltaFactor = 15;
 		public static int MinLogDelta = -4;
@@ -26,6 +26,7 @@ namespace Direct3DLib
 
 		private int currentZoomLevel = 10;
 		private double currentDelta = 1;
+		public double CurrentDelta { get { return currentDelta; } }
 		private double currentElevation = 0;
 		private double previousElevation = 0;
 		private LatLong currentLocation = LatLong.MinValue;
@@ -58,9 +59,7 @@ namespace Direct3DLib
 		{
 			mapFactory.UnitsPerDegreeLatitude = EarthProjection.UnitsPerDegreeLatitude;
 			mapFactory.UnitsPerMetreElevation = EarthProjection.UnitsPerMetreElevation;
-			//mapFactory.MapUpdateCompleted += new ShapeChangeEventHandler(mapFactory_MapUpdateCompleted);
 		}
-
 
 		
 
@@ -90,7 +89,6 @@ namespace Direct3DLib
 				if (currentTiles[row, col] != null)
 				{
 					RemoveTileFromEngine(currentTiles[row, col]);
-					//waitingList[expectedMap] = currentTiles[row, col];
 				}
 				mapFactory.RetrieveOrUpdateMapTerrain(expectedMap);
 				AddTileToArray(expectedMap, row, col);
@@ -128,26 +126,6 @@ namespace Direct3DLib
 			AddTileToEngine(tile);
 		}
 
-		/*
-		Dictionary<CombinedMapData, CombinedMapData> waitingList = new Dictionary<CombinedMapData, CombinedMapData>();
-		void mapFactory_MapUpdateCompleted(object sender, ShapeChangeEventArgs e)
-		{
-			CombinedMapData tile = e.ChangedShape as CombinedMapData;
-			if (waitingList.ContainsKey(tile))
-				waitingList[tile].Dispose();
-		}
-
-		Stack<CombinedMapData> removalList = new Stack<CombinedMapData>();
-		private void RemoveOldTiles()
-		{
-			while (removalList.Count > 0)
-			{
-				CombinedMapData map = removalList.Pop();
-				RemoveTileFromEngine(map);
-			}
-		}
-		 */
-
 		private void RemoveTileFromEngine(CombinedMapData tile)
 		{
 			ShapeChangeEventArgs se = new ShapeChangeEventArgs(tile, ShapeChangeEventArgs.ChangeAction.Remove);
@@ -170,7 +148,6 @@ namespace Direct3DLib
 
 		public void CameraLocationChanged(Float3 newCameraLocation)
 		{
-			//long start = System.Diagnostics.Stopwatch.GetTimestamp();
 			currentLocation = EarthProjection.ConvertCameraLocationToLatLong(newCameraLocation);
 			currentElevation = EarthProjection.ConvertCameraLocationToElevation(newCameraLocation); ;
 			MapPosition direction = CalculateTravelDirection(currentLocation, previousLocation,currentElevation,previousElevation);
@@ -182,8 +159,6 @@ namespace Direct3DLib
 			UpdateAllTextures(currentElevation);
 			previousLocation = currentLocation;
 			previousElevation = currentElevation;
-			//long end = System.Diagnostics.Stopwatch.GetTimestamp();
-			//Console.WriteLine("time: " + (end - start));
 		}
 
 		private void MoveTerrainInDirection(MapPosition direction, LatLong location, double elevation)
@@ -268,7 +243,6 @@ namespace Direct3DLib
 		private CombinedMapData SwapTileToNewLocation(CombinedMapData prevTile, LatLong newLocation)
 		{
 			CombinedMapData newTile = new CombinedMapData(prevTile);
-			Console.WriteLine("swapTile: " + prevTile.ZoomLevel + ", " + newTile.ZoomLevel+", "+prevTile.ShapeDelta+", "+newTile.ShapeDelta);
 			newTile.BottomLeftLocation = newLocation;
 			mapFactory.RetrieveOrUpdateMapTerrain(newTile);
 			AddTileToEngine(newTile);
@@ -353,7 +327,15 @@ namespace Direct3DLib
 			}
 		}
 
-		
+		public void Clear()
+		{
+			for (int row = 0; row < TILE_COUNT; row++)
+				for (int col = 0; col < TILE_COUNT; col++)
+				{
+					RemoveTileFromEngine(currentTiles[row,col]);
+					currentTiles[row,col] = null;
+				}
+		}
 
 
 	}

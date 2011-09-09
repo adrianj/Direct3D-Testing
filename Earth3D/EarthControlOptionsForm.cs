@@ -104,6 +104,12 @@ namespace Direct3DLib
 			set { autoDownloadCheck.Checked = value; }
 		}
 
+		public bool ShowGrid
+		{
+			get { return showGridCheck.Checked; }
+			set { showGridCheck.Checked = value; }
+		}
+
 		public event EventHandler OptionsChanged;
 		private void FireOptionsChangedEvent()
 		{

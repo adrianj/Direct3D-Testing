@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Drawing.Design;
 using System.Windows.Forms;
+using System.Reflection;
 
 namespace Direct3DLib
 {
@@ -147,7 +148,31 @@ namespace Direct3DLib
 		public ShapeCollectionEditor(Type type) : base(type) { }
 		protected override Type[] GetTypes()
 		{
-			return new Type[] { typeof(ComplexShape), typeof(Pipe), typeof(ClosedPipe), typeof(Sphere), typeof(Cone) };
+			List<Type> types = new List<Type>();
+			Assembly asm = Assembly.GetExecutingAssembly();
+			if (asm != null)
+				types.AddRange(GetShapesInAssembly(asm));
+			asm = Assembly.GetEntryAssembly();
+			if (asm != null)
+				types.AddRange(GetShapesInAssembly(asm));
+			return types.ToArray();
+		}
+
+		private List<Type> GetShapesInAssembly(Assembly asm)
+		{
+			List<Type> ret = new List<Type>();
+			foreach (Type t in asm.GetTypes())
+			{
+				if (t.IsSubclassOf(typeof(Shape)))
+					if (IsToolBoxItem(t))
+						ret.Add(t);
+			}
+			return ret;
+		}
+
+		bool IsToolBoxItem(Type type)
+		{
+			return true;
 		}
 	}
 

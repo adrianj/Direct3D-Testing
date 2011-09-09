@@ -60,6 +60,13 @@ namespace Direct3DLib.Properties {
             }
         }
         
+        public static System.Drawing.Bitmap compass {
+            get {
+                object obj = ResourceManager.GetObject("compass", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         public static System.Drawing.Bitmap NoTexture {
             get {
                 object obj = ResourceManager.GetObject("NoTexture", resourceCulture);

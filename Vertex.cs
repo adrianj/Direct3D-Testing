@@ -95,6 +95,16 @@ namespace Direct3DLib
 			return new Vertex[] { new Vertex(v0, v[0].Color, norm), new Vertex(v1, v[1].Color, norm), new Vertex(v2, v[2].Color, norm) };
 		}
 
+		public static Vertex[] CreateTriangle(Vector3 corner0, Vector3 corner1, Vector3 corner2, Color color)
+		{
+			Vector3 norm = new Plane(corner0, corner1, corner2).Normal;
+			Vertex[] ret = new Vertex[3];
+			ret[0] = new Vertex(corner0, color, norm);
+			ret[1] = new Vertex(corner1, color, norm);
+			ret[2] = new Vertex(corner2, color, norm);
+			return ret;
+		}
+
     }
 
 

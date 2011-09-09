@@ -19,6 +19,7 @@ namespace Direct3DLib
 	//[TypeConverter(typeof(BasicTypeConverter))]
 	public class Shape : Object3D
 	{
+
 		private bool mPick = true;
 		public virtual bool CanPick { get { return mPick; } set { mPick = value; } }
 		private Vertex[] mSelectedVerts = new Vertex[3];
@@ -26,7 +27,7 @@ namespace Direct3DLib
 
 		private VertexList mVList = new VertexList();
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-		public VertexList Vertices { get { return mVList; } set { mVList = value; } }
+		public VertexList Vertices { get { return mVList; } set { mVList = value; this.Update(); } }
 		private int selectedIndex = 0;
 		public int SelectedVertexIndex { get { return selectedIndex; } }
 
@@ -95,7 +96,7 @@ namespace Direct3DLib
 			Vertices = new VertexList(vertices);
 		}
 
-		public virtual void AutoGenerateIndices()
+		protected virtual void AutoGenerateIndices()
 		{
 			Vertices.Indices = null;
 		}

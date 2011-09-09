@@ -82,6 +82,7 @@ float CalculateIntensity(float4 inNorm)
 float4 CalculateColor(float4 inColor)
 {
 	float4 color = inColor;
+	color.w = 1;
 
 	if(TextureIndex >= 0)
 	{
@@ -134,7 +135,7 @@ float4 PS( PS_IN input ) : SV_Target
 	finalIntensity = CalculateIntensity(input.norm);
 	final =  finalIntensity*color;
 	// Add back in Alpha, as it will be handled by the Alpha Blend operation.
-	final.w = input.col.w;
+	final.w = color.w * input.col.w;
 	return final;
 }
  

@@ -70,19 +70,16 @@ namespace Direct3DLib
 			get { return shaderHelper.ConstantBufferSet.LightDirectionalIntensity; }
 			set { shaderHelper.ConstantBufferSet.LightDirectionalIntensity = value; }
 		}
+		private float ambientIntensity = 1.0f;
 		public float LightAmbientIntensity
 		{
-			get { return shaderHelper.ConstantBufferSet.LightAmbientIntensity; }
-			set { shaderHelper.ConstantBufferSet.LightAmbientIntensity = value; }
+			get { return ambientIntensity; }
+			set { ambientIntensity = value;  }
 		}
 
 		private List<Shape> shapeList = new List<Shape>();
 		public List<Shape> ShapeList { get { return shapeList; } set { shapeList = value; } }
 
-		//private long prevTick1 = 100;
-		//private long prevTick2 = 99;
-		//private double refreshRate = 100;
-		//public double RefreshRate { get { return refreshRate; } }
 
 		public ShaderHelper Shader { get { return shaderHelper; } }
 
@@ -115,8 +112,6 @@ namespace Direct3DLib
 		private ShaderHelper shaderHelper = new ShaderHelper();
 		private ShaderSignature shaderSignature;
 		private Effect shaderEffect;
-		private RasterizerState rasterCW;
-		private RasterizerState rasterCCW;
 
 		#endregion
 
@@ -129,18 +124,45 @@ namespace Direct3DLib
 
 		public void UpdateShape(Shape s)
 		{
-			if (shapeList.Contains(s))
-			{
-				s.Update(device, shaderSignature);
-			}
+			s.Update(device, shaderSignature);
+
 		}
 
 		public Shape PickObjectAt(Point screenLocation)
+		{
+			Shape shape = Pick2DObjectAt(screenLocation);
+			if (shape == null)
+				shape = Pick3DObjectAt(screenLocation);
+			return shape;
+		}
+
+		Shape Pick2DObjectAt(Point screenLocation)
+		{
+			Ray ray = Get2DRayFromScreenPoint(screenLocation);
+			Shape ret = null;
+			double minZ = float.MaxValue;
+			foreach (Shape s in shapeList.FindAll(s => (s is Shape2D)))
+			{
+				if (!s.CanPick) continue;
+				float dist = 0;
+
+				bool ints = s.RayIntersects(ray, out dist);
+				if (ints && dist < minZ)
+				{
+					ret = s;
+					minZ = dist;
+					ret = s;
+				}
+			}
+			return ret;
+		}
+
+		Shape Pick3DObjectAt(Point screenLocation)
         {
-			Ray ray = GetRayFromScreenPoint(screenLocation);
+			Ray ray = Get3DRayFromScreenPoint(screenLocation); 
 			Shape ret = null;
             double minZ = float.MaxValue;
-			foreach (Shape s in shapeList)
+			foreach (Shape s in shapeList.FindAll(s=>!(s is Shape2D)))
             {
                 if (!s.CanPick) continue;
                 float dist = 0;
@@ -156,13 +178,29 @@ namespace Direct3DLib
             return ret;
         }
 
+		public Ray Get2DRayFromScreenPoint(Point screenLocation)
+		{
+			Point p = screenLocation;
+			float h = mParent.Height;
+			float w = mParent.Width;
+			Vector3 rayDir = Vector3.UnitZ;
+			Vector3 rayOrigin = new Vector3()
+			{
+				X = (((2.0f * p.X) / w) - 1) / 1,
+				Y = -(((2.0f * p.Y) / h) - 1) / 1,
+				Z = 0
+			};
 
-		public Ray GetRayFromScreenPoint(Point screenLocation)
+			Matrix trans = Matrix.Invert(Get2DTransform(false));
+			//rayDir = Vector3.TransformCoordinate(rayDir, trans);
+			rayOrigin = Vector3.TransformCoordinate(rayOrigin, trans);
+			Ray ray = new Ray(rayOrigin, rayDir);
+			return ray;
+		}
+		public Ray Get3DRayFromScreenPoint(Point screenLocation)
 		{
 			Point p = screenLocation;
 
-			Vector3 nearClick = new Vector3(p.X, p.Y, camera.ZClipNear);
-			Vector3 farClick = new Vector3(p.X, p.Y, camera.ZClipFar);
 			Vector3 v = new Vector3(0, 0, 0);
 			float h = mParent.Height;
 			float w = mParent.Width;
@@ -227,7 +265,7 @@ namespace Direct3DLib
 			}
         }
 
-		private void UpdateTextures()
+		public void UpdateTextures()
 		{
 			if (isInitialized && textureImages != null)
 			{
@@ -304,6 +342,7 @@ namespace Direct3DLib
 
         public void Render()
         {
+			
 			//UpdateRefreshRate();
             if (IsInitialized)
             {
@@ -311,11 +350,12 @@ namespace Direct3DLib
 				{
 					// Clear the view, resetting to the background colour.
 					Color4 back = new Color4(mParent.BackColor);
-					back.Alpha = 0;
+					//back.Alpha = 0;
 					device.ClearRenderTargetView(renderView, back);
 					device.ClearDepthStencilView(renderDepth, DepthStencilClearFlags.Depth, 1, 0);
-					shaderHelper.ConstantBufferSet.ViewProj = Camera.World;
-					RenderAllShapes();
+					RemoveDisposedShapes();
+					RenderAll3DShapes();
+					RenderAll2DShapes();
 					// Present!
 					swapChain.Present(0, PresentFlags.None);
 				}
@@ -323,29 +363,60 @@ namespace Direct3DLib
             }
         }
 
-		private void RenderAllShapes()
+		void RemoveDisposedShapes()
 		{
 			List<Shape> disposedShapes = new List<Shape>();
-			foreach (Shape shape in shapeList)
+			foreach (Shape s in shapeList)
 			{
-				if (shape.IsDisposed)
-					disposedShapes.Add(shape);
-				else
+				if (s.IsDisposed)
+					disposedShapes.Add(s);
+			}
+			foreach (Shape s in disposedShapes)
+				shapeList.Remove(s);
+		}
+
+		private void RenderAll3DShapes()
+		{
+			shaderHelper.ConstantBufferSet.LightAmbientIntensity = ambientIntensity;
+			shaderHelper.ConstantBufferSet.ViewProj = Camera.World;
+			foreach (Shape shape in shapeList.FindAll(s => !(s is Shape2D)))
+			{
+				BoundingBox bbInWorld = Direct3DEngine.BoundingBoxMultiplyMatrix(shape.MaxBoundingBox, shape.World);
+				bool onScreen = BoundingBoxOnScreenFine(bbInWorld);
+				if (!onScreen)
+					onScreen = BoundingBoxOnScreenCoarse(bbInWorld);
+				if (onScreen)
 				{
-					BoundingBox bbInWorld = Direct3DEngine.BoundingBoxMultiplyMatrix(shape.MaxBoundingBox, shape.World);
-					bool onScreen = BoundingBoxOnScreenFine(bbInWorld);
-					if (!onScreen)
-						onScreen = BoundingBoxOnScreenCoarse(bbInWorld);
-					if (onScreen)
-					{
-						shape.Render(device, shaderHelper);
-					}
+					shape.Render(device, shaderHelper);
 				}
+
 			}
-			foreach (Shape shape in disposedShapes)
+		}
+
+
+		void RenderAll2DShapes()
+		{
+			shaderHelper.ConstantBufferSet.LightAmbientIntensity = 1;
+			shaderHelper.ConstantBufferSet.ViewProj = Get2DTransform(false);
+			//shaderHelper.ConstantBufferSet.ViewProj = Camera.Proj;
+			foreach (Shape shape in shapeList.FindAll(s => s is Shape2D))
 			{
-				shapeList.Remove(shape);
+				shape.Render(device, shaderHelper);
 			}
+		}
+
+
+		Matrix Get2DTransform(bool reverse)
+		{
+			float w = (float)mParent.Width;
+			float h = (float)mParent.Height;
+			Matrix scale = Matrix.Scaling(new Vector3(2 / w, 2 / h, 1));
+			Matrix trans = Matrix.Translation(new Vector3(-1, 1, 0));
+			if (!reverse)
+				return scale * trans;
+			else
+				return trans * scale;
+			//return scale;
 		}
 
 		private bool BoundingBoxOnScreenCoarse(BoundingBox bb)
@@ -355,7 +426,7 @@ namespace Direct3DLib
 				for (int k = 0; k < s; k++)
 				{
 					Point p = new Point(i * mParent.Width / (s-1), k * mParent.Height / (s - 1));
-					Ray ray = GetRayFromScreenPoint(p);
+					Ray ray = Get3DRayFromScreenPoint(p);
 					float f = 0;
 					if (Ray.Intersects(ray, bb, out f))
 						return true;

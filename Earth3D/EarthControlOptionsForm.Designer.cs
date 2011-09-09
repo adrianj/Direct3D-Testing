@@ -51,6 +51,7 @@
 			this.useGisCheck = new System.Windows.Forms.CheckBox();
 			this.autoDownloadCheck = new System.Windows.Forms.CheckBox();
 			this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
+			this.showGridCheck = new System.Windows.Forms.CheckBox();
 			this.tableLayoutPanel1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.keySpeedBox)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.maxZoomBox)).BeginInit();
@@ -138,6 +139,7 @@
 			this.tableLayoutPanel1.Controls.Add(this.fixZoomCheck, 0, 9);
 			this.tableLayoutPanel1.Controls.Add(this.useGisCheck, 0, 8);
 			this.tableLayoutPanel1.Controls.Add(this.autoDownloadCheck, 1, 8);
+			this.tableLayoutPanel1.Controls.Add(this.showGridCheck, 2, 9);
 			this.tableLayoutPanel1.Location = new System.Drawing.Point(12, 12);
 			this.tableLayoutPanel1.Name = "tableLayoutPanel1";
 			this.tableLayoutPanel1.RowCount = 10;
@@ -383,6 +385,17 @@
 			this.tableLayoutPanel2.Size = new System.Drawing.Size(469, 32);
 			this.tableLayoutPanel2.TabIndex = 6;
 			// 
+			// showGridCheck
+			// 
+			this.showGridCheck.Anchor = System.Windows.Forms.AnchorStyles.Left;
+			this.showGridCheck.AutoSize = true;
+			this.showGridCheck.Location = new System.Drawing.Point(315, 289);
+			this.showGridCheck.Name = "showGridCheck";
+			this.showGridCheck.Size = new System.Drawing.Size(75, 17);
+			this.showGridCheck.TabIndex = 22;
+			this.showGridCheck.Text = "Show Grid";
+			this.showGridCheck.UseVisualStyleBackColor = true;
+			// 
 			// EarthControlOptionsForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -428,5 +441,6 @@
 		private System.Windows.Forms.Label label7;
 		private System.Windows.Forms.CheckBox fixTerrainCheck;
 		private System.Windows.Forms.CheckBox autoDownloadCheck;
+		private System.Windows.Forms.CheckBox showGridCheck;
 	}
 }

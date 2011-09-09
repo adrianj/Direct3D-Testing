@@ -77,7 +77,6 @@ namespace Direct3DLib
 		protected override void DestroyInstance(object instance)
 		{
 			ICollection collection = GetCollection();
-			MessageBox.Show("" + Context + ", " + Context.Instance + ", " + collection+", "+collection.Count);
 			if (instance is IDisposable)
 			{
 				IDisposable s = instance as IDisposable;

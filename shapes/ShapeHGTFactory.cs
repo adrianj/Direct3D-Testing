@@ -196,8 +196,6 @@ namespace Direct3DLib
 			if (nColumnsToRead + startCol > COLUMNS_PER_FILE+1)
 				nColumnsToRead = COLUMNS_PER_FILE - startCol;
 
-			if (nRowsToRead != nColumnsToRead)
-				Console.WriteLine("" + nRowsToRead + ", " + nColumnsToRead);
 		}
 
 

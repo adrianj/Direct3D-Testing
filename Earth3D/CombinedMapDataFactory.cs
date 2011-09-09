@@ -20,10 +20,8 @@ namespace Direct3DLib
 		public double UnitsPerDegreeLatitude { get { return shapeFactory.UnitsPerDegreeLatitude; } set { shapeFactory.UnitsPerDegreeLatitude = value; } }
 		public double UnitsPerMetreElevation { get { return shapeFactory.UnitsPerMetreElevation; } set { shapeFactory.UnitsPerMetreElevation = value; } }
 
-		//private Dictionary<MapDescriptor, Shape> TerrainToProcess = new Dictionary<MapDescriptor, Shape>();
 		private Queue<MapDescriptor> TerrainToProcess = new Queue<MapDescriptor>();
 		private Queue<MapDescriptor> TexturesToProcess = new Queue<MapDescriptor>();
-		//private Dictionary<MapDescriptor, CombinedMapData> TexturesToProcess = new Dictionary<MapDescriptor, CombinedMapData>();
 		private BackgroundWorker terrainWorker = new BackgroundWorker();
 		private BackgroundWorker textureWorker = new BackgroundWorker();
 
@@ -103,8 +101,6 @@ namespace Direct3DLib
 			else
 			{
 				UpdateMapTerrain(newMap);
-				//previouslyCreatedTerrain[md] = newMap;
-				//newMap.CopyShapeFrom(shapeFactory.GenerateNullShape());
 			}
 		}
 

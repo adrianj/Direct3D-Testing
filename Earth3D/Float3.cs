@@ -69,44 +69,109 @@ namespace Direct3DLib
 		{
 			return new Float3(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
 		}
+
+
+		public static Float3 ConvertYawPitchRollToCartesian(Float3 yawPitchRoll)
+		{
+			return ConvertYawPitchRollToCartesian(yawPitchRoll.X, yawPitchRoll.Y, yawPitchRoll.Z);
+		}
+
+		public static Float3 ConvertYawPitchRollToCartesian(double yaw, double pitch, double roll)
+		{
+			Matrix m = Matrix.RotationX(-(float)pitch);
+			m = m * Matrix.RotationZ((float)roll);
+			m = m * Matrix.RotationY((float)yaw);
+			Vector3 vec = Vector3.TransformCoordinate(Vector3.UnitZ, m);
+			return new Float3(vec);
+		}
+
+		public static Float3 ConvertYawPitchRollToPolar(Float3 yawPitchRoll)
+		{
+			Float3 cart = ConvertYawPitchRollToCartesian(yawPitchRoll);
+			return ConvertCartesianToPolar(cart);
+		}
+
+		public static Float3 ConvertCartesianToPolar(Float3 cartesian)
+		{
+			Vector3 vec = cartesian.AsVector3();
+			double radius = vec.Length();
+			double azimuth = Math.Atan2(cartesian.X, cartesian.Z);
+			if (azimuth < 0) azimuth += Math.PI * 2;
+			double elevation = Math.Asin(cartesian.Y / radius);
+			return new Float3(radius, azimuth, elevation);
+		}
+
+		public static Float3 ConvertPolarToCartesian(Float3 polar)
+		{
+			double radius = polar.X;
+			double azimuth = polar.Y;
+			double elevation = polar.Z;
+			double x = radius * Math.Sin(azimuth) * Math.Cos(elevation);
+			double y = radius * Math.Sin(elevation);
+			double z = radius * Math.Cos(azimuth) * Math.Cos(elevation);
+			return new Float3(x, y, z);
+		}
+
+		public static Float3 Average(Float3[] values)
+		{
+			if (values.Length == 0) return new Float3();
+			Float3 sum = new Float3();
+			foreach (Float3 val in values)
+				sum = Float3.Add(sum, val);
+			return new Float3(sum.X / values.Length, sum.Y / values.Length, sum.Z / values.Length);
+		}
+
+		public static Float3[] UnwrapPhase(Float3[] values) { return UnwrapPhase(values, (float)Math.PI); }
+		public static Float3[] UnwrapPhase(Float3[] values, float tolerance)
+		{
+			if (values.Length == 0) return values;
+			Float3[] ret = new Float3[values.Length];
+			ret[0] = values[0];
+			for (int i = 1; i < values.Length; i++)
+			{
+				ret[i] = UnwrapPhase(ret[i - 1], values[i], tolerance);
+			}
+			return ret;
+		}
+
+		public static Float3 UnwrapPhase(Float3 previous, Float3 current, double tolerance)
+		{
+			float x = UnwrapPhase(previous.X, current.X, tolerance);
+			float y = UnwrapPhase(previous.Y, current.Y, tolerance);
+			float z = UnwrapPhase(previous.Z, current.Z, tolerance);
+			return new Float3(x, y, z);
+		}
+
+		public static float UnwrapPhase(double previous, double current, double tolerance)
+		{
+			while (current > previous + tolerance)
+				current -= 2*tolerance;
+			while (current < previous - tolerance)
+				current += 2*tolerance;
+			return (float)current;
+		}
+
+		public static float UnwrapPhase(double phase, bool AllowNegative)
+		{
+			float pi = (float)Math.PI;
+			if (AllowNegative)
+			{
+				while (phase > pi) phase -= 2 * pi;
+				while (phase < -pi) phase += 2 * pi;
+			}
+			else
+			{
+				while (phase > 2 * pi) phase -= 2 * pi;
+				while (phase < 0) phase += 2 * pi;
+			}
+			return (float)phase;
+		}
 	}
 
 	public class Float3TypeConverter : GenericTypeConverter
 	{
 		public Float3TypeConverter() { cType = typeof(Float3); }
-		/*
-		public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
-		{
-			if (sourceType.Equals(typeof(SlimDX.Vector3)))
-				return true;
-			return base.CanConvertFrom(context,sourceType);
-		}
 
-		public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
-		{
-			if (destinationType.Equals(typeof(SlimDX.Vector3)))
-				return true;
-			return base.CanConvertTo(context,destinationType);
-		}
-
-		public override object ConvertFrom(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value)
-		{
-			if(value is SlimDX.Vector3)
-				return new Float3((SlimDX.Vector3)value);
-			return base.ConvertFrom(context,culture,value);
-		}
-
-		public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
-		{			
-			Float3 thisVal = value as Float3;
-			if (destinationType == typeof(SlimDX.Vector3))
-			{
-				return new SlimDX.Vector3(thisVal.X, thisVal.Y, thisVal.Z);
-			}
-			else
-				return base.ConvertTo(context,culture,value,destinationType);
-		}
-		 */
 
 	}
 }

@@ -263,10 +263,19 @@
     </Compile>
     <Compile Include="NullImage.cs" />
     <Compile Include="ObjectCollectionEditor.cs" />
+    <Compile Include="shapes\Compass.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="shapes\ComplexShape.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="shapes\Cone.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="shapes\Grid.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="shapes\Shape2D.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="shapes\ShapeArrayFactory.cs" />
@@ -372,9 +381,11 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\compass.png" />
     <Content Include="textures\auckland_13.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <EmbeddedResource Include="textures\compass.png" />
     <Content Include="textures\flower.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

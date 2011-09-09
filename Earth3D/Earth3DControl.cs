@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
 using SlimDX;
+using System.Drawing;
 
 namespace Direct3DLib
 {
@@ -10,6 +11,8 @@ namespace Direct3DLib
 	{
 		#region Private Fields
 		public const int TEXTURE_OFFSET = ShaderHelper.MAX_TEXTURES - (EarthTiles.TILE_COUNT * EarthTiles.TILE_COUNT);
+		private const int TEXTURES_USED = (EarthTiles.TILE_COUNT * EarthTiles.TILE_COUNT) + 1;
+		private const int TEXTURES_REMAINING = ShaderHelper.MAX_TEXTURES - TEXTURES_USED;
 		private List<string> localTextureFilenames = new List<string>();
 		private List<string> externalTextureFilenames = new List<string>();
 		private EarthTiles earthTiles = new EarthTiles();
@@ -18,6 +21,7 @@ namespace Direct3DLib
 		private EarthControlOptionsForm optionsForm = new EarthControlOptionsForm();
 		#endregion
 
+		public bool ShowGrid { get; set; }
 		public string debugString = "";
 		private double currentLat;
 		private double currentLong;
@@ -36,7 +40,7 @@ namespace Direct3DLib
 			set
 			{
 				currentLat = value.Latitude; currentLong = value.Longitude;
-				SetCameraLocation(EarthProjection.ConvertLatLongElevationToCameraLocation(value, CurrentElevation));
+				this.CameraLocation = EarthProjection.ConvertLatLongElevationToCameraLocation(value, CurrentElevation);
 			}
 		}
 		[CategoryAttribute("Camera, Lighting and Textures")]
@@ -50,7 +54,7 @@ namespace Direct3DLib
 			set
 			{
 				currentEle = value;
-				SetCameraLocation(EarthProjection.ConvertLatLongElevationToCameraLocation(CurrentLatLong, value));
+				this.CameraLocation = EarthProjection.ConvertLatLongElevationToCameraLocation(CurrentLatLong, value);
 			}
 		}
 		public int MaxTextureZoom { get { return EarthTiles.MaxGoogleZoom; } set { if(value <= 20 && value >= 0) EarthTiles.MaxGoogleZoom = value; } }
@@ -86,6 +90,22 @@ namespace Direct3DLib
 			set { Properties.Settings.Default.MapTextureFolder = value; if(!this.DesignMode)Properties.Settings.Default.Save(); }
 		}
 
+		public override Image[] TextureImages
+		{
+			get
+			{
+				Image [] value = new Image[TEXTURES_REMAINING];
+				Array.Copy(base.TextureImages, 0, value, 0, value.Length);
+				return value;
+			}
+			set
+			{
+				Image[] val = new Image[ShaderHelper.MAX_TEXTURES];
+				Array.Copy(val, 0, value, 0, Math.Min(val.Length, TEXTURES_REMAINING));
+				Array.Copy(base.TextureImages, TEXTURES_REMAINING, val, TEXTURES_REMAINING, TEXTURES_USED);
+				base.TextureImages = val;
+			}
+		}
 
 
 		public Earth3DControl()
@@ -93,7 +113,6 @@ namespace Direct3DLib
 			InitializeComponent();
 			InitializeOthers();
 			Engine.Camera.IsFirstPerson = true;
-			//earthTiles.EngineShapeList = Engine.ShapeList;
 		}
 
 		private void InitializeOthers()
@@ -179,35 +198,42 @@ namespace Direct3DLib
 			}
 		}
 
-		private void SetCameraLocation(Float3 camLoc)
+		public void Reset()
 		{
-			//if (!camLoc.Equals(CameraLocation))
-			//{
-				CameraLocation = camLoc;
-				if(this.isInitialized) earthTiles.InitializeAtCameraLocation(new Float3(CameraLocation));
-			//}
+			if (this.isInitialized)
+			{
+				earthTiles.Clear();
+				earthTiles.InitializeAtCameraLocation(CameraLocation);
+				SetGrid();
+			}
 		}
 
 		private void Earth3DControl_Load(object sender, EventArgs e)
 		{
 			if (this.isInitialized)
 			{
+				base.TextureImages[TEXTURE_OFFSET-1] = Direct3DLib.Properties.Resources.compass;
+				this.Engine.UpdateTextures();
 				EarthControlOptionsForm.CheckGlobalSettings();
 				UseTerrainData = Properties.Settings.Default.UseGISData;
-				earthTiles.MapChanged += (o, ev) => {
-					if (ev.Action == ShapeChangeEventArgs.ChangeAction.Add)
-					{
-						if (!Engine.ShapeList.Contains(ev.ChangedShape))
-						{
-							this.InsertShape(0,ev.ChangedShape);
-						}
-					}
-					if (ev.Action == ShapeChangeEventArgs.ChangeAction.Remove)
-					{
-						this.RemoveShape(ev.ChangedShape);
-					}
-				};
-				earthTiles.InitializeAtCameraLocation(new Float3(CameraLocation));
+				earthTiles.MapChanged += new ShapeChangeEventHandler(earthTiles_MapChanged); 
+			}
+			this.Reset();
+		}
+
+		void earthTiles_MapChanged(object sender, ShapeChangeEventArgs e)
+		{
+			if (e.Action == ShapeChangeEventArgs.ChangeAction.Add)
+			{
+				if (!Engine.ShapeList.Contains(e.ChangedShape))
+				{
+					this.InsertShape(0, e.ChangedShape);
+					SetGrid();
+				}
+			}
+			if (e.Action == ShapeChangeEventArgs.ChangeAction.Remove)
+			{
+				this.RemoveShape(e.ChangedShape);
 			}
 		}
 
@@ -215,6 +241,21 @@ namespace Direct3DLib
 		{
 			UpdateOptionsFromControl();
 			optionsForm.Show();
+		}
+
+		public override float CameraPan
+		{
+			get { return base.CameraPan; }
+			set
+			{
+				base.CameraPan = value;
+				UpdateCompass();
+			}
+		}
+
+		public void UpdateCompass()
+		{
+			Compass.Rotation = new Vector3(0, 0, -CameraPan+(float)Math.PI/2);
 		}
 
 		private void UpdateControlFromOptions()
@@ -225,7 +266,7 @@ namespace Direct3DLib
 			if (UseTerrainData != optionsForm.UseGIS)
 			{
 				UseTerrainData = optionsForm.UseGIS;
-				EarthControlOptionsForm.UseGisCheckChanged();
+				//EarthControlOptionsForm.UseGisCheckChanged();
 			}
 			FixZoom = optionsForm.FixZoom;
 			AutomaticallyDownloadMaps = optionsForm.AutomaticallyDownloadMaps;
@@ -233,8 +274,11 @@ namespace Direct3DLib
 			this.TextureFolder = optionsForm.TextureFolder;
 			CurrentLatLong = optionsForm.GotoLatLong;
 			CurrentElevation = optionsForm.GotoElevation;
+			ShowGrid = optionsForm.ShowGrid;
+			this.Reset();
 			UpdateOptionsFromControl();
 		}
+
 		private void UpdateOptionsFromControl()
 		{
 			optionsForm.GotoLatLong = CurrentLatLong;
@@ -247,7 +291,30 @@ namespace Direct3DLib
 			optionsForm.FixTerrain = FixTerrain;
 			optionsForm.TerrainFolder = this.TerrainFolder;
 			optionsForm.TextureFolder = this.TextureFolder;
+			optionsForm.ShowGrid = this.ShowGrid;
 		}
 
+		void SetGrid()
+		{
+			if (ShowGrid)
+			{
+				float scale = (float)(EarthProjection.UnitsPerDegreeLatitude * earthTiles.CurrentDelta) / 16;
+				Vector3 loc = new Vector3(RoundToNearestInt(CameraLocation.X, scale), 0, RoundToNearestInt(CameraLocation.Z, scale));
+				loc.X -= scale * grid.XCount / 2;
+				loc.Z -= scale * grid.ZCount / 2;
+				grid.Location = loc;
+				grid.Scale = new Vector3(scale, scale, scale);
+				grid.Topology = SlimDX.Direct3D10.PrimitiveTopology.LineList;
+			}
+			else
+				grid.Topology = SlimDX.Direct3D10.PrimitiveTopology.Undefined;
+		}
+
+		float RoundToNearestInt(float value, float scale)
+		{
+			double val = Math.Round(value/scale);
+			val *= scale;
+			return (float)val;
+		}
 	}
 }
