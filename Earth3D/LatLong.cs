@@ -78,7 +78,7 @@ namespace Direct3DLib
 		public static LatLong MaxValue = new LatLong(90, 180);
 	}
 
-	public class LatLongTypeConverter : GenericTypeConverter
+	public class LatLongTypeConverter : DTALib.GenericTypeConverter
 	{
 		public LatLongTypeConverter() { cType = typeof(LatLong); }
 	}

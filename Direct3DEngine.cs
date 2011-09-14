@@ -14,7 +14,7 @@ using Vector3 = SlimDX.Vector3;
 
 namespace Direct3DLib
 {
-	[TypeConverter(typeof(BasicTypeConverter))]
+	[TypeConverter(typeof(DTALib.BasicTypeConverter))]
     public class Direct3DEngine : IDisposable
     {
         #region Parent Declaration and Constructor

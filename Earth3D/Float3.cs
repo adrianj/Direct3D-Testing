@@ -168,7 +168,7 @@ namespace Direct3DLib
 		}
 	}
 
-	public class Float3TypeConverter : GenericTypeConverter
+	public class Float3TypeConverter : DTALib.GenericTypeConverter
 	{
 		public Float3TypeConverter() { cType = typeof(Float3); }
 

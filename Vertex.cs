@@ -17,7 +17,8 @@ namespace Direct3DLib
         Vector3 Position { get; set; }
     }
 
-    [StructLayout(LayoutKind.Sequential),TypeConverterAttribute(typeof(BasicTypeConverter))]
+	[StructLayout(LayoutKind.Sequential)]
+	[TypeConverterAttribute(typeof(DTALib.BasicTypeConverter))]
     public struct Vertex : IVertex
     {
         private Vector4 mPosition;

@@ -253,7 +253,6 @@
     <Compile Include="Earth3D\LatLong.cs" />
     <Compile Include="Earth3D\MapFileAccessor.cs" />
     <Compile Include="Earth3D\StaticMapFactory.cs" />
-    <Compile Include="GenericTypeConverter.cs" />
     <Compile Include="HighFrequencyTimer.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -262,7 +261,6 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="NullImage.cs" />
-    <Compile Include="ObjectCollectionEditor.cs" />
     <Compile Include="shapes\Compass.cs">
       <SubType>Component</SubType>
     </Compile>

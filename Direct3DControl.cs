@@ -98,11 +98,11 @@ namespace Direct3DLib
 		public float LightAmbientIntensity { get { return engine.LightAmbientIntensity; } set { engine.LightAmbientIntensity = value; } }
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
-		[EditorAttribute(typeof(NoEditor),typeof(UITypeEditor))]
+		[EditorAttribute(typeof(DTALib.NoEditor), typeof(UITypeEditor))]
 		public virtual Image[] TextureImages { get { return engine.TextureImages; } set { engine.TextureImages = value; } }
 
 		private object mSelectedObject = null;
-		[TypeConverter(typeof(BasicTypeConverter))]
+		[TypeConverter(typeof(DTALib.BasicTypeConverter))]
 		public object SelectedObject { get { return mSelectedObject; } set { mSelectedObject = value; FireSelectedObjectChangedEvent(value); } }
 
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]

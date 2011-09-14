@@ -6,7 +6,7 @@ using SlimDX.Direct3D10;
 
 namespace Direct3DLib
 {
-    [TypeConverter(typeof(BasicTypeConverter))]
+	[TypeConverter(typeof(DTALib.BasicTypeConverter))]
     public class VertexList : List<Vertex>
     {
         private PrimitiveTopology mTopology = PrimitiveTopology.TriangleList;

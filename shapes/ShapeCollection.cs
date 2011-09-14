@@ -143,7 +143,7 @@ namespace Direct3DLib
 		}
 	}
 
-	public class ShapeCollectionEditor : ObjectCollectionEditor
+	public class ShapeCollectionEditor : DTALib.ObjectCollectionEditor
 	{
 		public ShapeCollectionEditor(Type type) : base(type) { }
 		protected override Type[] GetTypes()

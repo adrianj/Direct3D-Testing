@@ -7,7 +7,7 @@ using System.ComponentModel;
 
 namespace Direct3DLib
 {
-	[TypeConverter(typeof(BasicTypeConverter))]
+	[TypeConverter(typeof(DTALib.BasicTypeConverter))]
 	public class CombinedMapData : Shape
 	{
 		private MapDescriptor desc = new MapDescriptor(0, 0, 10,0.125);
