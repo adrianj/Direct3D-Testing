@@ -99,7 +99,7 @@ namespace Direct3DLib
 		[CategoryAttribute("Camera, Lighting and Textures")]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[EditorAttribute(typeof(DTALib.NoEditor), typeof(UITypeEditor))]
-		public virtual Image[] TextureImages { get { return engine.TextureImages; } set { engine.TextureImages = value; } }
+		public virtual Image[][] TextureImages { get { return engine.TextureImages; } set { engine.TextureImages = value; } }
 
 		private object mSelectedObject = null;
 		[TypeConverter(typeof(DTALib.BasicTypeConverter))]

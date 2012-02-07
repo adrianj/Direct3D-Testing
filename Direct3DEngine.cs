@@ -83,14 +83,16 @@ namespace Direct3DLib
 
 		public ShaderHelper Shader { get { return shaderHelper; } }
 
-		private Image [] textureImages;
-		public Image [] TextureImages
+		private Image [][] textureImages;
+		public Image [][] TextureImages
 		{
 			get
 			{
 				if (textureImages == null)
 				{
-					textureImages = new Image[ShaderHelper.MAX_TEXTURES];
+					textureImages = new Image[ShaderHelper.MAX_TEXTURES][];
+					for (int i = 0; i < ShaderHelper.MAX_TEXTURES; i++)
+						textureImages[i] = new Image[3];
 				}
 				return textureImages;
 			}
@@ -272,7 +274,7 @@ namespace Direct3DLib
 				for (int i = 0; i < Math.Min(textureImages.Length, ShaderHelper.MAX_TEXTURES); i++)
 				{
 					if(textureImages[i] != null)
-						shaderHelper.TextureSet[i].TextureImage = ImageConverter.ConvertImageToTexture2D(device, textureImages[i]);
+						shaderHelper.TextureSet[i].TextureImage = ImageConverter.ConvertImagesToTexture2D(device, textureImages[i]);
 				}
 			}
 		}

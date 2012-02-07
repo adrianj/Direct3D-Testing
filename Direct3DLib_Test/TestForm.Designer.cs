@@ -30,6 +30,7 @@
         {
 			Direct3DLib.Float3 float31 = new Direct3DLib.Float3();
 			Direct3DLib.Float3 float32 = new Direct3DLib.Float3();
+			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TestForm));
 			this.textBox1 = new System.Windows.Forms.TextBox();
 			this.textBox2 = new System.Windows.Forms.TextBox();
 			this.propertyGrid = new System.Windows.Forms.PropertyGrid();
@@ -41,13 +42,14 @@
 			this.label3 = new System.Windows.Forms.Label();
 			this.button1 = new System.Windows.Forms.Button();
 			this.button2 = new System.Windows.Forms.Button();
-			this.earth3DControl = new Direct3DLib.Earth3DControl();
+			this.earth3DControl = new Direct3DLib.Direct3DControl();
+			this.square1 = new Direct3DLib.Square();
 			this.SuspendLayout();
 			// 
 			// textBox1
 			// 
-			this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.textBox1.Location = new System.Drawing.Point(12, 6);
 			this.textBox1.Multiline = true;
 			this.textBox1.Name = "textBox1";
@@ -56,8 +58,8 @@
 			// 
 			// textBox2
 			// 
-			this.textBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.textBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.textBox2.Location = new System.Drawing.Point(12, 169);
 			this.textBox2.Multiline = true;
 			this.textBox2.Name = "textBox2";
@@ -66,8 +68,8 @@
 			// 
 			// propertyGrid
 			// 
-			this.propertyGrid.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Right)));
+			this.propertyGrid.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.propertyGrid.Location = new System.Drawing.Point(792, 121);
 			this.propertyGrid.Name = "propertyGrid";
 			this.propertyGrid.Size = new System.Drawing.Size(339, 525);
@@ -156,49 +158,111 @@
 			// earth3DControl
 			// 
 			this.earth3DControl.AllowDrop = true;
-			this.earth3DControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-						| System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
-			this.earth3DControl.AutomaticallyDownloadMaps = true;
 			this.earth3DControl.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-			this.earth3DControl.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 			this.earth3DControl.BothMouseFunction = Direct3DLib.Direct3DControl.MouseOption.CameraTranslateXZ;
-			float31.X = 15070F;
-			float31.Y = 7F;
-			float31.Z = -3410F;
+			float31.X = -2F;
+			float31.Y = 2F;
+			float31.Z = -2F;
 			this.earth3DControl.CameraLocation = float31;
-			this.earth3DControl.CameraPan = 1.653334F;
-			this.earth3DControl.CameraTilt = -1.210595F;
-			this.earth3DControl.FixTerrain = false;
-			this.earth3DControl.FixZoom = false;
-			this.earth3DControl.KeyboardMovementSpeed = 5F;
+			this.earth3DControl.CameraPan = 1.570796F;
+			this.earth3DControl.CameraTilt = -1.570796F;
+			this.earth3DControl.KeyboardMovementSpeed = 50F;
 			this.earth3DControl.LeftMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Select;
-			this.earth3DControl.LightAmbientIntensity = 0.2F;
+			this.earth3DControl.LightAmbientIntensity = 1F;
 			float32.X = 1F;
 			float32.Y = 1F;
 			float32.Z = 1F;
 			this.earth3DControl.LightDirection = float32;
-			this.earth3DControl.LightDirectionalIntensity = 0.8F;
+			this.earth3DControl.LightDirectionalIntensity = 0.7F;
 			this.earth3DControl.Location = new System.Drawing.Point(12, 214);
-			this.earth3DControl.MaxTextureZoom = 16;
-			this.earth3DControl.MouseMovementSpeed = 5F;
+			this.earth3DControl.MouseMovementSpeed = 50F;
 			this.earth3DControl.Name = "earth3DControl";
 			this.earth3DControl.RightMouseFunction = Direct3DLib.Direct3DControl.MouseOption.Rotate;
 			this.earth3DControl.SelectedObject = null;
-			this.earth3DControl.ShowGrid = true;
-			this.earth3DControl.Size = new System.Drawing.Size(774, 433);
+			this.earth3DControl.ShapeList.Add(this.square1);
+			this.earth3DControl.Size = new System.Drawing.Size(774, 432);
 			this.earth3DControl.TabIndex = 15;
-			this.earth3DControl.TextureImages = new System.Drawing.Image[] {
-        null,
-        null,
-        null,
-        null,
-        null,
-        null};
-			this.earth3DControl.ZClipFar = 100000F;
-			this.earth3DControl.ZClipNear = 0.005F;
-			this.earth3DControl.Zoom = 1F;
-			this.earth3DControl.Load += new System.EventHandler(this.earth3DControl_Load);
+			this.earth3DControl.TextureImages = new System.Drawing.Image[][] {
+        new System.Drawing.Image[] {
+                ((System.Drawing.Image)(((System.Drawing.Image)(resources.GetObject("earth3DControl.TextureImages"))))),
+                ((System.Drawing.Image)(((System.Drawing.Image)(resources.GetObject("earth3DControl.TextureImages1"))))),
+                ((System.Drawing.Image)(((System.Drawing.Image)(resources.GetObject("earth3DControl.TextureImages2")))))},
+        new System.Drawing.Image[] {
+                null,
+                null,
+                null},
+        new System.Drawing.Image[] {
+                null,
+                null,
+                null},
+        new System.Drawing.Image[] {
+                null,
+                null,
+                null},
+        new System.Drawing.Image[] {
+                null,
+                null,
+                null},
+        new System.Drawing.Image[] {
+                null,
+                null,
+                null},
+        new System.Drawing.Image[] {
+                null,
+                null,
+                null},
+        new System.Drawing.Image[] {
+                null,
+                null,
+                null},
+        new System.Drawing.Image[] {
+                null,
+                null,
+                null},
+        new System.Drawing.Image[] {
+                null,
+                null,
+                null},
+        new System.Drawing.Image[] {
+                null,
+                null,
+                null},
+        new System.Drawing.Image[] {
+                null,
+                null,
+                null},
+        new System.Drawing.Image[] {
+                null,
+                null,
+                null},
+        new System.Drawing.Image[] {
+                null,
+                null,
+                null},
+        new System.Drawing.Image[] {
+                null,
+                null,
+                null},
+        new System.Drawing.Image[] {
+                null,
+                null,
+                null}};
+			this.earth3DControl.ZClipFar = 100F;
+			this.earth3DControl.ZClipNear = 0.1F;
+			this.earth3DControl.Zoom = 5F;
+			// 
+			// square1
+			// 
+			this.square1.CanPick = true;
+			this.square1.Location = new SlimDX.Vector3(0F, 0F, 0F);
+			this.square1.Name = "square1";
+			this.square1.Rotation = new SlimDX.Vector3(0F, 0F, 0F);
+			this.square1.Scale = new SlimDX.Vector3(100F, 1F, 100F);
+			this.square1.SolidColor = System.Drawing.Color.Empty;
+			this.square1.Tag = null;
+			this.square1.TextureIndex = -1;
+			this.square1.Topology = SlimDX.Direct3D10.PrimitiveTopology.TriangleList;
+			this.square1.Transparency = ((byte)(255));
 			// 
 			// TestForm
 			// 
@@ -239,6 +303,7 @@
 		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.Button button1;
 		private System.Windows.Forms.Button button2;
-		private Direct3DLib.Earth3DControl earth3DControl;
+		private Direct3DLib.Direct3DControl earth3DControl;
+		private Direct3DLib.Square square1;
     }
 }

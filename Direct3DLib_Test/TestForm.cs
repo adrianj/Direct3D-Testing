@@ -45,6 +45,8 @@ namespace Direct3DLib_Test
             };
 			propertyGrid.SelectedObject = earth3DControl;
 			earth3DControl.UpdateShapes();
+			square1.TextureIndex = 0;
+			
         }
 
 

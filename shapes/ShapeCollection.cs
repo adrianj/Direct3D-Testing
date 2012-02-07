@@ -146,7 +146,7 @@ namespace Direct3DLib
 	public class ShapeCollectionEditor : DTALib.ObjectCollectionEditor
 	{
 		public ShapeCollectionEditor(Type type) : base(type) { }
-		protected override Type[] GetTypes()
+		protected override IEnumerable<Type> GetTypes()
 		{
 			List<Type> types = new List<Type>();
 			Assembly asm = Assembly.GetExecutingAssembly();

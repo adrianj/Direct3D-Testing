@@ -10,7 +10,7 @@ namespace Direct3DLib
 	public class EarthTiles
 	{
 		public enum MapPosition { None=0x00, N=0x01, NE=0x03, E=0x02, SE=0x06, S=0x04, SW=0x0C, W=0x08, NW=0x09, Up=0x10, Down = 0x20 };
-		public const int TILE_COUNT = 3;
+		public const int TILE_COUNT = 1;
 		public const double MAX_ELEVATION = 20;
 		public static int MaxGoogleZoom = 14;
 		private int MaxDeltaFactor = 15;

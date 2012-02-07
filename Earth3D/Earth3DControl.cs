@@ -90,20 +90,25 @@ namespace Direct3DLib
 			set { Properties.Settings.Default.MapTextureFolder = value; if(!this.DesignMode)Properties.Settings.Default.Save(); }
 		}
 
-		public override Image[] TextureImages
+		public override Image[][] TextureImages
 		{
 			get
 			{
-				Image [] value = new Image[TEXTURES_REMAINING];
-				Array.Copy(base.TextureImages, 0, value, 0, value.Length);
+				Image [][] value = new Image[TEXTURES_REMAINING][];
+				for (int i = 0; i < ShaderHelper.MAX_TEXTURES; i++)
+					value[i] = new Image[] { base.TextureImages[i][1] };
 				return value;
 			}
 			set
 			{
 				Image[] val = new Image[ShaderHelper.MAX_TEXTURES];
+				int numToCopy = Math.Min(val.Length, TEXTURES_REMAINING);
 				Array.Copy(val, 0, value, 0, Math.Min(val.Length, TEXTURES_REMAINING));
 				Array.Copy(base.TextureImages, TEXTURES_REMAINING, val, TEXTURES_REMAINING, TEXTURES_USED);
-				base.TextureImages = val;
+				Image[][] aval = new Image[ShaderHelper.MAX_TEXTURES][];
+				for (int i = 0; i < ShaderHelper.MAX_TEXTURES; i++)
+					aval[i] = new Image[] { val[i] };
+				base.TextureImages = aval;
 			}
 		}
 
@@ -212,7 +217,7 @@ namespace Direct3DLib
 		{
 			if (this.isInitialized)
 			{
-				base.TextureImages[TEXTURE_OFFSET-1] = Direct3DLib.Properties.Resources.compass;
+				base.TextureImages[TEXTURE_OFFSET-1][0] = Direct3DLib.Properties.Resources.compass;
 				this.Engine.UpdateTextures();
 				EarthControlOptionsForm.CheckGlobalSettings();
 				UseTerrainData = Properties.Settings.Default.UseGISData;

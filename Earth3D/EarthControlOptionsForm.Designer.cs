@@ -241,14 +241,11 @@
 			this.textureBox.Filename = "";
 			this.textureBox.Filter = "All Files (*.*)|*.*";
 			this.textureBox.InitialDirectory = "";
-			this.textureBox.Label = "";
 			this.textureBox.Location = new System.Drawing.Point(159, 98);
-			this.textureBox.MaxPreviousFiles = 5;
 			this.textureBox.Name = "textureBox";
 			this.textureBox.SaveFile = false;
 			this.textureBox.Size = new System.Drawing.Size(307, 21);
 			this.textureBox.TabIndex = 9;
-			this.textureBox.TextBoxReadOnly = true;
 			// 
 			// label2
 			// 
@@ -269,14 +266,11 @@
 			this.terrainBox.Filename = "";
 			this.terrainBox.Filter = "All Files (*.*)|*.*";
 			this.terrainBox.InitialDirectory = "";
-			this.terrainBox.Label = "";
 			this.terrainBox.Location = new System.Drawing.Point(159, 67);
-			this.terrainBox.MaxPreviousFiles = 5;
 			this.terrainBox.Name = "terrainBox";
 			this.terrainBox.SaveFile = false;
 			this.terrainBox.Size = new System.Drawing.Size(307, 21);
 			this.terrainBox.TabIndex = 8;
-			this.terrainBox.TextBoxReadOnly = true;
 			// 
 			// label5
 			// 

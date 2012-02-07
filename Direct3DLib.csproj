@@ -256,7 +256,7 @@
     <Compile Include="HighFrequencyTimer.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ImageConverter.cs" />
+    <Compile Include="textures\ImageConverter.cs" />
     <Compile Include="NamedComponent.cs">
       <SubType>Component</SubType>
     </Compile>

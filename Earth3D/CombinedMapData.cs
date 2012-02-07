@@ -17,13 +17,18 @@ namespace Direct3DLib
 		public double ShapeDelta { get { return desc.Delta; } set { desc.Delta = value; } }
 		public int ZoomLevel { get { return desc.ZoomLevel; } set { desc.ZoomLevel = value; } }
 		private bool updateRequired = true;
-		private Image image;
+		//private Image image;
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-		public Image TextureImage { get { return image; } set { if (image != value && value != null) updateRequired = true; image = value; } }
+		public Image TextureImage { get { return TextureMipMaps[0]; } set { TextureMipMaps = new Image[] { value }; } }
+
+
+		Image[] mipmaps;
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public Image[] TextureMipMaps { get { return mipmaps; } set { if (mipmaps != value && value.Length > 0) updateRequired = true; mipmaps = value; } }
 
 		public CombinedMapData() : base()
 		{
-			image = null;
+			TextureImage = new NullImage().ImageClone;
 		}
 		public CombinedMapData(CombinedMapData copy) : this()
 		{
@@ -41,7 +46,7 @@ namespace Direct3DLib
 		public bool Equals(CombinedMapData other)
 		{
 			if (!other.GetMapDescriptor().Equals(desc)) return false;
-			if (other.image != this.image) return false;
+			if (other.TextureMipMaps != this.TextureMipMaps) return false;
 			return base.Equals(other);
 		}
 
@@ -74,29 +79,34 @@ namespace Direct3DLib
 		private void SetTextureInSeperateThread(SlimDX.Direct3D10.Device device, ShaderHelper helper)
 		{
 			updateRequired = false;
-			if (this.image == null)
+			if (this.TextureMipMaps == null || this.TextureMipMaps.Length < 1)
 			{
 				return;
+			}
+			Image[] clones = new Image[this.mipmaps.Length];
+			for (int i = 0; i < mipmaps.Length; i++)
+			{
+				clones[i] = mipmaps[i].Clone() as Image;
 			}
 			BackgroundWorker worker = new BackgroundWorker();
 			worker.DoWork += (o, e) =>
 			{
-				Image img = (Image)e.Argument;
+				Image [] img = e.Argument as Image[];
 				try
 				{
 					if (TextureIndex >= 0 && img != null)
 					{
-						byte[] bytes = ImageConverter.ConvertImageToBytes(img);
+						byte[] bytes = ImageConverter.ConvertImageToBytes(img[0]);
 						SlimDX.Direct3D10.Texture2D tex = ImageConverter.ConvertBytesToTexture2D(device, bytes);
 						helper.TextureSet[TextureIndex].TextureImage = tex;
-						img.Dispose();
+						foreach(Image i in img) i.Dispose();
 						img = null;
 					}
 				}
 				catch (SlimDX.Direct3D10.Direct3D10Exception) { }
 			};
 			worker.RunWorkerCompleted += (o, e) => { worker.Dispose(); };
-			worker.RunWorkerAsync(this.image.Clone());
+			worker.RunWorkerAsync(clones);
 		}
 
 		public MapDescriptor GetMapDescriptor()
@@ -134,7 +144,9 @@ namespace Direct3DLib
 
 		private void DisposeManaged()
 		{
-			if (image != null) image.Dispose();
+			if (mipmaps != null && mipmaps.Length > 0)
+				foreach (Image i in mipmaps) i.Dispose();
+			mipmaps = null;
 		}
 	}
 
