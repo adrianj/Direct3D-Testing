@@ -343,7 +343,7 @@ namespace Direct3DExtensions
 
 			float hgt = camera.Position.Y;
 
-			camerainput.Update();
+			camerainput.OnRender();
 
 			if (hgt != camera.Position.Y)
 			{

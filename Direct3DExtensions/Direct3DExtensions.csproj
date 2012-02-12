@@ -67,7 +67,7 @@
       <DependentUpon>Direct3DControl.cs</DependentUpon>
     </Compile>
     <Compile Include="Effect.cs" />
-    <Compile Include="FirstPersonCameraInput.cs" />
+    <Compile Include="CameraInput.cs" />
     <Compile Include="Geometry.cs" />
     <Compile Include="HostForm.cs">
       <SubType>Form</SubType>

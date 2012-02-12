@@ -146,7 +146,7 @@ namespace Direct3DExtensions
 
 		protected virtual void Render()
 		{
-			CameraInput.Update();
+			CameraInput.OnRender();
 			D3DDevice.Clear();
 			Effect.ApplyAll(CameraInput.Camera);
 			Geometry.Draw();

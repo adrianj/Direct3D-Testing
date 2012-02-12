@@ -38,7 +38,7 @@ namespace Direct3DExtensions
 	{
 		Camera Camera { get; set; }
 		InputHelper Input { get; set; }
-		void Update();
+		void OnRender();
 		void SetSize(int width, int height);
 	}
 
@@ -83,7 +83,7 @@ namespace Direct3DExtensions
 			Camera.Persepective(45.0f * (float)Math.PI / 180.0f, width / (float)height, 0.025f, 1200.0f);
 		}
 
-		public void Update()
+		public void OnRender()
 		{
 			long time = stopwatch.ElapsedMilliseconds;
 			frametime = time - lasttime;
