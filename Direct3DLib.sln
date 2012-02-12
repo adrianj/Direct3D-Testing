@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C# Express 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Direct3DLib", "Direct3DLib.csproj", "{C19EF7DF-2F9D-4D4C-965D-AD714DCBB323}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Direct3DLib", "Direct3DLib\Direct3DLib.csproj", "{C19EF7DF-2F9D-4D4C-965D-AD714DCBB323}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Direct3DLib_Test", "Direct3DLib_Test\Direct3DLib_Test.csproj", "{47E634ED-9233-4F61-A0E9-6A710EDE9E5E}"
 EndProject

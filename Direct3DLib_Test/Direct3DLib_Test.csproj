@@ -93,7 +93,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Direct3DLib.csproj">
+    <ProjectReference Include="..\Direct3DLib\Direct3DLib.csproj">
       <Project>{C19EF7DF-2F9D-4D4C-965D-AD714DCBB323}</Project>
       <Name>Direct3DLib</Name>
     </ProjectReference>
