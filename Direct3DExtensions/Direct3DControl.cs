@@ -85,12 +85,10 @@ namespace Direct3DExtensions
 
 		private bool SetupCameraInput()
 		{
-			input = new InputHelper(this);
-			camera = new Camera();
-			camera.LookAt(new Vector3(0.5f, 1.5f, 0), new Vector3(0.5f, 0, 0.5f));
-			camera.Persepective(45.0f * (float)Math.PI / 180.0f, ClientSize.Width / (float)ClientSize.Height, 0.025f, 1200.0f);
 
-			camerainput = new FirstPersonCameraInput(camera, input);
+			camerainput = new FirstPersonCameraInput(this);
+			camerainput.Camera.LookAt(new Vector3(0.5f, 1.5f, 0), new Vector3(0.5f, 0, 0.5f));
+			camerainput.Camera.Persepective(45.0f * (float)Math.PI / 180.0f, ClientSize.Width / (float)ClientSize.Height, 0.025f, 1200.0f);
 			return true;
 		}
 
@@ -375,14 +373,6 @@ namespace Direct3DExtensions
 			if (input.IsKeyPressed(Keys.Escape))
 				Application.Exit();
 
-			/*
-			if (input.IsKeyPressed(Keys.K))
-			{
-				zoomLevel = (zoomLevel + 1) % 3;
-				TextureZoomLevel.Set(zoomLevel);
-				Console.WriteLine("zoomlevel: " + zoomLevel);
-			}
-			 */
 		}
 
 		protected virtual void Draw()

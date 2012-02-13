@@ -8,7 +8,7 @@ using SlimDX;
 
 namespace Direct3DExtensions
 {
-	public interface Direct3DEngine
+	public interface Direct3DEngine : IDisposable
 	{
 		bool IsDesignMode { get; }
 		CameraInput CameraInput { get; set; }
@@ -42,10 +42,10 @@ namespace Direct3DExtensions
 			{
 				
 				Console.WriteLine("init");
-				InitCameraInput();
 				InitDevice();
 				InitEffect();
 				InitGeometry();
+				InitCameraInput();
 				Application.Idle += Application_Idle;
 				initSuccessful = true;
 				Console.WriteLine("init done");
@@ -60,12 +60,9 @@ namespace Direct3DExtensions
 		{
 			if (CameraInput == null)
 			{
-				InputHelper input = new InputHelper(this);
-				Camera camera = new Camera();
-				camera.LookAt(new Vector3(0.5f, 1.5f, 0), new Vector3(0.5f, 0, 0.5f));
-				camera.Persepective(45.0f * (float)Math.PI / 180.0f, ClientSize.Width / (float)ClientSize.Height, 0.025f, 1200.0f);
-
-				CameraInput = new FirstPersonCameraInput(camera, input);
+				CameraInput = new FirstPersonCameraInput(this);
+				CameraInput.Camera.Persepective(45.0f * (float)Math.PI / 180.0f, ClientSize.Width / (float)ClientSize.Height, 0.025f, 1200.0f);
+				CameraInput.LookAt(new Vector3(0.5f, 1.5f, 0), new Vector3(0.5f, 0, 0.5f));
 			}
 		}
 

@@ -12,15 +12,54 @@ namespace Direct3DExtensions
 {
 	public class Textured3DControl : Basic3DControl
 	{
+		float previousCameraHeight = 0;
+
 		protected override void InitEffect()
 		{
 			Effect = new TexturedEffect();
 			Effect.Init(D3DDevice);
 		}
+
+		protected override void InitCameraInput()
+		{
+			base.InitCameraInput();
+			CameraInput.CameraChanged += new EventHandler(CameraInput_CameraChanged);
+			SetZoomLevelFromHeight(CameraInput.Camera.Position.Y);
+		}
+
+		void CameraInput_CameraChanged(object sender, EventArgs e)
+		{
+			float newHeight = CameraInput.Camera.Position.Y;
+			if (newHeight != previousCameraHeight)
+			{
+				SetZoomLevelFromHeight(newHeight);
+			}
+			previousCameraHeight = newHeight;
+		}
+
+		void SetZoomLevelFromHeight(float height)
+		{
+			int zoom = 0;
+			height = Math.Abs(height);
+			for (double res = 0.5; res < height; res *= 2)
+			{
+				zoom++;
+			}
+			zoom = zoom.Clamp(0, 2);
+			(this.Effect as TexturedEffect).TextureZoomLevel = zoom;
+		}
 	}
 
 	public class TexturedEffect : BasicEffect
 	{
+		int zoomLevel = 0;
+		D3D.EffectScalarVariable zoomEffect;
+		public int TextureZoomLevel
+		{
+			get { return zoomLevel; }
+			set { if (zoomLevel != value) { zoomLevel = value; zoomEffect.Set(zoomLevel); } }
+		}
+
 		public override void Init(D3DDevice device)
 		{
 			base.Init(device);
@@ -32,6 +71,7 @@ namespace Direct3DExtensions
 			D3D.EffectResourceVariable textureResource = effect.GetVariableByName("Texture_0").AsResource();
 			device.Device.PixelShader.SetShaderResource(textureResourceView, 0);
 			textureResource.SetResource(textureResourceView);
+			zoomEffect = effect.GetVariableByName("TextureZoomLevel").AsScalar();
 		}
 	}
 }

@@ -27,6 +27,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Direct3DExtensions
 {
+	using System;
 	using SlimDX;
 
 	public class Camera
@@ -43,12 +44,25 @@ namespace Direct3DExtensions
 		public Matrix View			{ get; private set; }
 		public Matrix Projection	{ get; private set; }
 
+		public event EventHandler CameraChanged;
+
+		public Camera()
+		{ }
+
+		protected virtual void FireCameraChangedEvent()
+		{
+			if (CameraChanged != null)
+				CameraChanged(this, EventArgs.Empty);
+		}
+
 		public void LookAt( Vector3 pos, Vector3 target )
 		{
 			Position = pos;
 			Direction = Vector3.Normalize( target - pos );
-
+			Matrix prevView = View;
 			View = Matrix.LookAtLH( pos, target, Vector3.UnitY );
+			if (!View.Equals(prevView))
+				FireCameraChangedEvent();
 		}
 
 		public void Persepective( float fov, float aspect, float near, float far )
@@ -57,8 +71,10 @@ namespace Direct3DExtensions
 			Aspect = aspect;
 			Near   = near;
 			Far    = far;
-
+			Matrix prevProj = Projection;
 			Projection = Matrix.PerspectiveFovLH( fov, aspect, near, far );
+			if (!prevProj.Equals(Projection))
+				FireCameraChangedEvent();
 		}
 	}
 }

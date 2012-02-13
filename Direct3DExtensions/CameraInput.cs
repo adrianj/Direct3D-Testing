@@ -39,7 +39,10 @@ namespace Direct3DExtensions
 		Camera Camera { get; set; }
 		InputHelper Input { get; set; }
 		void OnRender();
+		void AttachToControl(Control control);
 		void SetSize(int width, int height);
+		void LookAt(Vector3 position,Vector3 target);
+		event EventHandler CameraChanged;
 	}
 
 	public class FirstPersonCameraInput : CameraInput
@@ -51,31 +54,56 @@ namespace Direct3DExtensions
 		const float Sensitivity		= 0.00004f;
 		const float MinAngle		= -89.0f * (float)System.Math.PI / 180.0f;
 		const float MaxAngle		=  89.0f * (float)System.Math.PI / 180.0f;
-	
 
-		public Camera Camera { get; set; }
-		public InputHelper Input { get; set; }
+		Control control;
+		Camera camera;
+		InputHelper input = new InputHelper();
+
+		public event EventHandler CameraChanged;
+
+		public Camera Camera { get { return camera; } set { SetCamera(value); } }
+
+		private void SetCamera(Camera value)
+		{
+			if (camera != null)
+			{
+				camera.CameraChanged -= FireCamerChangedEvent;
+			}
+			camera = value;
+			camera.CameraChanged += FireCamerChangedEvent;
+		}
+		protected void FireCamerChangedEvent(object s, EventArgs e) { FireCameraChangedEvent(); }
+		protected virtual void FireCameraChangedEvent()
+		{
+			if (CameraChanged != null)
+				CameraChanged(this, EventArgs.Empty);
+		}
+
+		public InputHelper Input { get { return input; } set { input = value; AttachToControl(control); } }
 
 		float		speed;
 		Vector2		rotation;
-		float		fov;
+		float fov { get { return Camera.Fov * 180.0f / (float)System.Math.PI; } }
 
 		// Timing
 		protected Stopwatch stopwatch;
 		long frametime;
 		long lasttime;
 
-		public FirstPersonCameraInput( Camera camera, InputHelper input )
+		public FirstPersonCameraInput(Control control)
 		{
-			this.Camera = camera;
-			this.Input = input;
-
-			rotation.X = -(float)Math.Atan2(camera.Direction.Z, camera.Direction.X) + (float)Math.PI * 0.5f;
-			rotation.Y = (float)Math.Acos(camera.Direction.Y) - (float)System.Math.PI * 0.5f;
+			Camera = new Camera();
+			this.AttachToControl(control);
+			this.SetSize(control.Width, control.Height);
 
 			speed = DefaultSpeed;
-			fov = camera.Fov * 180.0f / (float)System.Math.PI;
 			stopwatch = Stopwatch.StartNew();
+		}
+
+		public void AttachToControl(Control control)
+		{
+			this.control = control;
+			Input.AttachToControl(control);
 		}
 
 		public void SetSize(int width, int height)
@@ -83,7 +111,14 @@ namespace Direct3DExtensions
 			Camera.Persepective(45.0f * (float)Math.PI / 180.0f, width / (float)height, 0.025f, 1200.0f);
 		}
 
-		public void OnRender()
+		public virtual void LookAt(Vector3 position, Vector3 target)
+		{
+			Camera.LookAt(position, target);
+			rotation.X = -(float)Math.Atan2(Camera.Direction.Z, Camera.Direction.X) + (float)Math.PI * 0.5f;
+			rotation.Y = (float)Math.Acos(Camera.Direction.Y) - (float)System.Math.PI * 0.5f;
+		}
+
+		public virtual void OnRender()
 		{
 			long time = stopwatch.ElapsedMilliseconds;
 			frametime = time - lasttime;
@@ -93,7 +128,7 @@ namespace Direct3DExtensions
 
 
 
-			float dt = frametime * 0.01f;
+			float dt = (float)frametime * 0.01f;
 			if( Input.HasFocus )
 			{			
 				// Update Rotation
@@ -138,7 +173,7 @@ namespace Direct3DExtensions
 			Vector3 pos   = Camera.Position + right * move.X + Vector3.UnitY * move.Y + Camera.Direction * move.Z;
 
 			Camera.Persepective( fov * (float)System.Math.PI / 180.0f, Camera.Aspect, Camera.Near, Camera.Far );
-			Camera.LookAt( pos, pos + targetdir );
+			this.LookAt( pos, pos + targetdir );
 
 
 			if( Input.HasFocus )

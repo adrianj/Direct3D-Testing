@@ -34,18 +34,18 @@ namespace ImageTiler_Test
 		public void ConstructSaveAndCheck()
 		{
 			Image img = tiler.ConstructTiledImage();
+			Size finalSize = new Size(32 * tiler.NumberOfTiles * 3 / 2, 32 * tiler.NumberOfTiles);
 			string filename = Tiler_Test.ImageFolder + "test_mipmap.bmp";
 			img.Save(filename);
 			Console.WriteLine("Saved to: " + filename);
-			Image final = Bitmap.FromFile(Tiler_Test.ImageFolder + "final_mipmap.bmp");
-			Assert.That(img.Size, Is.EqualTo(final.Size));
+			Assert.That(img.Size, Is.EqualTo(finalSize));
 			// Do test and final look the same?
 		}
 
 		[Test]
 		public void ConstructSmallerSaveAndCheck()
 		{
-			Size prefSize = new Size(256, 256);
+			Size prefSize = new Size(16, 16);
 			Size finalSize = new Size(prefSize.Width * tiler.NumberOfTiles *3/2, prefSize.Height * tiler.NumberOfTiles);
 			tiler.PreferredTileSize = prefSize;
 			Image img = tiler.ConstructTiledImage();

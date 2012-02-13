@@ -50,7 +50,7 @@ namespace ImageTiler_Test
 
 		public static Image FetchFunction(int z, int x, int y)
 		{
-			string filename = Tiler_Test.ImageFolder + "zoom="+z+@"\"+z + "_" + x + "_" + y + ".png";
+			string filename = Tiler_Test.ImageFolder + "zoom="+z+@"\"+z + "_" + y + "_" + x + ".png";
 			Console.WriteLine("Fetching: " + filename);
 			return Bitmap.FromFile(filename);
 		}

@@ -75,26 +75,50 @@ namespace Direct3DExtensions
 			}
 		}
 
-		// Constructor
-		public InputHelper( Control control )
+		public InputHelper()
 		{
-			this.control = control;
-
 			keydown = new bool[256];
 			pressed = new bool[256];
+		}
 
-			control.GotFocus	+= GotFocus;
-			control.LostFocus	+= LostFocus;
+		// Constructor
+		public InputHelper( Control control ) : this()
+		{
+			AttachToControl(control);
+		}
 
-			control.KeyDown		+= KeyDown;
-			control.KeyUp		+= KeyUp;
+		public void AttachToControl(Control control)
+		{
+			DetachFromControl();
+			this.control = control;
 
-			control.MouseDown	+= MouseDown;
-			control.MouseUp		+= MouseUp;
-			control.MouseEnter	+= MouseEnter;
-			control.MouseLeave	+= MouseLeave;
-			control.MouseWheel  += MouseWheel;
+			control.GotFocus += GotFocus;
+			control.LostFocus += LostFocus;
 
+			control.KeyDown += KeyDown;
+			control.KeyUp += KeyUp;
+
+			control.MouseDown += MouseDown;
+			control.MouseUp += MouseUp;
+			control.MouseEnter += MouseEnter;
+			control.MouseLeave += MouseLeave;
+			control.MouseWheel += MouseWheel;
+		}
+
+		private void DetachFromControl()
+		{
+			if (control == null) return;
+			control.GotFocus -= GotFocus;
+			control.LostFocus -= LostFocus;
+
+			control.KeyDown -= KeyDown;
+			control.KeyUp -= KeyUp;
+
+			control.MouseDown -= MouseDown;
+			control.MouseUp -= MouseUp;
+			control.MouseEnter -= MouseEnter;
+			control.MouseLeave -= MouseLeave;
+			control.MouseWheel -= MouseWheel;
 		}
 
 		// Window Events

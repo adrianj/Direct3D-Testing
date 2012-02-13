@@ -77,6 +77,7 @@
     </Compile>
     <Compile Include="InputHelper.cs" />
     <Compile Include="MapChannel.cs" />
+    <Compile Include="MathExtensions.cs" />
     <Compile Include="Mesh.cs" />
     <Compile Include="TexturedMesh.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

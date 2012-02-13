@@ -13,9 +13,10 @@ namespace ImageTiler
 	 */
 	public class MipMapTiler : FlatTiler
 	{
+		Tiler flat = new FlatTiler();
+
 		public override System.Drawing.Image ConstructTiledImage(BackgroundWorker progressReporter)
 		{
-			Tiler flat = new FlatTiler();
 			flat.ImageFetchFunction = this.ImageFetchFunction;
 			flat.NumberOfTiles = this.NumberOfTiles;
 			flat.ProgressOffset = 0;
@@ -32,7 +33,6 @@ namespace ImageTiler
 				numImages++;
 				minZoomLevel--;
 			}
-			Console.WriteLine("minZoom = " + minZoomLevel);
 
 			Size outputSize = CalculateOutputSize(minZoomLevel);
 			Image img = new Bitmap(outputSize.Width * 3/2, outputSize.Height);
@@ -49,19 +49,8 @@ namespace ImageTiler
 				Image firstImage = null;
 				for (int z = 1; z <= this.NumberOfTiles; z *= 2)
 				{
-					flat.NumberOfTiles = z;
-					flat.MaxZoomLevel = this.MaxZoomLevel - numImages + imageNum;
 					Size expectedSize = new Size(initialSize.Width * z, initialSize.Height * z);
-					try
-					{
-						firstImage = flat.ConstructTiledImage(progressReporter);
-					}
-					catch (Exception ex)
-					{
-						Console.WriteLine("" + ex);
-						if(firstImage != null)
-							firstImage = new Bitmap(firstImage, firstImage.Width * 2, firstImage.Height * 2);
-					}
+					firstImage = FetchImage(progressReporter, flat, numImages, imageNum, firstImage, z);
 
 					if (imageNum == numImages)
 					{
@@ -81,6 +70,23 @@ namespace ImageTiler
 			}
 			this.ReportProgress(progressReporter, 100);
 			return img;
+		}
+
+		private Image FetchImage(BackgroundWorker progressReporter, Tiler flat, int numImages, int imageNum, Image firstImage, int z)
+		{
+			flat.NumberOfTiles = z;
+			flat.MaxZoomLevel = this.MaxZoomLevel - numImages + imageNum;
+			try
+			{
+				firstImage = flat.ConstructTiledImage(progressReporter);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine("" + ex);
+				if (firstImage != null)
+					firstImage = new Bitmap(firstImage, firstImage.Width * 2, firstImage.Height * 2);
+			}
+			return firstImage;
 		}
 
 	}
