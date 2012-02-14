@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
-
+using System.Drawing;
 
 namespace ImageTiler
 {
@@ -57,10 +57,28 @@ namespace ImageTiler
 			{
 				dLat = Math.Round(dLat, MidpointRounding.AwayFromZero);
 			}
-			//if (dLat < 0)
-			//	dLat++;
-			//long lat = Convert.ToInt64(dLat);
 			double ret = dLat * delta;
+			return ret;
+		}
+
+		public Point FindCoordinateInLargerMap(int largerMapZoom, int thisMapZoom)
+		{
+			return this.FindCoordinateInLargerMap(largerMapZoom, thisMapZoom, this.BottomLatitude, this.LeftLongitude);
+		}
+
+		public Point FindCoordinateInLargerMap(int largerMapZoom, int thisMapZoom, double latitude, double longitude)
+		{
+			Point ret = new Point();
+			double delta = this.GetIntervalFromZoomLevel(thisMapZoom);
+			double leftThis = this.GetNearestCornerFromZoomLevel(longitude, thisMapZoom);
+			double leftLrg = this.GetNearestCornerFromZoomLevel(longitude, largerMapZoom);
+			int diffX = Convert.ToInt32((leftThis - leftLrg) / delta);
+			double bottomThis = this.GetNearestCornerFromZoomLevel(latitude, thisMapZoom);
+			double bottomLrg = this.GetNearestCornerFromZoomLevel(latitude, largerMapZoom);
+			int diffY = Convert.ToInt32((bottomThis - bottomLrg) / delta);
+			ret.X = diffX;
+			ret.Y = diffY;
+			Console.WriteLine("delta: " + delta + ", leftT: " + leftThis + ", leftL: " + leftLrg + ", bottT: " + bottomThis + ", bottL: " + bottomLrg+", ret: "+ret);
 			return ret;
 		}
 	}

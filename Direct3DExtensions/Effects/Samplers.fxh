@@ -25,6 +25,12 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
 
+SamplerState HeightSampler { 
+	Filter   = MIN_MAG_MIP_POINT;
+    AddressU = Clamp; 
+    AddressV = Clamp; 
+}; 
+
 SamplerState LinearClampSampler
 {
 	Filter   = MIN_MAG_MIP_LINEAR;

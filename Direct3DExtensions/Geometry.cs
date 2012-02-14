@@ -6,6 +6,7 @@ using System.Text;
 
 namespace Direct3DExtensions
 {
+	[TypeConverter(typeof(ExpandableObjectConverter))]
 	public interface Geometry : IDisposable
 	{
 		void Init(D3DDevice device, Effect effect, int passNumber);

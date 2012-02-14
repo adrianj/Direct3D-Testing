@@ -13,9 +13,9 @@ namespace ImageTiler_Test
 		[STAThread]
 		static void Main()
 		{
-			Application.EnableVisualStyles();
-			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new Form1());
+			GooglemapTiler_Test test = new GooglemapTiler_Test();
+			test.SetUp();
+			test.TestGoogleTilerMin8();
 		}
 	}
 }

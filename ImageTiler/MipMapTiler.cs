@@ -7,13 +7,20 @@ using System.Drawing;
 
 namespace ImageTiler
 {
+	public delegate Point CropOffsetFunction(int largeZoomLevel, int thisZoomLevel);
 	/*
 	 * Operates over a range of Zoom Levels to produce a mipmapped image.
 	 * The output size is 50% longer than images produced using the FlatTiler.
 	 */
 	public class MipMapTiler : FlatTiler
 	{
+		public int MinZoomLevel { get; set; }
+		public CropOffsetFunction CropOffsetFunction { get; set; }
+
 		Tiler flat = new FlatTiler();
+		CropTiler crop = new CropTiler();
+		Size outputSize;
+		int minFlatZoomLevel;
 
 		public override System.Drawing.Image ConstructTiledImage(BackgroundWorker progressReporter)
 		{
@@ -24,70 +31,154 @@ namespace ImageTiler
 			flat.InvertY = this.InvertY;
 			flat.ErrorReplacementImage = this.ErrorReplacementImage;
 			flat.PreferredTileSize = this.PreferredTileSize;
+			crop.ImageFetchFunction = this.ImageFetchFunction;
 
-			int numImages = 0;
-			int minZoomLevel = this.MaxZoomLevel+1;
-			for (int z = this.NumberOfTiles; z > 0; z /= 2)
+			int minZoomLevel = this.MinZoomLevel;
+			if (minZoomLevel == 0 || minZoomLevel > MaxZoomLevel)
 			{
-				flat.ProgressRange /= 2;
-				numImages++;
-				minZoomLevel--;
+				minZoomLevel = this.MaxZoomLevel + 1;
+				for (int z = this.NumberOfTiles; z > 0; z /= 2)
+				{
+					flat.ProgressRange /= 2;
+					minZoomLevel--;
+				}
+			}
+			minFlatZoomLevel = MaxZoomLevel;
+			int numTiles = this.NumberOfTiles;
+			for (int i = MaxZoomLevel; i > minZoomLevel; i--)
+			{
+				numTiles /= 2;
+				if (numTiles == 0)
+					break;
+				minFlatZoomLevel--;
 			}
 
-			Size outputSize = CalculateOutputSize(minZoomLevel);
-			Image img = new Bitmap(outputSize.Width * 3/2, outputSize.Height);
+			Console.WriteLine("minZoom: " + minZoomLevel + ", minFlatZoom: " + minFlatZoomLevel + ", maxZoom: " + MaxZoomLevel);
 
-			using (Graphics g = Graphics.FromImage(img))
+			outputSize = CalculateOutputSize(minFlatZoomLevel);
+			Image outputImage = new Bitmap(outputSize.Width * 3/2, outputSize.Height);
+
+			DrawTiledImages(progressReporter, minFlatZoomLevel, this.MaxZoomLevel, outputImage);
+			DrawCroppedImages(progressReporter, minZoomLevel, minFlatZoomLevel - 1, outputImage);
+			this.ReportProgress(progressReporter, 100);
+			return outputImage;
+		}
+
+		private void DrawTiledImages(BackgroundWorker progressReporter, int minZoomLevel, int maxZoomLevel, Image outputImage)
+		{
+			using (Graphics g = Graphics.FromImage(outputImage))
 			{
-				g.FillRectangle(Brushes.Gray, 0, 0, img.Width, img.Height);
-				
+				g.FillRectangle(Brushes.Gray, 0, 0, outputImage.Width, outputImage.Height);
 
-
-				int imageNum = 1;
-				int xOffset = initialSize.Width * this.NumberOfTiles;
-				int yOffset = outputSize.Height - initialSize.Height;
-				Image firstImage = null;
-				for (int z = 1; z <= this.NumberOfTiles; z *= 2)
+				Image image = null;
+				for(int zoomLevel = minZoomLevel; zoomLevel <= maxZoomLevel; zoomLevel++)
+				//for (int numTiles = 1; numTiles <= this.NumberOfTiles; numTiles *= 2)
 				{
-					Size expectedSize = new Size(initialSize.Width * z, initialSize.Height * z);
-					firstImage = FetchImage(progressReporter, flat, numImages, imageNum, firstImage, z);
+					int zoomDiff = maxZoomLevel - zoomLevel;
+					int numTiles = this.NumberOfTiles >> zoomDiff;
 
-					if (imageNum == numImages)
-					{
-						xOffset = 0;
-					}
-					else
-						yOffset -= expectedSize.Height;
-					g.DrawImage(firstImage, xOffset, yOffset, expectedSize.Width, expectedSize.Height);
+					Size expectedSize = new Size(initialSize.Width * numTiles, initialSize.Height * numTiles);
+					flat.MaxZoomLevel = zoomLevel;
+					flat.NumberOfTiles = numTiles;
+					flat.ErrorReplacementImage = image;
+					Point offsets = GetMipMapOffsets(zoomLevel, numTiles);
+					image = FetchFlatImage(progressReporter, flat);
+
+
+					g.DrawImage(image, offsets.X, offsets.Y, expectedSize.Width, expectedSize.Height);
 
 
 					flat.MaxZoomLevel += 1;
 					flat.ProgressOffset += flat.ProgressRange;
 					flat.ProgressRange *= 2;
-					flat.ErrorReplacementImage = firstImage;
-					imageNum++;
+					this.ErrorReplacementImage = image;
 				}
 			}
-			this.ReportProgress(progressReporter, 100);
-			return img;
+			
 		}
 
-		private Image FetchImage(BackgroundWorker progressReporter, Tiler flat, int numImages, int imageNum, Image firstImage, int z)
+
+		private void DrawCroppedImages(BackgroundWorker progressReporter, int minZoomLevel, int maxZoomLevel, Image outputImage)
 		{
-			flat.NumberOfTiles = z;
-			flat.MaxZoomLevel = this.MaxZoomLevel - numImages + imageNum;
+			using (Graphics g = Graphics.FromImage(outputImage))
+			{
+				for (int zoomLevel = maxZoomLevel; zoomLevel >= minZoomLevel; zoomLevel--)
+				{
+					int zoomDiff = minFlatZoomLevel - zoomLevel;
+					int numTiles = (1 << zoomDiff);
+					Point offsets = GetMipMapOffsets(zoomLevel, -(numTiles>>1));
+					Size expectedSize = new Size(initialSize.Width / numTiles, initialSize.Height / numTiles);
+					crop.NumberOfTiles = numTiles;
+					crop.MaxZoomLevel = zoomLevel;
+					if (this.CropOffsetFunction != null)
+					{
+						Point o =  this.CropOffsetFunction(zoomLevel,minFlatZoomLevel);
+						if (this.InvertY)
+							o.Y = numTiles - o.Y-1;
+						crop.OffsetIntoLargerImage = o;
+						Console.WriteLine("Crop Offset: " + crop.OffsetIntoLargerImage);
+					}
+					Console.WriteLine("numTiles: " + numTiles + ", zoomLevel: " + zoomLevel + ", offsets: " + offsets);
+					Image image = FetchCroppedImage(progressReporter, crop);
+					this.ErrorReplacementImage = image;
+					g.DrawImage(image, offsets.X, offsets.Y, expectedSize.Width, expectedSize.Height);
+				}
+			}
+		}
+
+		private Point GetMipMapOffsets(int zoomLevel, int numTiles)
+		{
+			Point ret = new Point();
+			if (zoomLevel != this.MaxZoomLevel)
+			{
+				ret.X = this.NumberOfTiles * initialSize.Width;
+				if (numTiles >= 0)
+					ret.Y = (this.NumberOfTiles - (numTiles << 1)) * initialSize.Height;
+				else
+				{
+					double yoff = (double)this.NumberOfTiles + 1.0 / (double)numTiles;
+					ret.Y = (int)(yoff * (double)initialSize.Height);
+				}
+			}
+			return ret;
+		}
+
+		private Image FetchCroppedImage(BackgroundWorker progressReporter, CropTiler tiler)
+		{
 			try
 			{
-				firstImage = flat.ConstructTiledImage(progressReporter);
+				return tiler.ConstructTiledImage(progressReporter);
 			}
 			catch (Exception ex)
 			{
 				Console.WriteLine("" + ex);
-				if (firstImage != null)
-					firstImage = new Bitmap(firstImage, firstImage.Width * 2, firstImage.Height * 2);
+				if (this.ErrorReplacementImage != null)
+				{
+					return new Bitmap(ErrorReplacementImage, ErrorReplacementImage.Width / 2, ErrorReplacementImage.Height / 2);
+				}
+				else
+					throw new Exception("Previous image was null.", ex);
 			}
-			return firstImage;
 		}
+
+		private Image FetchFlatImage(BackgroundWorker progressReporter, Tiler tiler)
+		{
+			try
+			{
+				return tiler.ConstructTiledImage(progressReporter);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine("" + ex);
+				if (this.ErrorReplacementImage != null)
+				{
+					return new Bitmap(ErrorReplacementImage, ErrorReplacementImage.Width * 2, ErrorReplacementImage.Height * 2);
+				}
+				else
+					throw new Exception("Previous image was null.", ex);
+			}
+		}
+
 
 	}
 }

@@ -39,6 +39,50 @@ namespace ImageTiler_Test
 			img.Save(filename);
 			Console.WriteLine("Saved to: " + filename);
 			Assert.That(img.Size, Is.EqualTo(finalSize));
+			Tiler_Test.DisplayImage(filename);
+			// Do test and final look the same?
+		}
+
+
+		[Test]
+		public void Construct15downto14()
+		{
+			(tiler as MipMapTiler).MinZoomLevel = 14;
+			Image img = tiler.ConstructTiledImage();
+			Size finalSize = new Size(32 * tiler.NumberOfTiles * 3 / 2, 32 * tiler.NumberOfTiles);
+			string filename = Tiler_Test.ImageFolder + "test_mipmap14.bmp";
+			img.Save(filename);
+			Console.WriteLine("Saved to: " + filename);
+			Assert.That(img.Size, Is.EqualTo(finalSize));
+			Tiler_Test.DisplayImage(filename);
+			// Do test and final look the same?
+		}
+
+		[Test]
+		public void Construct15downto11()
+		{
+			(tiler as MipMapTiler).MinZoomLevel = 11;
+			Image img = tiler.ConstructTiledImage();
+			Size finalSize = new Size(32 * tiler.NumberOfTiles * 3 / 2, 32 * tiler.NumberOfTiles);
+			string filename = Tiler_Test.ImageFolder + "test_mipmap11.bmp";
+			img.Save(filename);
+			Console.WriteLine("Saved to: " + filename);
+			Assert.That(img.Size, Is.EqualTo(finalSize));
+			Tiler_Test.DisplayImage(filename);
+			// Do test and final look the same?
+		}
+
+		[Test]
+		public void Construct15downto10()
+		{
+			(tiler as MipMapTiler).MinZoomLevel = 10;
+			Image img = tiler.ConstructTiledImage();
+			Size finalSize = new Size(32 * tiler.NumberOfTiles * 3 / 2, 32 * tiler.NumberOfTiles);
+			string filename = Tiler_Test.ImageFolder + "test_mipmap10.bmp";
+			img.Save(filename);
+			Console.WriteLine("Saved to: " + filename);
+			Assert.That(img.Size, Is.EqualTo(finalSize));
+			Tiler_Test.DisplayImage(filename);
 			// Do test and final look the same?
 		}
 
@@ -53,6 +97,7 @@ namespace ImageTiler_Test
 			img.Save(filename);
 			Console.WriteLine("Saved to: " + filename);
 			Assert.That(img.Size, Is.EqualTo(finalSize));
+			Tiler_Test.DisplayImage(filename);
 			// Do test and final look the same?
 		}
 

@@ -31,6 +31,9 @@ namespace Direct3DExtensions
 	using System.Drawing;
 	using System.Windows.Forms;
 
+	using System.ComponentModel;
+
+	[TypeConverter(typeof(ExpandableObjectConverter))]
 	public class InputHelper
 	{	
 		Control			control;

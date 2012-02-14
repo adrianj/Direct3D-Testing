@@ -47,6 +47,10 @@ namespace ImageTiler_Test
 			Image img = t.ConstructTiledImage();
 		}
 
+		public static void DisplayImage(string filename)
+		{
+			System.Diagnostics.Process.Start(filename);
+		}
 
 		public static Image FetchFunction(int z, int x, int y)
 		{

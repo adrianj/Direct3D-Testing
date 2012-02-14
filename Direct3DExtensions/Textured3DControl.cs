@@ -45,7 +45,7 @@ namespace Direct3DExtensions
 			{
 				zoom++;
 			}
-			zoom = zoom.Clamp(0, 2);
+			zoom = zoom.Clamp(0, 6);
 			(this.Effect as TexturedEffect).TextureZoomLevel = zoom;
 		}
 	}

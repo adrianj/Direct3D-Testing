@@ -117,7 +117,7 @@ namespace ImageTiler
 				Rectangle srcRect = new Rectangle(srcLeft,srcTop, srcWidth, srcHeight);
 				if (this.InvertY)
 				{
-					Console.WriteLine("SrcRect (pre invert): " + srcRect+",x="+x+",y="+y+"     "+ErrorReplacementImage.Size);
+					//Console.WriteLine("SrcRect (pre invert): " + srcRect+",x="+x+",y="+y+"     "+ErrorReplacementImage.Size);
 					//srcRect.Location = new Point(srcRect.Left, srcRect.Bottom - initialSize.Height * y / 2);
 					srcTop = (initialSize.Height*n - initialSize.Height * (y+1)) / 2;
 					srcRect = new Rectangle(srcLeft, srcTop, srcWidth, srcHeight);

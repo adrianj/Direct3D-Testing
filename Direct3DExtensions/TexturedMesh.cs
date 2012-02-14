@@ -36,8 +36,6 @@ namespace Direct3DExtensions
 	using D3D10 = SlimDX.Direct3D10;
 	using DXGI  = SlimDX.DXGI;
 
-
-
 	public class TexturedMesh: BasicMesh
 	{
 		public uint[]	FaceNormals;

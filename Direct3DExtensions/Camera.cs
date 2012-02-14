@@ -30,6 +30,9 @@ namespace Direct3DExtensions
 	using System;
 	using SlimDX;
 
+	using System.ComponentModel;
+
+	[TypeConverter(typeof(ExpandableObjectConverter))]
 	public class Camera
 	{
 		public float Fov			{ get; private set; }
