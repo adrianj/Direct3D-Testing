@@ -10,7 +10,7 @@ using DXGI = SlimDX.DXGI;
 
 namespace Direct3DExtensions
 {
-	public class D3DDevice : IDisposable
+	public class D3DDevice : DisposablePattern, IDisposable
 	{
 		public D3D.Device Device { get; private set; }
 		public D3D.Viewport Viewport { get; private set; }
@@ -112,14 +112,22 @@ namespace Direct3DExtensions
 			SwapChain.Present(0, DXGI.PresentFlags.None);
 		}
 
-		public virtual void Dispose()
+		private bool disposed = false;
+		protected override void Dispose(bool disposing)
 		{
-			if(RenderTarget != null) RenderTarget.Dispose();
-			if(DepthBuffer != null) DepthBuffer.Dispose();
-			if(DepthBufferView != null) DepthBufferView.Dispose();
-			if(Device != null) Device.Dispose();
-			if(SwapChain != null) SwapChain.Dispose();
-
+			if (!disposed)
+			{
+				if (disposing)
+				{
+					if (RenderTarget != null) RenderTarget.Dispose();
+					if (DepthBuffer != null) DepthBuffer.Dispose();
+					if (DepthBufferView != null) DepthBufferView.Dispose();
+					if (Device != null) Device.Dispose();
+					if (SwapChain != null) SwapChain.Dispose();
+				}
+				this.disposed = true;
+			}
+			base.Dispose(disposing);
 		}
 	}
 }

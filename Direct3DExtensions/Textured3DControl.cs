@@ -27,6 +27,15 @@ namespace Direct3DExtensions
 			SetZoomLevelFromHeight(CameraInput.Camera.Position.Y);
 		}
 
+		protected override void InitGeometry()
+		{
+			base.InitGeometry();
+			using (MeshFactory factory = new MeshFactory())
+			{
+				//Mesh mesh = factory.
+			}
+		}
+
 		void CameraInput_CameraChanged(object sender, EventArgs e)
 		{
 			float newHeight = CameraInput.Camera.Position.Y;
@@ -54,6 +63,7 @@ namespace Direct3DExtensions
 	{
 		int zoomLevel = 0;
 		D3D.EffectScalarVariable zoomEffect;
+
 		public int TextureZoomLevel
 		{
 			get { return zoomLevel; }
@@ -63,7 +73,7 @@ namespace Direct3DExtensions
 		public override void Init(D3DDevice device)
 		{
 			base.Init(device);
-
+			
 			D3D.Texture2D texture = D3D.Texture2D.FromFile(device.Device, @"C:\Users\adrianj\Documents\Visual Studio 2010\Projects\Direct3D-Testing\ImageTiler_Test\bin\Debug\Images\test_google.bmp");
 
 

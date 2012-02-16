@@ -19,7 +19,7 @@ namespace Direct3DExtensions_Test
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 			HostForm form = new HostForm();
-			form.SetControl(new Textured3DControl());
+			form.SetControl(new IndependentMeshControl());
 				Application.Run(form);
 		}
 	}

@@ -23,7 +23,7 @@ namespace Direct3DExtensions
 			grid.Dock = DockStyle.Fill;
 			gridForm.Controls.Add(grid);
 			gridForm.Text = "D3DControl Properties";
-			gridForm.Size = new System.Drawing.Size(640, 480);
+			gridForm.Size = new System.Drawing.Size(500, 500);
 			gridForm.FormClosing += (o, e) => { e.Cancel = true; gridForm.Hide(); };
 		}
 
@@ -49,9 +49,11 @@ namespace Direct3DExtensions
 			this.Controls.Add(this.direct3DControl);
 			this.ResumeLayout(false);
 
+
 			grid.SelectedObject = direct3DControl;
 
-			this.Shown += (o, e) => { this.StartDirect3D(); };
+			this.Shown += (o, e) => { Console.WriteLine("shows1"); this.StartDirect3D(); };
+
 			this.PopoutPropertyGrid();
 		}
 

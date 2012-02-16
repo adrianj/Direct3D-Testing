@@ -14,12 +14,13 @@ namespace Direct3DExtensions
 	{
 		string ShaderFilename { get; set; }
 		void Init(D3DDevice device);
+		void ApplyPerFrameConstants(Camera camera);
 		void ApplyAll(Camera camera);
 		D3D.EffectPass this[int index] { get; }
 		int EffectCount { get; }
 	}
 
-	public class BasicEffect : Effect
+	public class BasicEffect : DisposablePattern, Effect
 	{
 		protected int MaxTechniques = 4;
 		protected int MaxPasses = 4;
@@ -60,17 +61,33 @@ namespace Direct3DExtensions
 			WorldViewProj = effect.GetVariableByName("WorldViewProj").AsMatrix();
 		}
 
+
+
 		public virtual void ApplyAll(Camera camera)
 		{
-			WorldViewProj.SetMatrix(camera.View * camera.Projection);
+			ApplyPerFrameConstants(camera);
 			foreach (D3D.EffectPass pass in passes)
 				pass.Apply();
 		}
 
-		public virtual void Dispose()
+		public virtual void ApplyPerFrameConstants(Camera camera)
 		{
-			if (effect != null)
-				effect.Dispose();
+			WorldViewProj.SetMatrix(camera.View * camera.Projection);
+		}
+		private bool disposed = false;
+		protected override void Dispose(bool disposing)
+		{
+			if (!this.disposed)
+			{
+				if (disposing)
+				{
+					if (effect != null)
+						effect.Dispose();
+				}
+				this.disposed = true;
+			}
+			base.Dispose(disposing);
 		}
 	}
+
 }

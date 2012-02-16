@@ -10,21 +10,33 @@ cbuffer PerFrame
 	float4x4 WorldViewProj;
 };
 
-struct VS_IN
+struct VS_POS_TEX
 {
 	float3 pos : POSITION;
 	float2 uv  : TEXCOORD;
 };
 
-struct PS_IN
+struct VS_POS_NORM
+{
+	float3 pos : POSITION;
+	float3 norm : NORMAL;
+};
+
+struct PS_TEX
 {
 	float4 pos   : SV_POSITION;
 	float2 uv    : TEXCOORD;
 };
 
-PS_IN VS( VS_IN input )
+struct PS_NORM
 {
-	PS_IN output = (PS_IN)0;
+	float4 pos : SV_POSITION;
+	float3 norm : NORMAL;
+};
+
+PS_TEX VS( VS_POS_TEX input )
+{
+	PS_TEX output = (PS_TEX)0;
 	
 	output.pos = mul( float4( input.pos, 1.0 ), WorldViewProj );
 	output.uv  = input.uv;
@@ -32,14 +44,25 @@ PS_IN VS( VS_IN input )
 	return output;
 }
 
-PS_IN VS_Height_Texture( VS_IN input )
+PS_NORM VS_Pos_Normal ( VS_POS_NORM input )
 {
-	PS_IN output = (PS_IN)0;
+	PS_NORM output = (PS_NORM)0;
+	
+	output.pos = mul( float4( input.pos, 1.0 ), WorldViewProj );
+	output.norm  = input.norm;
+	
+	return output;
+}
+
+PS_TEX VS_Height_Texture( VS_POS_TEX input )
+{
+	PS_TEX output = (PS_TEX)0;
 
 	float2 texCoord = float2(input.pos.x, input.pos.z);
 	float4 pos = float4(input.pos,1.0);
 
-	float4 displacement = HeightTexture.Sample(HeightSampler,texCoord);
+	// This line should reference heighttexture...
+	float4 displacement = (float4)0;
 	displacement.y = -1.0;
 	pos = pos + displacement;
 
@@ -49,8 +72,17 @@ PS_IN VS_Height_Texture( VS_IN input )
 	return output;
 }
 
-// The most basic virtual texture pixel shader
-float4 PS_Final( PS_IN input ) : SV_Target
+float4 PS_Normal ( PS_NORM input ) : SV_Target
+{
+	float4 output = (float4)0;
+	output.x = input.norm.x;
+	output.y = input.norm.y;
+	output.z = input.norm.z;
+	return output;
+}
+
+
+float4 PS_Final( PS_TEX input ) : SV_Target
 {
 	//float2 texCoord = float2(inColor.x,inColor.y);
 	//float2 texCoord = input.uv;
@@ -91,11 +123,29 @@ float4 PS_Final( PS_IN input ) : SV_Target
 technique10 Render
 {
 
+	pass P0
+	{
+		SetGeometryShader( 0 );
+		SetVertexShader( CompileShader( vs_4_0, VS() ) );
+		SetPixelShader( CompileShader( ps_4_0, PS_Final() ) );
+		SetDepthStencilState( EnableDepthTest, 0 );
+		SetRasterizerState( EnableMSAA );
+	}
+
 	pass P1
 	{
 		SetGeometryShader( 0 );
 		SetVertexShader( CompileShader( vs_4_0, VS_Height_Texture() ) );
 		SetPixelShader( CompileShader( ps_4_0, PS_Final() ) );
+		SetDepthStencilState( EnableDepthTest, 0 );
+		SetRasterizerState( EnableMSAA );
+	}
+
+	pass P2
+	{
+		SetGeometryShader( 0 );
+		SetVertexShader( CompileShader( vs_4_0, VS_Pos_Normal() ) );
+		SetPixelShader( CompileShader( ps_4_0, PS_Normal() ) );
 		SetDepthStencilState( EnableDepthTest, 0 );
 		SetRasterizerState( EnableMSAA );
 	}

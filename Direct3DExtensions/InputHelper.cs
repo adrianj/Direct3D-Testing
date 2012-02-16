@@ -65,7 +65,7 @@ namespace Direct3DExtensions
 		public bool HasFocus
 		{
 			get { return hasFocus; }
-			set { hasFocus = value; }
+			set { hasFocus = value; if (value) control.Focus(); }
 		}
 
 		public Point ControlCenter
