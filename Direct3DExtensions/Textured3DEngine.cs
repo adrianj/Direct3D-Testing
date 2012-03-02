@@ -10,9 +10,10 @@ using DXGI = SlimDX.DXGI;
 
 namespace Direct3DExtensions
 {
-	public class Textured3DControl : Basic3DControl
+	public class Textured3DEngine : Test3DEngine
 	{
 		float previousCameraHeight = 0;
+
 
 		protected override void InitEffect()
 		{
@@ -23,17 +24,8 @@ namespace Direct3DExtensions
 		protected override void InitCameraInput()
 		{
 			base.InitCameraInput();
-			CameraInput.CameraChanged += new EventHandler(CameraInput_CameraChanged);
+			CameraInput.CameraChanged += new CameraChangedEventHandler(CameraInput_CameraChanged);
 			SetZoomLevelFromHeight(CameraInput.Camera.Position.Y);
-		}
-
-		protected override void InitGeometry()
-		{
-			base.InitGeometry();
-			using (MeshFactory factory = new MeshFactory())
-			{
-				//Mesh mesh = factory.
-			}
 		}
 
 		void CameraInput_CameraChanged(object sender, EventArgs e)
@@ -59,10 +51,11 @@ namespace Direct3DExtensions
 		}
 	}
 
-	public class TexturedEffect : BasicEffect
+	public class TexturedEffect : WorldViewProjEffect
 	{
 		int zoomLevel = 0;
 		D3D.EffectScalarVariable zoomEffect;
+		D3D.Texture2D texture;
 
 		public int TextureZoomLevel
 		{
@@ -74,14 +67,39 @@ namespace Direct3DExtensions
 		{
 			base.Init(device);
 			
-			D3D.Texture2D texture = D3D.Texture2D.FromFile(device.Device, @"C:\Users\adrianj\Documents\Visual Studio 2010\Projects\Direct3D-Testing\ImageTiler_Test\bin\Debug\Images\test_google.bmp");
-
-
+			texture = D3D.Texture2D.FromFile(device.Device, @"C:\Users\adrianj\Documents\Visual Studio 2010\Projects\Direct3D-Testing\ImageTiler_Test\bin\Debug\Images\test_google.bmp");
 			D3D.ShaderResourceView textureResourceView = new D3D.ShaderResourceView(device.Device, texture);
 			D3D.EffectResourceVariable textureResource = effect.GetVariableByName("Texture_0").AsResource();
 			device.Device.PixelShader.SetShaderResource(textureResourceView, 0);
 			textureResource.SetResource(textureResourceView);
-			zoomEffect = effect.GetVariableByName("TextureZoomLevel").AsScalar();
+			texture.Dispose();
+			textureResourceView.Dispose();
+
+			
+
+			zoomEffect = effect.GetVariableByName("TextureZoomLevel").AsScalar(); 
+			
 		}
+
+
+		void DisposeManaged() {  }
+		void DisposeUnmanaged() { if (texture != null) texture.Dispose(); texture = null; }
+
+		bool disposed = false;
+		protected override void Dispose(bool disposing)
+		{
+			if (!disposed)
+			{
+				if (disposing)
+				{
+					DisposeManaged();
+				}
+
+				DisposeUnmanaged();
+				disposed = true;
+			}
+			base.Dispose(disposing);
+		}
+    
 	}
 }

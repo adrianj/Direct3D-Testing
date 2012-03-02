@@ -40,25 +40,26 @@ namespace Direct3DExtensions
 	{
 		Camera Camera { get; set; }
 		InputHelper Input { get; set; }
+		float TimeDelta { get;  }
+		float Speed { get; }
 		void OnRender();
 		void AttachToControl(Control control);
 		void SetSize(int width, int height);
 		void LookAt(Vector3 position,Vector3 target);
-		event EventHandler CameraChanged;
+		event CameraChangedEventHandler CameraChanged;
 	}
 
 	public class FirstPersonCameraInput : CameraInput
 	{
 		const float DefaultSpeed	= 0.125f;
 		const float MinSpeed		= 0.0375f;
-		const float MaxSpeed		= 16.0f;
+		const float MaxSpeed		= 128.0f;
 
 		const float Sensitivity		= 0.00004f;
-		const float MinAngle		= -89.0f * (float)System.Math.PI / 180.0f;
-		const float MaxAngle		=  89.0f * (float)System.Math.PI / 180.0f;
 		float baseSpeed;
-		Vector2 rotation;
 		float fov { get { return Camera.Fov * 180.0f / (float)System.Math.PI; } }
+
+		public float Speed { get; private set; }
 
 		// Timing
 		protected Stopwatch stopwatch;
@@ -69,9 +70,10 @@ namespace Direct3DExtensions
 		Camera camera;
 		InputHelper input = new InputHelper();
 
-		public event EventHandler CameraChanged;
+		public event CameraChangedEventHandler CameraChanged;
 
 		public Camera Camera { get { return camera; } set { SetCamera(value); } }
+		public float TimeDelta {get;private set;}
 
 		private void SetCamera(Camera value)
 		{
@@ -82,11 +84,11 @@ namespace Direct3DExtensions
 			camera = value;
 			camera.CameraChanged += FireCamerChangedEvent;
 		}
-		protected void FireCamerChangedEvent(object s, EventArgs e) { FireCameraChangedEvent(); }
-		protected virtual void FireCameraChangedEvent()
+		protected void FireCamerChangedEvent(object s, CameraChangedEventArgs e) { FireCameraChangedEvent(e); }
+		protected virtual void FireCameraChangedEvent(CameraChangedEventArgs e)
 		{
 			if (CameraChanged != null)
-				CameraChanged(this, EventArgs.Empty);
+				CameraChanged(this, e);
 		}
 
 		public InputHelper Input { get { return input; } set { input = value; AttachToControl(control); } }
@@ -111,26 +113,24 @@ namespace Direct3DExtensions
 
 		public void SetSize(int width, int height)
 		{
-			Camera.Persepective(45.0f * (float)Math.PI / 180.0f, (float)width / (float)height, Camera.Near, Camera.Far);
+			Camera.UpdatePerspective(45.0f * (float)Math.PI / 180.0f, (float)width / (float)height, Camera.NearZ, Camera.FarZ);
 		}
 
 		public virtual void LookAt(Vector3 position, Vector3 target)
 		{
 			Camera.LookAt(position, target);
-			rotation.X = -(float)Math.Atan2(Camera.Direction.Z, Camera.Direction.X) + (float)Math.PI * 0.5f;
-			rotation.Y = (float)Math.Acos(Camera.Direction.Y) - (float)System.Math.PI * 0.5f;
 		}
 
 		public virtual void OnRender()
 		{
-			float dt = UpdateTiming();
+			TimeDelta = UpdateTiming();
 
 			Input.Update();
 
 			Vector3 targetdir = UpdateDirection();
-			float speed = UpdateSpeed(dt);
+			Speed = UpdateSpeed(TimeDelta);
 
-			Vector3 move = UpdateMovement(speed);
+			Vector3 move = UpdateMovement(Speed);
 
 
 			MoveAndDirectCamera(targetdir, move);
@@ -142,7 +142,7 @@ namespace Direct3DExtensions
 
 		protected virtual void MoveAndDirectCamera(Vector3 direction, Vector3 movement)
 		{
-			Vector3 pos = MoveRelativeToCamera(movement, Camera);
+			Vector3 pos = MoveRelativeToWorld(movement, Camera);
 			this.LookAt(pos, pos + direction);
 		}
 
@@ -155,7 +155,11 @@ namespace Direct3DExtensions
 
 		public static Vector3 MoveRelativeToWorld(Vector3 movement, Camera camera)
 		{
-			Vector3 pos = camera.Position + movement;
+			if (movement == Vector3.Zero) return camera.Position;
+			double Pan = camera.YawPitchRoll.X;
+			double z = Math.Cos(Pan) * movement.Z + Math.Sin(Pan) * -movement.X;
+			double x = Math.Cos(Pan) * movement.X - Math.Sin(Pan) * -movement.Z;
+			Vector3 pos = camera.Position + new Vector3((float)x, (float)movement.Y, (float)z);
 			return pos;
 		}
 
@@ -198,6 +202,7 @@ namespace Direct3DExtensions
 
 		protected virtual Vector3 UpdateDirection()
 		{
+			Vector3 dir = camera.Direction;
 			if (Input.HasFocus)
 			{
 				// Update Rotation
@@ -205,15 +210,14 @@ namespace Direct3DExtensions
 
 				if (pt != Point.Empty)
 				{
-					Vector2 rotate = new Vector2(pt.X, pt.Y) * Sensitivity * fov;
-					rotation += rotate;
-					rotation.Y = Clamp(rotation.Y, MinAngle, MaxAngle);
+					Vector3 ypr = camera.YawPitchRoll;
+					Vector3 rotate = new Vector3(pt.X, -pt.Y, 0) * Sensitivity * fov;
+					rotate += ypr;
+					rotate.Y = Clamp(-rotate.Y, -1.55f, 1.55f);
+					dir = Vector3.TransformCoordinate(Vector3.UnitZ, Matrix.RotationYawPitchRoll(rotate.X,rotate.Y,0));
 				}
 			}
-
-			Matrix rotmat = Matrix.RotationYawPitchRoll(rotation.X, rotation.Y, 0.0f);
-			Vector3 targetdir = new Vector3(rotmat.M31, rotmat.M32, rotmat.M33);
-			return targetdir;
+			return dir;
 		}
 
 		private float UpdateTiming()
@@ -223,6 +227,11 @@ namespace Direct3DExtensions
 			lasttime = time;
 			float dt = (float)frametime * 0.01f;
 			return dt;
+		}
+
+		public override string ToString()
+		{
+			return "Pos: " + Camera.Position + ", Dir: " + Camera.Direction;
 		}
 
 		static float Clamp( float value, float min, float max )

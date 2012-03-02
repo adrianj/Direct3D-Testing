@@ -17,12 +17,11 @@ namespace Direct3DExtensions_Test
 		[Test]
 		public void CreateSquare()
 		{
-			using (MeshConverter converter = new MeshConverter())
+			using (MeshFactory factory = new MeshFactory())
 			{
-				D3D9.Mesh box = D3D9.Mesh.CreateBox(converter.Device9, 1, 1, 1);
-				Mesh mesh = converter.CreateMesh<VertexTypes.PositionTexture>(box);
-				PrintMesh(box);
+				Mesh mesh = factory.CreateSquare(2, 2);
 				PrintMesh(mesh);
+				mesh.Dispose();
 			}
 		}
 
@@ -33,6 +32,18 @@ namespace Direct3DExtensions_Test
 			{
 				Mesh mesh = factory.CreateSphere(1, 4, 4);
 				PrintMesh(mesh);
+				mesh.Dispose();
+			}
+		}
+
+		[Test]
+		public void CreateMassiveSphere()
+		{
+			using (MeshFactory factory = new MeshFactory())
+			{
+				Mesh mesh = factory.CreateSphere(3, 150, 100);
+				Console.WriteLine("Sphere has: " + mesh.Vertices.Length + " vertices");
+				mesh.Dispose();
 			}
 		}
 
@@ -48,6 +59,7 @@ namespace Direct3DExtensions_Test
 			Vertex[] castVerts = mesh.Vertices.Select<Vertex, Vertex>(i => { return VertexTypes.Cast(i, typeof(VertexTypes.PositionNormalTextured)); }).ToArray();
 
 			PrintArray(castVerts);
+			mesh.Dispose();
 		}
 
 		public void PrintMesh(D3D9.Mesh mesh)

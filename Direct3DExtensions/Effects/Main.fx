@@ -1,54 +1,37 @@
 #include "States.fxh"
 #include "Samplers.fxh"
+#include "Structs.fxh"
+#include "RoamTerrain.fx"
 
 float TextureZoomLevel;
+
 Texture2D <float4> Texture_0;
-Texture2D <float4> HeightTexture;
 
-cbuffer PerFrame
+float4 GetPosition( float4 pos )
 {
-	float4x4 WorldViewProj;
-};
-
-struct VS_POS_TEX
-{
-	float3 pos : POSITION;
-	float2 uv  : TEXCOORD;
-};
-
-struct VS_POS_NORM
-{
-	float3 pos : POSITION;
-	float3 norm : NORMAL;
-};
-
-struct PS_TEX
-{
-	float4 pos   : SV_POSITION;
-	float2 uv    : TEXCOORD;
-};
-
-struct PS_NORM
-{
-	float4 pos : SV_POSITION;
-	float3 norm : NORMAL;
-};
+	float4 output = pos;
+	output = mul ( output, World);
+	output = mul ( output, View );
+	output = mul ( output, Proj );
+	return output;
+}
 
 PS_TEX VS( VS_POS_TEX input )
 {
 	PS_TEX output = (PS_TEX)0;
 	
-	output.pos = mul( float4( input.pos, 1.0 ), WorldViewProj );
+	output.pos = GetPosition(float4(input.pos, 1.0));
 	output.uv  = input.uv;
 	
 	return output;
 }
 
+
 PS_NORM VS_Pos_Normal ( VS_POS_NORM input )
 {
 	PS_NORM output = (PS_NORM)0;
 	
-	output.pos = mul( float4( input.pos, 1.0 ), WorldViewProj );
+	output.pos = GetPosition(float4(input.pos, 1.0));
 	output.norm  = input.norm;
 	
 	return output;
@@ -66,7 +49,7 @@ PS_TEX VS_Height_Texture( VS_POS_TEX input )
 	displacement.y = -1.0;
 	pos = pos + displacement;
 
-	output.pos = mul( pos, WorldViewProj );
+	output.pos = GetPosition(pos);
 	output.uv  = input.uv;
 	
 	return output;
@@ -78,6 +61,7 @@ float4 PS_Normal ( PS_NORM input ) : SV_Target
 	output.x = input.norm.x;
 	output.y = input.norm.y;
 	output.z = input.norm.z;
+	output.w = 1;
 	return output;
 }
 
@@ -128,8 +112,8 @@ technique10 Render
 		SetGeometryShader( 0 );
 		SetVertexShader( CompileShader( vs_4_0, VS() ) );
 		SetPixelShader( CompileShader( ps_4_0, PS_Final() ) );
-		SetDepthStencilState( EnableDepthTest, 0 );
-		SetRasterizerState( EnableMSAA );
+		//SetDepthStencilState( EnableDepthTest, 0 );
+		//SetRasterizerState( EnableMSAA );
 	}
 
 	pass P1
@@ -137,8 +121,8 @@ technique10 Render
 		SetGeometryShader( 0 );
 		SetVertexShader( CompileShader( vs_4_0, VS_Height_Texture() ) );
 		SetPixelShader( CompileShader( ps_4_0, PS_Final() ) );
-		SetDepthStencilState( EnableDepthTest, 0 );
-		SetRasterizerState( EnableMSAA );
+		//SetDepthStencilState( EnableDepthTest, 0 );
+		//SetRasterizerState( EnableMSAA );
 	}
 
 	pass P2
@@ -146,8 +130,14 @@ technique10 Render
 		SetGeometryShader( 0 );
 		SetVertexShader( CompileShader( vs_4_0, VS_Pos_Normal() ) );
 		SetPixelShader( CompileShader( ps_4_0, PS_Normal() ) );
-		SetDepthStencilState( EnableDepthTest, 0 );
-		SetRasterizerState( EnableMSAA );
+		//SetDepthStencilState( EnableDepthTest, 0 );
+		//SetRasterizerState( EnableMSAA );
 	}
 
+	pass Terrain
+	{
+		SetVertexShader( CompileShader( vs_4_0, VS_Terrain()));
+		SetGeometryShader(CompileShader(gs_4_0, GS_Terrain()));
+		SetPixelShader(CompileShader(ps_4_0, PS_Terrain()));
+	}
 }

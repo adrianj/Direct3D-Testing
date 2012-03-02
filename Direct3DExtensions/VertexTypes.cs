@@ -11,29 +11,32 @@ using DXGI = SlimDX.DXGI;
 namespace Direct3DExtensions
 {
 	[TypeConverter(typeof(ExpandableObjectConverter))]
-	public interface Vertex { }
+	public interface Vertex {
+		Vector3 Pos { get; set; }
+	}
 
 	public class VertexTypes
 	{
-		public interface IPosition : Vertex  { Vector3 Pos { get; set; } }
+		//public interface IPosition : Vertex  {  }
 		public interface INormal : Vertex  { Vector3 Normal { get; set; } }
 		public interface ITextured : Vertex  { Vector2 TexCoord { get; set; } }
 
-
-		public struct Position : IPosition
+		
+		public struct Position : Vertex
 		{
 			public Vector3 Pos { get; set; }
 			public override string ToString() { return VertexToString(this); }
 		}
+		 
 
-		public struct PositionNormal : IPosition, INormal
+		public struct PositionNormal : INormal
 		{
 			public Vector3 Pos { get; set; }
 			public Vector3 Normal { get; set; }
 			public override string ToString() { return VertexToString(this); }
 		}
 
-		public struct PositionNormalTextured : IPosition, INormal, ITextured
+		public struct PositionNormalTextured : INormal, ITextured
 		{
 			public Vector3 Pos { get; set; }
 			public Vector3 Normal { get; set; }
@@ -41,7 +44,7 @@ namespace Direct3DExtensions
 			public override string ToString() { return VertexToString(this); }
 		}
 
-		public struct PositionTexture : IPosition, ITextured
+		public struct PositionTexture : ITextured
 		{
 			public Vector3 Pos { get; set; }
 			public Vector2 TexCoord { get; set; }
@@ -52,7 +55,7 @@ namespace Direct3DExtensions
 		{
 			int offset = 0;
 			List<D3D.InputElement> list = new List<D3D.InputElement>();
-			if (t.GetInterface("IPosition") != null)
+			if (t.GetInterface("Vertex") != null)
 			{
 				list.Add(new D3D.InputElement("POSITION", 0, DXGI.Format.R32G32B32_Float, offset, 0));
 				offset += 12;
@@ -73,8 +76,7 @@ namespace Direct3DExtensions
 		public static string VertexToString(Vertex v)
 		{
 			string ret = "V:";
-			if (v.GetType().GetInterface("IPosition") != null)
-				ret += " {P: " + (v as IPosition).Pos+"}";
+				ret += " {P: " + v.Pos+"}";
 			if (v.GetType().GetInterface("INormal") != null)
 				ret += " {N: " + (v as INormal).Normal+"}";
 			if (v.GetType().GetInterface("ITextured") != null)
@@ -96,7 +98,9 @@ namespace Direct3DExtensions
 		public static D3D.InputLayout GetInputLayout(D3D.Device device, D3D.EffectPass pass, Type vertexType)
 		{
 			D3D.InputElement[] inputElements = GetInputElements(vertexType);
-			return new D3D.InputLayout(device, pass.Description.Signature, inputElements);
+			D3D.InputLayout layout = new D3D.InputLayout(device, pass.Description.Signature, inputElements);
+			
+			return layout;
 		}
 
 		public static int SizeOf(Type type)
@@ -107,8 +111,7 @@ namespace Direct3DExtensions
 		public static Vertex Cast(Vertex vertexToCast, Type newVertexType)
 		{
 			Vertex ret = Activator.CreateInstance(newVertexType) as Vertex;
-			if (newVertexType.GetInterface("IPosition") != null && vertexToCast is IPosition)
-				(ret as IPosition).Pos = (vertexToCast as IPosition).Pos;
+			ret.Pos = vertexToCast.Pos;
 			if (newVertexType.GetInterface("ITextured") != null && vertexToCast is ITextured)
 				(ret as ITextured).TexCoord = (vertexToCast as ITextured).TexCoord;
 			if (newVertexType.GetInterface("INormal") != null && vertexToCast is INormal)

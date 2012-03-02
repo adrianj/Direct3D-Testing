@@ -65,7 +65,17 @@ namespace Direct3DExtensions
 		public bool HasFocus
 		{
 			get { return hasFocus; }
-			set { hasFocus = value; if (value) control.Focus(); }
+			set
+			{
+				hasFocus = value;
+				if (value)
+				{
+					control.Focus(); 
+					Cursor.Hide();
+				}
+				else
+					Cursor.Show();
+			}
 		}
 
 		public Point ControlCenter
@@ -142,6 +152,7 @@ namespace Direct3DExtensions
 		{
 			int keycode = (int)( e.KeyCode & Keys.KeyCode );
 			keydown[keycode] = true;
+			SetKeyPressed(e.KeyCode);
 		}
 
 		protected virtual void KeyUp(object sender, KeyEventArgs e)
@@ -181,7 +192,8 @@ namespace Direct3DExtensions
 		public bool IsKeyDown( Keys key )
 		{
 			int keycode = (int)( key & Keys.KeyCode );
-			return keydown[keycode];
+			bool b = keydown[keycode];
+			return b;
 		}
 
 		public bool IsKeyPressed( Keys key )

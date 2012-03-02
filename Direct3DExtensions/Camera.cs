@@ -32,52 +32,102 @@ namespace Direct3DExtensions
 
 	using System.ComponentModel;
 
+	public class CameraChangedEventArgs : EventArgs
+	{
+		public bool PositionChanged { get; set; }
+		public bool ViewChanged { get; set; }
+		public bool ProjectionChanged { get; set; }
+	}
+
+	public delegate void CameraChangedEventHandler(object sender, CameraChangedEventArgs e);
+
 	[TypeConverter(typeof(ExpandableObjectConverter))]
 	public class Camera
 	{
-		public float Fov			{ get; private set; }
-		public float Aspect			{ get; private set; }
+		bool freezeUpdates = false;
+		float fov, aspect, nearZ, farZ;
+		Vector3 position, target;
 
-		public float Near			{ get; private set; }
-		public float Far			{ get; private set; }
+		public float Fov { get { return fov; } set { fov = value; UpdatePerspective(); } }
+		public float Aspect { get { return aspect; } set { aspect = value; UpdatePerspective(); } }
 
-		public Vector3 Position		{ get; private set; }
-		public Vector3 Direction	{ get; private set; }
+		public float NearZ { get { return nearZ; } set { nearZ = value; UpdatePerspective(); } }
+		public float FarZ { get { return farZ; } set { farZ = value; UpdatePerspective(); } }
+
+		public Vector3 Position { get { return position; } set { if (position != value) { position = value; UpdateView(true, true); } } }
+		public Vector3 Target { get { return target; } set { if (target != value) { target = value; UpdateView(false, true); } } }
+		public Vector3 Direction { get { return Vector3.Normalize(Target - Position); } }
 
 		public Matrix View			{ get; private set; }
 		public Matrix Projection	{ get; private set; }
 
-		public event EventHandler CameraChanged;
+		public event CameraChangedEventHandler CameraChanged;
+
+		public Vector3 YawPitchRoll
+		{
+			get
+			{
+				Vector2 plane = new Vector2(Direction.X, Direction.Z);
+				float yaw = (float)Math.Atan2(plane.X, plane.Y);
+				float pitch = (float)(Math.Atan2(Direction.Y, plane.Length()));
+				return new Vector3(yaw, pitch, 0);
+			}
+		}
+
 
 		public Camera()
 		{ }
 
-		protected virtual void FireCameraChangedEvent()
+		protected virtual void FireCameraChangedEvent(bool posChanged, bool viewChanged, bool projChanged)
 		{
-			if (CameraChanged != null)
-				CameraChanged(this, EventArgs.Empty);
+			if (CameraChanged == null) return;
+			CameraChangedEventArgs e = new CameraChangedEventArgs()
+			{
+				ViewChanged = viewChanged,
+				PositionChanged = posChanged,
+				ProjectionChanged = projChanged
+			};
+			CameraChanged(this, e);
 		}
 
 		public void LookAt( Vector3 pos, Vector3 target )
 		{
+			freezeUpdates = true;
+			bool posChanged = (pos != Position);
 			Position = pos;
-			Direction = Vector3.Normalize( target - pos );
-			Matrix prevView = View;
-			View = Matrix.LookAtLH( pos, target, Vector3.UnitY );
-			if (!View.Equals(prevView))
-				FireCameraChangedEvent();
+			bool dirChanged = posChanged || (target != Target);
+			Target = target;
+			freezeUpdates = false;
+			UpdateView(posChanged, dirChanged);
 		}
 
-		public void Persepective( float fov, float aspect, float near, float far )
+		public void UpdateView(bool posChanged, bool dirChanged)
 		{
+			if (freezeUpdates) return;
+			Matrix prevView = View;
+			View = Matrix.LookAtLH(Position, Target, Vector3.UnitY);
+			if (!View.Equals(prevView))
+				FireCameraChangedEvent(posChanged, dirChanged, false);
+		}
+
+		public void UpdatePerspective( float fov, float aspect, float near, float far )
+		{
+			freezeUpdates = true;
 			Fov    = fov;
 			Aspect = aspect;
-			Near   = near;
-			Far    = far;
+			NearZ   = near;
+			FarZ = far;
+			freezeUpdates = false;
+			UpdatePerspective();
+		}
+
+		public void UpdatePerspective()
+		{
+			if (freezeUpdates) return;
 			Matrix prevProj = Projection;
-			Projection = Matrix.PerspectiveFovLH( fov, aspect, near, far );
+			Projection = Matrix.PerspectiveFovLH(Fov, Aspect, NearZ, FarZ);
 			if (!prevProj.Equals(Projection))
-				FireCameraChangedEvent();
+				FireCameraChangedEvent(false,false,true);
 		}
 	}
 }

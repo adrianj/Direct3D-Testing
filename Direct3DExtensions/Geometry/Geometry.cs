@@ -9,27 +9,39 @@ namespace Direct3DExtensions
 	[TypeConverter(typeof(ExpandableObjectConverter))]
 	public interface Geometry : IDisposable
 	{
-		void BindAllMeshesToSamePass(D3DDevice device, Effect effect, int passNumber);
 		void Draw();
-		List<Mesh> Meshes {get;}
+		void Clear();
+		void Add(Mesh mesh);
+		void Remove(Mesh mesh);
 	}
 
 	public class BasicGeometry : DisposablePattern, Geometry
 	{
+		[TypeConverter(typeof(CollectionConverter))]
 		public List<Mesh> Meshes { get; private set; }
-
 
 		public BasicGeometry()
 		{
 			Meshes = new List<Mesh>();
 		}
 
-		public void BindAllMeshesToSamePass(D3DDevice device, Effect effect, int passNumber)
+		public void Add(Mesh mesh)
 		{
-			foreach (Mesh mesh in Meshes)
-				mesh.BindToPass(device,effect, passNumber);
+			Meshes.Add(mesh);
 		}
 
+		public void Remove(Mesh mesh)
+		{
+			if (!Meshes.Contains(mesh)) return;
+			Meshes.Remove(mesh);
+		}
+
+		public void Clear()
+		{
+			foreach (Mesh mesh in Meshes)
+				mesh.Dispose();
+			Meshes.Clear();
+		}
 
 		public void Draw()
 		{
@@ -44,14 +56,13 @@ namespace Direct3DExtensions
 			{
 				if (disposing)
 				{
-					foreach (Mesh mesh in Meshes)
-						mesh.Dispose();
-					Meshes.Clear();
+					Clear();
 				}
 				this.disposed = true;
 			}
 			base.Dispose(disposing);
 		}
+
 
 	}
 }

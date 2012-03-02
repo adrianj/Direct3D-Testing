@@ -13,7 +13,7 @@ namespace Direct3DExtensions
 		public void Dispose()
 		{
 			Dispose(true);
-			GC.SuppressFinalize(this);
+			//GC.SuppressFinalize(this);
 		}
 
 		protected virtual void Dispose(bool disposing)
@@ -32,6 +32,10 @@ namespace Direct3DExtensions
 			/* inheritors should call this:
 			 base.Dispose(disposing);
 			 */
+		
 		}
+    
+    
+		
 	}
 }

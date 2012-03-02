@@ -1,6 +1,6 @@
 ﻿namespace Direct3DExtensions
 {
-	partial class HostForm
+	partial class D3DHostForm
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -37,7 +37,6 @@
 			this.ClientSize = new System.Drawing.Size(813, 651);
 			this.Name = "HostForm";
 			this.Text = "Direct3D Form";
-			this.Load += new System.EventHandler(this.HostForm_Load);
 			this.ResumeLayout(false);
 
 		}

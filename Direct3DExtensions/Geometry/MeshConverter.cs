@@ -51,7 +51,7 @@ namespace Direct3DExtensions
 			Vertex[] buffer = ExtractVertices(mesh9);
 			ret.Vertices = buffer;
 
-			uint[] indices = ExtractIndices(mesh9);
+			int[] indices = ExtractIndices(mesh9);
 			ret.Indices = indices;
 
 			return ret;
@@ -63,18 +63,22 @@ namespace Direct3DExtensions
 			using (SlimDX.DataStream stream = mesh9.LockVertexBuffer(D3D9.LockFlags.None))
 			{
 				buffer = stream.ReadRange<VertexTypes.PositionNormal>(mesh9.VertexCount);
+				stream.Close();
+				stream.Dispose();
 			}
 			mesh9.UnlockVertexBuffer();
 			return buffer.Cast<Vertex>().ToArray();
 		}
 
-		private static uint[] ExtractIndices(D3D9.Mesh mesh9)
+		private static int[] ExtractIndices(D3D9.Mesh mesh9)
 		{
-			uint[] buffer;
+			int[] buffer;
 			using (SlimDX.DataStream stream = mesh9.LockIndexBuffer(D3D9.LockFlags.None))
 			{
 				ushort [] bffer = stream.ReadRange<ushort>(mesh9.FaceCount*3);
-				buffer = bffer.Select<ushort, uint>((i, o) => { return (uint)i; }).ToArray();
+				buffer = bffer.Select<ushort, int>((i, o) => { return (int)i; }).ToArray();
+				stream.Close();
+				stream.Dispose();
 			}
 			mesh9.UnlockIndexBuffer();
 			return buffer;
@@ -107,7 +111,7 @@ namespace Direct3DExtensions
 				}
 				outMesh.SetAttributeTable(outAttribTable);
 			}
-
+			
 			outMesh.GenerateAttributeBufferFromTable();
 		}
 

@@ -14,18 +14,23 @@ namespace Direct3DExtensions
 	{
 		string ShaderFilename { get; set; }
 		void Init(D3DDevice device);
-		void ApplyPerFrameConstants(Camera camera);
-		void ApplyAll(Camera camera);
+		void SetWorld(Matrix world);
+		void SetCamera(Camera camera);
 		D3D.EffectPass this[int index] { get; }
 		int EffectCount { get; }
+		int GetPassIndexByName(string passName);
+		D3D.EffectVariable GetVariableByName(string name);
 	}
 
-	public class BasicEffect : DisposablePattern, Effect
+	public class WorldViewProjEffect : DisposablePattern, Effect
 	{
 		protected int MaxTechniques = 4;
 		protected int MaxPasses = 4;
 
-		public string ShaderFilename { get; set; }
+		public static string DefaultShaderFilename = @"Effects\Main.fx";
+
+		string filename = DefaultShaderFilename;
+		public string ShaderFilename { get { return filename; } set { filename = value; } }
 
 		protected D3D.Effect effect;
 		protected List<D3D.EffectPass> passes;
@@ -33,11 +38,27 @@ namespace Direct3DExtensions
 		public D3D.EffectPass this[int index] { get { return passes[index]; } }
 		public int EffectCount { get { return passes.Count; } }
 
-		protected D3D.EffectMatrixVariable WorldViewProj;
 
-		public BasicEffect()
+		protected D3D.EffectMatrixVariable World;
+		protected D3D.EffectMatrixVariable View;
+		protected D3D.EffectMatrixVariable Proj;
+		protected D3D.EffectMatrixVariable InvProj;
+		protected D3D.EffectVectorVariable CameraPos;
+
+
+		public WorldViewProjEffect()
 		{
-			ShaderFilename = @"Effects\Basic.fx";
+		}
+
+		public int GetPassIndexByName(string name)
+		{
+			for (int i = 0; i < this.EffectCount; i++)
+			{
+				D3D.EffectPass pass = this[i];
+				if (pass.Description.Name.Equals(name))
+					return i;
+			}
+			return -1;
 		}
 
 		public virtual void Init(D3DDevice device)
@@ -58,21 +79,29 @@ namespace Direct3DExtensions
 				}
 			}
 
-			WorldViewProj = effect.GetVariableByName("WorldViewProj").AsMatrix();
+			World = effect.GetVariableByName("World").AsMatrix();
+			View = effect.GetVariableByName("View").AsMatrix();
+			Proj = effect.GetVariableByName("Proj").AsMatrix();
+			InvProj = effect.GetVariableByName("InvProj").AsMatrix();
+			CameraPos = effect.GetVariableByName("CameraPos").AsVector();
 		}
 
-
-
-		public virtual void ApplyAll(Camera camera)
+		public D3D.EffectVariable GetVariableByName(string name)
 		{
-			ApplyPerFrameConstants(camera);
-			foreach (D3D.EffectPass pass in passes)
-				pass.Apply();
+			return effect.GetVariableByName(name);
 		}
 
-		public virtual void ApplyPerFrameConstants(Camera camera)
+		public virtual void SetWorld(Matrix world)
 		{
-			WorldViewProj.SetMatrix(camera.View * camera.Projection);
+			World.SetMatrix(world);
+		}
+
+		public virtual void SetCamera(Camera camera)
+		{
+			View.SetMatrix(camera.View);
+			Proj.SetMatrix(camera.Projection);
+			InvProj.SetMatrix(Matrix.Invert(camera.Projection));
+			CameraPos.Set(camera.Position);
 		}
 		private bool disposed = false;
 		protected override void Dispose(bool disposing)
@@ -81,12 +110,35 @@ namespace Direct3DExtensions
 			{
 				if (disposing)
 				{
-					if (effect != null)
-						effect.Dispose();
+					DisposeManaged();
 				}
 				this.disposed = true;
 			}
 			base.Dispose(disposing);
+		}
+
+		private void DisposeManaged()
+		{
+			if (effect != null)
+				effect.Dispose();
+			
+		}
+
+		// override object.Equals
+		public override bool Equals(object obj)
+		{
+			if (obj == null || GetType() != obj.GetType())
+			{
+				return false;
+			}
+			Effect effect = obj as Effect;
+			return effect.ShaderFilename.Equals(this.ShaderFilename);
+		}
+
+		// override object.GetHashCode
+		public override int GetHashCode()
+		{
+			return ShaderFilename.GetHashCode();
 		}
 	}
 
