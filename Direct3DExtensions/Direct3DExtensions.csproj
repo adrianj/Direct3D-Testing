@@ -63,6 +63,7 @@
     <Compile Include="DisposablePattern.cs" />
     <Compile Include="Effect.cs" />
     <Compile Include="CameraInput.cs" />
+    <Compile Include="Geometry\CustomMesh.cs" />
     <Compile Include="Geometry\ExpandableSquareGrid.cs" />
     <Compile Include="Geometry\ExpandedIsometricPlane.cs" />
     <Compile Include="Geometry\ExpandedPlane.cs" />
@@ -75,7 +76,7 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Geometry\HGTFileReader.cs" />
-    <Compile Include="Geometry\ImageConverter.cs" />
+    <Compile Include="ImagingFunctions.cs" />
     <Compile Include="Geometry\EquilateralTriangle.cs" />
     <Compile Include="HostForm.Designer.cs">
       <DependentUpon>D3DHostForm.cs</DependentUpon>
@@ -87,6 +88,8 @@
     <Compile Include="Terrain\Landscape.cs" />
     <Compile Include="Terrain\LandscapeManager.cs" />
     <Compile Include="Terrain\Patch.cs" />
+    <Compile Include="Terrain\TerrainHeightTextureFetcher.cs" />
+    <Compile Include="Terrain\TerrainMeshSet.cs" />
     <Compile Include="Terrain\TriTreeNode.cs" />
     <Compile Include="Test3DEngine.cs">
       <SubType>Component</SubType>
@@ -107,6 +110,7 @@
     <Compile Include="Terrain\Terrain3DEngine.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Texture.cs" />
     <Compile Include="Textured3DEngine.cs">
       <SubType>Component</SubType>
     </Compile>

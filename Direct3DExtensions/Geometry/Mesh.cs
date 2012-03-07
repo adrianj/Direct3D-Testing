@@ -38,9 +38,9 @@ namespace Direct3DExtensions
 		protected D3D.Buffer indexbuffer;
 		protected D3D.InputLayout layout;
 
-		public Vector3 Rotation { get; set; }
-		public Vector3 Scale {get;set;}
-		public Vector3 Translation { get; set; }
+		public virtual Vector3 Rotation { get; set; }
+		public virtual Vector3 Scale {get;set;}
+		public virtual Vector3 Translation { get; set; }
 		public Matrix World { get { return CalculateWorld(); } }
 		//protected Matrix World = Matrix.Identity;
 

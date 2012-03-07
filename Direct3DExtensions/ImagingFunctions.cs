@@ -11,7 +11,7 @@ using System.IO;
 
 namespace Direct3DExtensions
 {
-	public class ImageConverter
+	public class ImagingFunctions
 	{
 
 		public static Image ConvertTexture2DToImage(Device device,Texture2D texture)
@@ -160,10 +160,89 @@ namespace Direct3DExtensions
 			filename += ".png";
 			SaveAndDisplayImage(image, filename);
 		}
+		
 		public static void SaveAndDisplayImage(Image image, string filename)
 		{
 			image.Save(filename);
 			System.Diagnostics.Process.Start(filename);
+		}
+
+		public static int[,] GreyscaleColourMap() { return GreyscaleColourMap(256); }
+		public static int[,] GreyscaleColourMap(int depth)
+		{
+			int[,] cmap = new int[depth, 3];
+			float scale = 256.0f / (float)depth;
+			for (int i = 0; i < depth; i++)
+			{
+				cmap[i, 0] = (int)((float)i * scale);
+				cmap[i, 1] = cmap[i, 0];
+				cmap[i,2] = cmap[i,0];
+			}
+			return cmap;
+		}
+
+		public static int[,] HsvColourMap() { return HsvColourMap(256); }
+		public static int[,] HsvColourMap(int depth)
+		{
+			int[,] cmap = new int[depth, 3];
+			float scale = 256.0f / (float)depth * 6.0f;
+			for (int i = 0; i < depth/6; i++)
+			{
+				cmap[i, 1] = (int)((float)i * scale);
+			}
+			for (int i = depth / 6; i < depth /2; i++)
+			{
+				cmap[i, 1] = 255;
+			}
+			for (int i = depth /2; i < depth / 2 + depth/6; i++)
+			{
+				cmap[i, 1] = 255 - (int)((float)(i-depth/2) * scale);
+			}
+			for (int i = 0; i < depth; i++)
+			{
+				int ri = (i + depth / 3) % depth;
+				int bi = (i + depth * 2 / 3) % depth;
+				cmap[ri, 0] = cmap[i, 1];
+				cmap[bi, 2] = cmap[i, 1];
+			}
+			return cmap;
+		}
+
+		public static Image CreateImageFromArray<T>(T[,] array) where T : IConvertible
+		{
+			return CreateImageFromArray(array, HsvColourMap(256));
+		}
+
+		public static Image CreateImageFromArray<T>(T[,] array, int[,] colourMap) where T : IConvertible
+		{
+			if (colourMap.GetLength(1) != 3)
+				throw new Exception("Colour Map must have 3 columns for Red, Green and Blue");
+			int colourDepth = colourMap.GetLength(0);
+			float max = MathExtensions.Max(array);
+			float min = MathExtensions.Min(array);
+			float offset = min;
+			float scale = (float)colourDepth / (max-min+1);
+			Bitmap bmp = new Bitmap(array.GetLength(1), array.GetLength(0), PixelFormat.Format32bppRgb);
+			System.Drawing.Imaging.BitmapData data = bmp.LockBits(new Rectangle(new Point(), bmp.Size), ImageLockMode.WriteOnly, bmp.PixelFormat);
+
+			using (BinaryWriter writer = new BinaryWriter(new DataStream(data.Scan0, data.Stride * data.Height, false, true)))
+			{
+				
+			for(int y = 0; y < array.GetLength(0); y++)
+				for (int x = 0; x < array.GetLength(1); x++)
+				{
+					float f = Convert.ToSingle(array[y, x]);
+
+					int i = (int)((f - offset) * scale);
+					writer.Write((byte)colourMap[i, 2]);
+					writer.Write((byte)colourMap[i, 1]);
+					writer.Write((byte)colourMap[i, 0]);
+					writer.Write((byte)255);
+				}
+			}
+
+			bmp.UnlockBits(data);
+			return bmp;
 		}
 	}
 }

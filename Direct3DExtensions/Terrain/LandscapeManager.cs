@@ -17,8 +17,6 @@ namespace Direct3DExtensions.Terrain
 		float updatePeriod = 1.0f;
 		float timeSinceLastUpdate = 0;
 		float initialFrameVariance = 1;
-		int mapXOffset = 80;
-		int mapYOffset = 80;
 		bool busy = false;
 
 		Landscape landscape = new Landscape();

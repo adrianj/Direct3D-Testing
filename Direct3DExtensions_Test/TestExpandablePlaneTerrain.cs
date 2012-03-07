@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows.Forms;
 using NUnit.Framework;
 using System.IO;
+using System.Drawing;
 
 using Direct3DExtensions;
 using Direct3DExtensions.Terrain;
@@ -20,13 +21,16 @@ namespace Direct3DExtensions_Test
 	{
 		D3DHostForm form;
 		Direct3DEngine engine;
-		ExpandedPlane plane = new ExpandedIsometricPlane();
-		Mesh sphere;
-		float timeSinceLastUpdate = 0;
+		//Mesh plane = new ExpandableSquareGrid();
+		Mesh plane = new TerrainMeshSet();
 		int ScaleFactor = 1;
 		ExTerrainEffect TerrainEffect;
 		EquilateralTriangle tri;
-		short[,] terrain;
+		short[,] hiresTerrain;
+		short[,] loresTerrain;
+		float WorldUnitsPerDegree = 1024.0f;
+		Vector2 initialCameraLocation = new Vector2(-0.2f, 0.2f);
+		Vector2 initialTerrainLocation = new Vector2(175f, -37f);
 
 		[SetUp]
 		public void SetUp()
@@ -36,26 +40,50 @@ namespace Direct3DExtensions_Test
 			engine = new MultipleEffect3DEngine();
 			TerrainEffect = new ExTerrainEffect();
 			(engine as MultipleEffect3DEngine).AddEffect(TerrainEffect);
-			using (MeshFactory fact = new MeshFactory())
-			{
-				sphere = fact.CreateSphere(1, 16, 16);
-				sphere.Translation = new Vector3(0, 2, 0);
-			}
 
-			terrain = TerrainTest.ReadHgtFile(TerrainTest.hgtFile, 1200);
 			form.SetEngine(engine);
+		}
+
+		private void FetchHiresTerrain()
+		{
+			TerrainHeightTextureFetcher fetcher = new Strm3TextureFetcher();
+			hiresTerrain = fetcher.FetchTerrain(GetCentredSquareRectangle(initialTerrainLocation, DegreesToWorldUnits(0.125) / 1200.0f));
+			TerrainEffect.WriteHeightDataToTexture(hiresTerrain);
+			TerrainEffect.TerrainCentreLocation = DegreesToWorldUnits(initialCameraLocation);
+		}
+
+		Vector2 DegreesToWorldUnits(Vector2 degrees)
+		{
+			return new Vector2(DegreesToWorldUnits(degrees.X), DegreesToWorldUnits(degrees.Y));
+		}
+
+		float DegreesToWorldUnits(double degrees)
+		{
+			return (float)degrees * WorldUnitsPerDegree;
+		}
+
+		void FetchLoresTerrain()
+		{
+
+		}
+
+		RectangleF GetCentredSquareRectangle(Vector2 centre, float width)
+		{
+			PointF point = new PointF(centre.X-width*0.5f, centre.Y-width*0.5f);
+			SizeF size = new SizeF(width,width);
+			RectangleF rect = new RectangleF(point, size);
+			return rect;
 		}
 
 		[Test]
 		public void TestTriangle()
 		{
 			tri = new EquilateralTriangle();
-			//tri.Scale = new Vector3(100, 100, 100);
 			engine.InitializationComplete += (o, e) =>
 			{
 				engine.BindMesh(tri, "ExTerrain");
-				engine.BindMesh(sphere, "P2");
-				TerrainEffect.WriteHeightDataToTexture(terrain);
+				FetchHiresTerrain();
+				FetchLoresTerrain();
 			};
 			engine.PreRendering += (o, e) =>
 			{
@@ -73,9 +101,9 @@ namespace Direct3DExtensions_Test
 		[Test]
 		public void TestExpandablePlane()
 		{
-			
-			plane.Segments = new System.Drawing.Size(60, 100);
-			plane.Scale = new Vector3(20, 0.01f, 20);
+			if(plane is ExpandedPlane)
+				(plane as ExpandedPlane).Segments = new System.Drawing.Size(60, 100);
+			plane.Scale = new Vector3(20, 0.05f, 20);
 			engine.InitializationComplete += (o, e) => { OnInitComplete(); };
 
 
@@ -86,50 +114,72 @@ namespace Direct3DExtensions_Test
 
 		void OnInitComplete()
 		{
-			engine.BindMesh(sphere, "P2");
+			engine.CameraInput.Camera.FarZ = 12000;
+			Vector2 camPos = DegreesToWorldUnits(initialCameraLocation);
+			engine.CameraInput.LookAt(new Vector3(camPos.X, 12, camPos.Y), new Vector3(camPos.X-10, 0, camPos.Y+10));
+			CreateAndBindMarkerSpheres();
 			engine.BindMesh(plane, "ExTerrain");
-			TerrainEffect.WriteHeightDataToTexture(terrain);
-			plane.Translation = new Vector3(-18, 0, -400);
-			engine.CameraInput.LookAt(new Vector3(-18,12,-400), new Vector3(0, 0, 0));
+			FetchHiresTerrain();
+			FetchLoresTerrain();
+			SetTerrainScale();
+			SetTerrainTranslation();
+		}
+
+		private void CreateAndBindMarkerSpheres()
+		{
+			using (MeshFactory fact = new MeshFactory())
+			{
+				float sphereHeight = 5;
+				for(double y = -1; y <= 1; y+=0.5)
+					for (double x = -1; x <= 1; x+=0.5)
+					{
+						Mesh sphere = fact.CreateSphere(10, 10, 10);
+						sphere.Translation = new Vector3(DegreesToWorldUnits(x + initialCameraLocation.X), sphereHeight, DegreesToWorldUnits(y+initialCameraLocation.Y));
+						engine.BindMesh(sphere, "P2");
+					}
+			}
 		}
 
 
 		void OnCameraChanged(CameraChangedEventArgs e)
 		{
-			if (e.ViewChanged)
+			if (e.PositionChanged)
 			{
-				Vector3 pos = engine.CameraInput.Camera.Position;
-				Vector3 scale = plane.Scale;
-				//float s = MathExtensions.Clamp(pos.Y, 0, 100) / 100;
-				double s = MathExtensions.Clamp(pos.Y-10, 1, 200000);
-				s = pos.Y;
-				s = MathExtensions.Clamp(s, 1, 10000);
-				//s = Math.Floor(s);
-				ScaleFactor = (int)s;
-
-				scale.X = (float)s;
-				scale.Z = (float)s;
-				plane.Scale = scale;
-
-				double pitch = engine.CameraInput.Camera.YawPitchRoll.Y;
-				pitch = Math.PI/2.0+MathExtensions.Clamp(pitch, -90.0 / 180.0 * Math.PI, -30.0/180.0*Math.PI);
-				double yaw = engine.CameraInput.Camera.YawPitchRoll.X;
-				double x = pos.X;
-				double z = pos.Z;
-				double h = pos.Y;
-				double d = h * Math.Tan(pitch);
-				
-				//x += Math.Sin(yaw) * d;
-				//z +=Math.Cos(yaw) * d;
-				pos.Y = 0;
-				plane.Translation = new Vector3((float)x,0,(float)z);
-				plane.Rotation = new Vector3(0, (float)yaw, 0);
+				SetTerrainScale();
+				SetTerrainTranslation();
 
 				(engine as Test3DEngine).additionalStatistics = "ScaleF: " + ScaleFactor + "\nScale: " + plane.Scale + 
-					"\nPos: " + plane.Translation+"\nPitch: "+pitch+"\nYaw: "+yaw;
+					"\nPos: " + plane.Translation+"\n: var: "+TerrainEffect.InverseMapSize;
 
 			}
 		}
+
+		private void SetTerrainTranslation()
+		{
+			Vector3 pos = engine.CameraInput.Camera.Position;
+			Vector3 scale = plane.Scale;
+			plane.Translation = new Vector3(pos.X, 0, pos.Z);
+		}
+
+		private void SetTerrainScale()
+		{
+			Vector3 pos = engine.CameraInput.Camera.Position;
+			Vector3 scale = plane.Scale;
+			plane.Scale = GetScaleFromHeight(pos.Y, scale.Y);
+		}
+
+		private Vector3 GetScaleFromHeight(double height, float originalYScale)
+		{
+			//double s = pos.Y;
+			Vector3 scale = new Vector3(1, originalYScale, 1);
+			height = Math.Pow(height, 2.0 / 3.0);
+			height = height / 8;
+			height = MathExtensions.PowerOfTwo(height, 1);
+			scale.X = (float)height;
+			scale.Z = (float)height;
+			return scale;
+		}
+
 
 		void MoveMesh(Mesh mesh)
 		{

@@ -26,6 +26,16 @@ namespace Direct3DExtensions
 			return b;
 		}
 
+		public static double PowerOfTwo(double f, double minValue)
+		{
+			double r = minValue;
+			if (f <= minValue)
+				return r;
+			while (r < f)
+				r = r * 2;
+			return r;
+		}
+
 		public static int PowerOfTwo(int i)
 		{
 			if (i <= 0)
@@ -145,6 +155,63 @@ namespace Direct3DExtensions
 		public static bool TriangleFullyOnScreen(Vector3 v0Wvp, Vector3 v1Wvp, Vector3 v2Wvp)
 		{
 			return VertexOnScreen(v0Wvp) || VertexOnScreen(v1Wvp) || VertexOnScreen(v2Wvp);
+		}
+
+
+
+		public static void AppendVertices(List<Vector3> destVertexBuffer, List<int> destIndexBuffer, List<Vector3> srcVertexBuffer, List<int> srcIndexBuffer)
+		{
+			int iOffset = destVertexBuffer.Count;
+			destVertexBuffer.AddRange(srcVertexBuffer);
+			for (int i = 0; i < srcIndexBuffer.Count; i++)
+			{
+				destIndexBuffer.Add(iOffset + srcIndexBuffer[i]);
+			}
+		}
+
+		public static void ReflectVerticesThroughXAxis(List<Vector3> srcVertexBuffer, List<int> srcIndexBuffer, out List<Vector3> destVertexBuffer, out List<int> destIndexBuffer)
+		{
+			destIndexBuffer = new List<int>(srcIndexBuffer);
+			destVertexBuffer = new List<Vector3>();
+			for (int i = 0; i < srcVertexBuffer.Count; i++)
+			{
+				Vector3 src = srcVertexBuffer[i];
+				destVertexBuffer.Add(new Vector3(-src.X, src.Y, src.Z));
+			}
+			destIndexBuffer.Reverse();
+		}
+
+		public static void TransformVertices(List<Vector3> srcVertexBuffer, out List<Vector3> destVertexBuffer, Matrix transMatrix)
+		{
+			destVertexBuffer = new List<Vector3>(srcVertexBuffer.Count);
+			foreach (Vector3 v in srcVertexBuffer)
+			{
+				destVertexBuffer.Add(Vector3.TransformCoordinate(v, transMatrix));
+			}
+		}
+
+		public static float Max<T>(T[,] array) where T : IConvertible
+		{
+			float max = float.MinValue;
+			foreach (IConvertible c in (array as Array))
+			{
+				float f = Convert.ToSingle(c);
+				if (f > max)
+					max = f;
+			}
+			return max;
+		}
+
+		public static float Min<T>(T[,] array) where T : IConvertible
+		{
+			float min = float.MaxValue;
+			foreach (IConvertible c in (array as Array))
+			{
+				float f = Convert.ToSingle(c);
+				if (f < min)
+					min = f;
+			}
+			return min;
 		}
 	}
 }

@@ -15,6 +15,10 @@ namespace Direct3DExtensions_Test
 		[STAThread]
 		static void Main()
 		{
+			//TerrainTexture_Test tt = new TerrainTexture_Test();
+			//tt.SetUp();
+			//tt.TestStrm30();
+
 			TestExpandablePlaneTerrain te = new TestExpandablePlaneTerrain();
 			te.SetUp();
 			te.TestExpandablePlane();

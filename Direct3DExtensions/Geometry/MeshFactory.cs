@@ -121,6 +121,23 @@ namespace Direct3DExtensions
 			return mesh;
 		}
 
+		public Mesh CreateDiamondGrid(int numColumns, int numRows)
+		{
+			CustomMesh ret = new CustomMesh();
+			List<Vector3> vBuf = new List<Vector3>();
+			List<int> iBuf = new List<int>();
+			DiamondSquare sq = new DiamondSquare();
+
+			for (int r = -numColumns; r < numColumns; r+=2)
+			{
+				for (int c = -numColumns; c < numColumns; c+=2)
+				{
+					sq.AppendTranslatedSquare(vBuf, iBuf, new Vector3(c, 0, r), DiamondSquare.SquareType.Normal);
+				}
+			}
+			ret.SetVertexData<VertexTypes.Position>(vBuf, iBuf);
+			return ret;
+		}
 
 		public static int IndexFromCoord(int x, int y, int width)
 		{

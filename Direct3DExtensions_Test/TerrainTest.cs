@@ -237,7 +237,6 @@ namespace Direct3DExtensions_Test
 						if (y < hMap.GetLength(0) && x < hMap.GetLength(1))
 							hMap[y,x] = s;
 					}
-
 			}
 			return hMap;
 		}
