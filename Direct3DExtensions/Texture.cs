@@ -31,9 +31,6 @@ namespace Direct3DExtensions
 		}
 
 		public void WriteTexture<T>(T[,] data) where T : IConvertible
-		{ WriteTexture(data, 0); }
-
-		public void WriteTexture<T>(T[,] data, int arrayIndex) where T : IConvertible
 		{
 			int height = MathExtensions.PowerOfTwo(data.GetLength(0));
 			int width = MathExtensions.PowerOfTwo(data.GetLength(1));
@@ -42,6 +39,11 @@ namespace Direct3DExtensions
 			{
 				RecreateTexture(width, height);
 			}
+			WriteToTexture<T>(texture, data, height, width);
+		}
+
+		public static void WriteToTexture<T>(D3D.Texture2D texture, T[,] data, int height, int width) where T : IConvertible
+		{
 			DataRectangle rect = texture.Map(0, D3D.MapMode.WriteDiscard, D3D.MapFlags.None);
 			using (DataStream stream = rect.Data)
 			{
