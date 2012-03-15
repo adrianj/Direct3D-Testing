@@ -67,8 +67,8 @@ namespace Direct3DExtensions.Terrain
 
 		protected virtual void ReadHgtFile(short [,] destinationArray, string filename, Point arrayOffset, Rectangle regionInPixels)
 		{
-			Console.WriteLine("" + this + ": filename: " + filename);
-			Console.WriteLine("offset: " + arrayOffset + ", region: " + regionInPixels +", coarseRegion: "+coarseRegion);
+			//Console.WriteLine("" + this + ": filename: " + filename);
+			//Console.WriteLine("offset: " + arrayOffset + ", region: " + regionInPixels +", coarseRegion: "+coarseRegion);
 
 			if (regionInPixels.Left + regionInPixels.Width > FileMapWidth || regionInPixels.Top + regionInPixels.Height > FileMapHeight)
 				throw new Exception("Requested offset and region outside bounds of file. " + regionInPixels);
@@ -77,7 +77,7 @@ namespace Direct3DExtensions.Terrain
 				throw new Exception("Can't access a negative region. " + regionInPixels);
 			if (!File.Exists(filename))
 			{
-				Console.WriteLine("File not found: " + filename);
+				//Console.WriteLine("File not found: " + filename);
 				return;
 			}
 
@@ -123,7 +123,7 @@ namespace Direct3DExtensions.Terrain
 				for (int x = 0; x <= coarseRegion.Width; x += LongDiffBetweenFiles)
 				{
 					Point coarsePoint = UpdateCoarsePoint(y, x);
-					Console.WriteLine("coarsePoint: " + coarsePoint);
+					//Console.WriteLine("coarsePoint: " + coarsePoint);
 					regionInFile = CalculateRegionInFile(regionInLatLongNotation, coarsePoint);
 					width += regionInFile.Width;
 
@@ -177,32 +177,32 @@ namespace Direct3DExtensions.Terrain
 			int yOffset = 0;
 			int width = PixelsPerLongitude * LongDiffBetweenFiles;
 			int height = PixelsPerLongitude * LatDiffBetweenFiles;
-			Console.WriteLine("Calc Region: " + regionInLatLongNotation + ", " + coarseLatLong);
+			//Console.WriteLine("Calc Region: " + regionInLatLongNotation + ", " + coarseLatLong);
 			int bdiff; int tdiff; int ldiff; int rdiff;
 			GetPixelDistanceFromEdges(regionInLatLongNotation, coarseLatLong, out bdiff, out tdiff, out ldiff, out rdiff);
 
-			Console.WriteLine("b: " + bdiff + ", t: " + tdiff + ", l: " + ldiff + ", r: " + rdiff);
+			//Console.WriteLine("b: " + bdiff + ", t: " + tdiff + ", l: " + ldiff + ", r: " + rdiff);
 			if (ldiff > 0)
 			{
 				xOffset = ldiff;
 				width -= xOffset;
-				Console.WriteLine("Left side: " + xOffset + "," + width);
+				//Console.WriteLine("Left side: " + xOffset + "," + width);
 			}
 			if (rdiff > 0)
 			{
 				width -= rdiff;
-				Console.WriteLine("Right side: " + xOffset + "," + width);
+				//Console.WriteLine("Right side: " + xOffset + "," + width);
 			}
 			if (tdiff > 0)
 			{
 				yOffset = tdiff;
 				height -= yOffset;
-				Console.WriteLine("Top side: "+ yOffset + "," + height);
+				//Console.WriteLine("Top side: "+ yOffset + "," + height);
 			}
 			if (bdiff > 0)
 			{
 				height -= bdiff;
-				Console.WriteLine("Bottom side: "  + yOffset + "," + height);
+				//Console.WriteLine("Bottom side: "  + yOffset + "," + height);
 			}
 			int lat = (int)regionInLatLongNotation.Top;
 			int lng = (int)regionInLatLongNotation.Left;
@@ -291,21 +291,6 @@ namespace Direct3DExtensions.Terrain
 			return Strm3DataFolder + filename;
 		}
 
-
-		/*
-		protected override void GetPixelDistanceFromEdges(RectangleF regionInLatLongNotation, Point coarseLatLong, out int bdiff, out int tdiff, out int ldiff, out int rdiff)
-		{
-			int top = (int)((float)PixelsPerLatitude * regionInLatLongNotation.Bottom);
-			int bottom = (int)((float)PixelsPerLatitude * regionInLatLongNotation.Top);
-			int left = (int)((float)PixelsPerLongitude * regionInLatLongNotation.Left);
-			int right = (int)((float)PixelsPerLatitude * regionInLatLongNotation.Right);
-
-			bdiff = bottom - PixelsPerLatitude * coarseLatLong.Y + FileMapHeight;
-			tdiff = PixelsPerLatitude * coarseLatLong.Y - top;
-			ldiff = left - PixelsPerLongitude * coarseLatLong.X;
-			rdiff = PixelsPerLongitude * coarseLatLong.X - right + FileMapWidth;
-		}
-		 */
 
 
 	}

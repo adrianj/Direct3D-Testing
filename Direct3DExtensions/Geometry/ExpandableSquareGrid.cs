@@ -118,26 +118,6 @@ namespace Direct3DExtensions
 			MathExtensions.TransformVertices(tempBuf, out rev, m);
 			MathExtensions.AppendVertices(vBuf, iBuf, rev, tempiBuf);
 
-			/*
-			tempBuf = new List<Vector3>(vBuf);
-			tempiBuf = new List<int>(iBuf);
-
-			for (int s = 1; s < overlappingGrids; s++)
-			{
-				m = Matrix.Scaling(new Vector3(1<<s, 1, 1<<s));
-				MathExtensions.TransformVertices(tempBuf, out rev, m);
-				MathExtensions.AppendVertices(vBuf, iBuf, rev, tempiBuf);
-			}
-			 */
-			/*
-			for (int r = -numColumns; r < numColumns; r+=2)
-			{
-				for (int c = -numColumns; c < numColumns; c+=2)
-				{
-					sq.AppendTranslatedSquare(vBuf, iBuf, new Vector3(c, 0, r), Square.SquareType.Normal);
-				}
-			}
-			 */
 
 
 			this.SetVertexPositionData<VertexTypes.Position>(vBuf.ToArray(), iBuf.ToArray());

@@ -63,6 +63,7 @@
     <Compile Include="DisposablePattern.cs" />
     <Compile Include="Effect.cs" />
     <Compile Include="CameraInput.cs" />
+    <Compile Include="Terrain\ClipmapTerrainManager.cs" />
     <Compile Include="Geometry\CustomMesh.cs" />
     <Compile Include="Geometry\ExpandableSquareGrid.cs" />
     <Compile Include="Geometry\ExpandedIsometricPlane.cs" />
@@ -85,6 +86,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Terrain\ExTerrainEffect.cs" />
+    <Compile Include="Terrain\ExTerrainEffectArray.cs" />
     <Compile Include="Terrain\Landscape.cs" />
     <Compile Include="Terrain\LandscapeManager.cs" />
     <Compile Include="Terrain\Patch.cs" />
@@ -141,6 +143,7 @@
     <None Include="Effects\Terrain.fx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Effects\Terrain_TexArray.fx" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

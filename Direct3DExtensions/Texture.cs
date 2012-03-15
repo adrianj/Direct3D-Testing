@@ -10,30 +10,39 @@ namespace Direct3DExtensions
 {
 	public class Texture : DisposablePattern
 	{
-		D3D.Texture2D hiresTexture;
-		D3D.ShaderResourceView hiresTextureView;
-		D3D.EffectResourceVariable hiresTextureResource;
+		D3D.Texture2D texture;
+		D3D.ShaderResourceView textureView;
+		D3D.EffectResourceVariable textureResource;
 		D3D.Device device;
 
-		public int Width { get { if (hiresTexture == null) return 0; return hiresTexture.Description.Width; } }
-		public int Height { get { if (hiresTexture == null) return 0; return hiresTexture.Description.Height; } }
+
+		public D3D.BindFlags ShaderBinding { get; set; }
+		public SlimDX.DXGI.Format PixelFormat { get; set; }
+
+		public int Width { get { if (texture == null) return 0; return texture.Description.Width; } }
+		public int Height { get { if (texture == null) return 0; return texture.Description.Height; } }
 
 		public Texture(D3D.Device device, D3D.Effect effect, string textureName)
 		{
+			ShaderBinding = D3D.BindFlags.ShaderResource;
+			PixelFormat = SlimDX.DXGI.Format.R32_Float;
 			this.device = device;
-			hiresTextureResource = effect.GetVariableByName(textureName).AsResource();
+			textureResource = effect.GetVariableByName(textureName).AsResource();
 		}
 
-		public void WriteDataToTexture<T>(T[,] data) where T : IConvertible
+		public void WriteTexture<T>(T[,] data) where T : IConvertible
+		{ WriteTexture(data, 0); }
+
+		public void WriteTexture<T>(T[,] data, int arrayIndex) where T : IConvertible
 		{
 			int height = MathExtensions.PowerOfTwo(data.GetLength(0));
 			int width = MathExtensions.PowerOfTwo(data.GetLength(1));
 			if (!QueryLargeSize(width, height)) return;
-			if (hiresTexture == null || hiresTexture.Description.Width != width || hiresTexture.Description.Height != height)
+			if (texture == null || texture.Description.Width != width || texture.Description.Height != height)
 			{
 				RecreateTexture(width, height);
 			}
-			DataRectangle rect = hiresTexture.Map(0, D3D.MapMode.WriteDiscard, D3D.MapFlags.None);
+			DataRectangle rect = texture.Map(0, D3D.MapMode.WriteDiscard, D3D.MapFlags.None);
 			using (DataStream stream = rect.Data)
 			{
 				for (int y = height - 1; y >= 0; y--)
@@ -45,17 +54,32 @@ namespace Direct3DExtensions
 							stream.Write((float)0);
 					}
 			}
-			hiresTexture.Unmap(0);
+
+			texture.Unmap(0);
 		}
 
+
 		public void RecreateTexture(int width, int height)
+		{
+			D3D.Texture2DDescription tDesc = CreateWritableTextureDescription(width, height, ShaderBinding, PixelFormat);
+
+			DisposeUnmanaged();
+			
+			texture = new D3D.Texture2D(device, tDesc);
+			textureView = new D3D.ShaderResourceView(device, texture);
+
+			this.device.VertexShader.SetShaderResource(textureView, 0);
+			textureResource.SetResource(textureView);
+		}
+
+		public static D3D.Texture2DDescription CreateWritableTextureDescription(int width, int height, D3D.BindFlags ShaderBinding, SlimDX.DXGI.Format PixelFormat)
 		{
 			D3D.Texture2DDescription tDesc = new D3D.Texture2DDescription()
 			{
 				ArraySize = 1,
-				BindFlags = D3D.BindFlags.ShaderResource,
+				BindFlags = ShaderBinding,
 				CpuAccessFlags = D3D.CpuAccessFlags.Write,
-				Format = SlimDX.DXGI.Format.R32_Float,
+				Format = PixelFormat,
 				Height = width,
 				Width = height,
 				MipLevels = 1,
@@ -63,14 +87,7 @@ namespace Direct3DExtensions
 				SampleDescription = new SlimDX.DXGI.SampleDescription(1, 0),
 				Usage = D3D.ResourceUsage.Dynamic
 			};
-
-			DisposeUnmanaged();
-
-			hiresTexture = new D3D.Texture2D(device, tDesc);
-			hiresTextureView = new D3D.ShaderResourceView(this.device, hiresTexture);
-
-			this.device.VertexShader.SetShaderResource(hiresTextureView, 0);
-			hiresTextureResource.SetResource(hiresTextureView);
+			return tDesc;
 		}
 
 		bool QueryLargeSize(int width, int height)
@@ -92,8 +109,8 @@ namespace Direct3DExtensions
 		void DisposeManaged() { }
 		void DisposeUnmanaged()
 		{
-			if (hiresTexture != null) hiresTexture.Dispose(); hiresTexture = null;
-			if (hiresTextureView != null) hiresTextureView.Dispose(); hiresTextureView = null;
+			if (texture != null) texture.Dispose(); texture = null;
+			if (textureView != null) textureView.Dispose(); textureView = null;
 		}
 
 		bool disposed = false;

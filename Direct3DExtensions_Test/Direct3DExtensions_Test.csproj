@@ -75,6 +75,7 @@
     <Compile Include="RepeatabiliyTest.cs" />
     <Compile Include="TerrainTest.cs" />
     <Compile Include="TerrainTexture_Test.cs" />
+    <Compile Include="TestClipmapTerrainManager.cs" />
     <Compile Include="TestExpandablePlaneTerrain.cs" />
     <Compile Include="TestForm.cs">
       <SubType>Form</SubType>

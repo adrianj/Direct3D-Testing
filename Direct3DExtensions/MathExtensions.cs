@@ -26,6 +26,22 @@ namespace Direct3DExtensions
 			return b;
 		}
 
+		public static double Round(double val, double resolution)
+		{
+			double ret = Math.Floor(val / resolution);
+			return ret * resolution;
+		}
+
+		public static float Round(float val, float resolution)
+		{
+			return (float)Round((double)val, (double)resolution);
+		}
+
+		public static Vector2 Round(Vector2 val, float resolution)
+		{
+			return new Vector2(Round(val.X, resolution), Round(val.Y, resolution));
+		}
+
 		public static double PowerOfTwo(double f, double minValue)
 		{
 			double r = minValue;
@@ -65,6 +81,12 @@ namespace Direct3DExtensions
 			return area;
 		}
 
+
+		public static Vector2 Vector3XZ(Vector3 v3)
+		{
+			return new Vector2(v3.X, v3.Z);
+			
+		}
 
 		static Matrix world = Matrix.Identity;
 		static Matrix view = Matrix.Identity;

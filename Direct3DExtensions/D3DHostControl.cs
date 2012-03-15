@@ -42,7 +42,7 @@ namespace Direct3DExtensions
 				D3DEngine.InitializeDirect3D();
 				errorLabel.Visible = false;
 			}
-			catch (Exception ex)
+			catch (System.IO.IOException ex)
 			{
 				errorLabel.Text = "Direct3D Initialization Error\n\n" + ex;
 				errorLabel.Visible = true;

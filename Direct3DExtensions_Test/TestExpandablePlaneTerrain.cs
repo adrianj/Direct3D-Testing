@@ -21,7 +21,7 @@ namespace Direct3DExtensions_Test
 	{
 		D3DHostForm form;
 		Direct3DEngine engine;
-		//Mesh plane = new ExpandableSquareGrid();
+
 		Mesh plane = new TerrainMeshSet();
 		int ScaleFactor = 1;
 		ExTerrainEffect TerrainEffect;
@@ -47,9 +47,21 @@ namespace Direct3DExtensions_Test
 		private void FetchHiresTerrain()
 		{
 			TerrainHeightTextureFetcher fetcher = new Strm3TextureFetcher();
-			hiresTerrain = fetcher.FetchTerrain(GetCentredSquareRectangle(initialTerrainLocation, DegreesToWorldUnits(0.125) / 1200.0f));
-			TerrainEffect.WriteHeightDataToTexture(hiresTerrain);
-			TerrainEffect.TerrainCentreLocation = DegreesToWorldUnits(initialCameraLocation);
+			Vector2 terrainLocation = new Vector2((float)MathExtensions.Round(initialTerrainLocation.X, 0.125), (float)MathExtensions.Round(initialTerrainLocation.Y, 0.125));
+			hiresTerrain = fetcher.FetchTerrain(GetCentredSquareRectangle(terrainLocation, DegreesToWorldUnits(0.5) / 1200.0f));
+			TerrainEffect.WriteHiresTexture(hiresTerrain);
+			TerrainEffect.TerrainCentreLocation = new Vector2();// DegreesToWorldUnits(initialCameraLocation);
+		}
+
+
+		void FetchLoresTerrain()
+		{
+			TerrainHeightTextureFetcher fetcher = new Strm30TextureFetcher();
+			Vector2 terrainLocation = new Vector2((float)MathExtensions.Round(initialTerrainLocation.X, 1), (float)MathExtensions.Round(initialTerrainLocation.Y, 1));
+
+			loresTerrain = fetcher.FetchTerrain(GetCentredSquareRectangle(terrainLocation, DegreesToWorldUnits(9.999) / 1200.0f));
+			TerrainEffect.WriteLoresTexture(loresTerrain);
+			TerrainEffect.LoresTerrainCentreLocation = new Vector2(); //DegreesToWorldUnits(initialCameraLocation);
 		}
 
 		Vector2 DegreesToWorldUnits(Vector2 degrees)
@@ -60,11 +72,6 @@ namespace Direct3DExtensions_Test
 		float DegreesToWorldUnits(double degrees)
 		{
 			return (float)degrees * WorldUnitsPerDegree;
-		}
-
-		void FetchLoresTerrain()
-		{
-
 		}
 
 		RectangleF GetCentredSquareRectangle(Vector2 centre, float width)
@@ -106,10 +113,18 @@ namespace Direct3DExtensions_Test
 			plane.Scale = new Vector3(20, 0.05f, 20);
 			engine.InitializationComplete += (o, e) => { OnInitComplete(); };
 
-
+			engine.PreRendering += (o, e) => { CheckForInput(); };
 			engine.CameraChanged += (o, e) => { OnCameraChanged(e); };
 
 			Application.Run(form);
+		}
+
+		void CheckForInput()
+		{
+			if (engine.CameraInput.Input.IsKeyPressed(Keys.P))
+			{
+				TerrainEffect.ZoomLevel = (TerrainEffect.ZoomLevel + 1) % 3;
+			}
 		}
 
 		void OnInitComplete()
@@ -199,6 +214,8 @@ namespace Direct3DExtensions_Test
 
 			mesh.Translation = move;
 		}
+
+
 
 	}
 }

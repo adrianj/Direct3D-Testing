@@ -7,21 +7,18 @@ float LoresInverseMapSize = (1.0/1024.0);
 float LoresMapSize = 1024;
 float2 TerrainCentreLocation = float2(0,0);
 float2 LoresTerrainCentreLocation = float2(0,0);
-Texture2D <float> HeightMap;
-Texture2D <float> LoresMap;
+Texture2DArray <float> HeightMap;
+Texture2DArray <float> LoresMap;
+
+Texture2D <float> [] HiresMap;
+
 int ZoomLevel = 10;
 
 SamplerState HeightSampler
 {
-	//Filter = ANISOTROPIC;
 	Filter   = MIN_MAG_MIP_LINEAR;
-//	Filter = MIN_MAG_MIP_POINT;
-	//AddressU = Border;
-	//AddressV = Border;
-	//AddressW = Border;
 	AddressU = Wrap;
 	AddressV = Wrap;
-	//BorderColor = float4( 10,10,10,10 );
 };
 
 
@@ -31,23 +28,6 @@ float tex2Dlod( Texture2D<float> hMap, float2 uv)
 	return ret;
 }
 
-float4 tex2Dlod_bilinear( Texture2D<float> hMap, float2 uv, float inverseMapSize, float mapSize )
-
-{
-	float it = inverseMapSize * 0.5;
-	float4 height00 = hMap.SampleLevel(HeightSampler, uv, 0);
-	float4 height10 = hMap.SampleLevel(HeightSampler, uv+float2(it, 0), 0);
-	float4 height01 = hMap.SampleLevel(HeightSampler, uv+float2(0,it), 0);
-	float4 height11 = hMap.SampleLevel(HeightSampler, uv+float2(it,it), 0);
-
-        float2 f = frac( uv.xy * mapSize*2.0 );
-
-        float4 tA = lerp( height00, height10, f.x );
-
-        float4 tB = lerp( height01, height11, f.x );
-
-        return lerp( tA, tB, f.y );
-}
 
 PS_TEX VS( VS_POS input )
 {
@@ -67,8 +47,6 @@ PS_TEX VS( VS_POS input )
 	texcoord = texcoord * InverseMapSize + 0.5;
 	loresTexcoord = float2(pos.x, pos.z) - LoresTerrainCentreLocation;
 	loresTexcoord = loresTexcoord * LoresInverseMapSize + 0.5;
-	//hires = tex2Dlod_bilinear(HeightMap, texcoord, InverseMapSize, mapSize);
-	//lores = tex2Dlod_bilinear(LoresMap, loresTexcoord, LoresInverseMapSize, LoresMapSize);
 	hires = tex2Dlod(HeightMap, texcoord);
 	lores = tex2Dlod(LoresMap, loresTexcoord);
 

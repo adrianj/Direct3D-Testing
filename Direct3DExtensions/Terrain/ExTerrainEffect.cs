@@ -14,9 +14,12 @@ namespace Direct3DExtensions.Terrain
 		D3D.EffectScalarVariable LoresMapSizeVar;
 		D3D.EffectScalarVariable InverseMapSizeVar;
 		D3D.EffectScalarVariable MapSizeVar;
+		D3D.EffectScalarVariable ZoomLevelVar;
 		D3D.EffectVectorVariable TerrainCentreLocationVar;
+		D3D.EffectVectorVariable LoresTerrainCentreLocationVar;
 
-		Texture hiresTexture;
+		protected Texture hiresTexture;
+		protected Texture loresTexture;
 
 
 		public float InverseMapSize
@@ -50,30 +53,61 @@ namespace Direct3DExtensions.Terrain
 			set { centreLoc = value; TerrainCentreLocationVar.Set(centreLoc); }
 		}
 
+		Vector2 loresCentreLoc = new Vector2();
+		public Vector2 LoresTerrainCentreLocation
+		{
+			get { return loresCentreLoc; }
+			set { loresCentreLoc = value; LoresTerrainCentreLocationVar.Set(loresCentreLoc); }
+		}
+
+		public int ZoomLevel
+		{
+			get { if (ZoomLevelVar != null) return ZoomLevelVar.GetInt(); return 0; }
+			set { ZoomLevelVar.Set(value); }
+		}
+
 
 		public override void Init(D3DDevice device)
 		{
 			base.Init(device);
-
-			float[,] heightMap = new float[4,4];
-
-			hiresTexture = new Texture(device.Device, effect, "HeightMap");
 
 			InverseMapSizeVar = effect.GetVariableByName("InverseMapSize").AsScalar();
 			MapSizeVar = effect.GetVariableByName("MapSize").AsScalar();
 			LoresInverseMapSizeVar = effect.GetVariableByName("LoresInverseMapSize").AsScalar();
 			LoresMapSizeVar = effect.GetVariableByName("LoresMapSize").AsScalar();
 			TerrainCentreLocationVar = effect.GetVariableByName("TerrainCentreLocation").AsVector();
+			LoresTerrainCentreLocationVar = effect.GetVariableByName("LoresTerrainCentreLocation").AsVector();
+			ZoomLevelVar = effect.GetVariableByName("ZoomLevel").AsScalar();
 
-			WriteHeightDataToTexture(heightMap);
+			InitTextures(device);
 
 		}
 
-		public void WriteHeightDataToTexture<T>(T[,] data) where T : IConvertible
+		protected virtual void InitTextures(D3DDevice device)
 		{
-			hiresTexture.WriteDataToTexture<T>(data);
+			float[,] heightMap = new float[256, 256];
+			for (int i = 0; i < 256; i++)
+				for (int k = 0; k < 256; k++)
+					heightMap[i, k] = (i * 256 + k) * 0.02f;
+			heightMap[128, 128] = 200;
+			hiresTexture = new Texture(device.Device, effect, "HeightMap");
+			loresTexture = new Texture(device.Device, effect, "LoresMap");
+			WriteHiresTexture(heightMap);
+			WriteLoresTexture(heightMap);
+		}
+
+		public virtual void WriteHiresTexture<T>(T[,] data) where T : IConvertible
+		{
+			hiresTexture.WriteTexture<T>(data);
 			InverseMapSize = 1.0f / (float)hiresTexture.Height;
 			MapSize = (float)hiresTexture.Height;
+		}
+
+		public void WriteLoresTexture<T>(T[,] data) where T : IConvertible
+		{
+			loresTexture.WriteTexture<T>(data);
+			LoresInverseMapSize = 0.1f / (float)loresTexture.Height;
+			LoresMapSize = (float)loresTexture.Height*10.0f;
 		}
 
 
@@ -88,6 +122,7 @@ namespace Direct3DExtensions.Terrain
 		void DisposeUnmanaged()
 		{
 			if (hiresTexture != null) hiresTexture.Dispose(); hiresTexture = null;
+			if (loresTexture != null) loresTexture.Dispose(); loresTexture = null;
 		}
 
 		bool disposed = false;

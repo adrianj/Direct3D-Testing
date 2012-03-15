@@ -19,9 +19,9 @@ namespace Direct3DExtensions_Test
 			//tt.SetUp();
 			//tt.TestStrm30();
 
-			TestExpandablePlaneTerrain te = new TestExpandablePlaneTerrain();
+			TestClipmapTerrainManager te = new TestClipmapTerrainManager();
 			te.SetUp();
-			te.TestExpandablePlane();
+			te.TestClipmapManager();
 			//te.TestTriangle();
 			//TestLandscapeManager tm = new TestLandscapeManager();
 			//tm.SetUp();
