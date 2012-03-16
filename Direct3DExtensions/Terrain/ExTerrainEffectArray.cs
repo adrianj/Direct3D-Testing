@@ -12,34 +12,48 @@ namespace Direct3DExtensions.Terrain
 {
 	public class ExTerrainEffectArray : ExTerrainEffect
 	{
+		TextureArray texArray;
 
 		public ExTerrainEffectArray()
 			: base()
 		{
-			ShaderFilename = @"Effects\Terrain.fx";
-			//ShaderFilename = @"Effects\Terrain_TexArray.fx";
+			//ShaderFilename = @"Effects\Terrain.fx";
+			ShaderFilename = @"Effects\Terrain_TexArray.fx";
 		}
 
 		protected override void InitTextures(D3DDevice device)
 		{
-			float[,] heightMap = new float[256, 256];
-			for (int i = 0; i < 256; i++)
-				for (int k = 0; k < 256; k++)
-					heightMap[i, k] = (i * 256 + k) * 0.02f;
-			heightMap[128, 128] = 200;
+			int w = 64;
+			float[,] heightMap = new float[w, w];
+			for (int y = 0; y < w; y++)
+				for (int x = 0; x < w; x++)
+					heightMap[y, x] = (y * w + x) * 0.02f;
+			heightMap[w/2, w/2] = 200;
 			hiresTexture = new Texture(device.Device, effect, "HeightMap");
 			loresTexture = new Texture(device.Device, effect, "LoresMap");
-			
-			
+
+			texArray = new TextureArray(device.Device, effect, "HiresMap", 4);
+
+			WriteHiresTexture(heightMap, 0);
+			texArray.WriteTexture(heightMap, 0);
+			texArray.WriteTexture(heightMap, 1);
+			texArray.WriteTexture(heightMap, 2);
+			texArray.WriteTexture(heightMap, 3);
+
 			WriteHiresTexture(heightMap);
 			WriteLoresTexture(heightMap);
 		}
 
 		public override void WriteHiresTexture<T>(T[,] data)
 		{
-			base.WriteHiresTexture<T>(data);
-			InverseMapSize = 1.0f / (float)hiresTexture.Height;
-			MapSize = (float)hiresTexture.Height;
+			WriteHiresTexture(data, 0);
+		}
+
+		public void WriteHiresTexture<T>(T[,] data, int arrayIndex) where T : IConvertible
+		{
+			texArray.WriteTexture(data,arrayIndex);
+			InverseMapSize = 1.0f / (float)texArray.tex2DArray.Description.Width;
+			MapSize = (float)texArray.tex2DArray.Description.Width;
 		}
 
 	}

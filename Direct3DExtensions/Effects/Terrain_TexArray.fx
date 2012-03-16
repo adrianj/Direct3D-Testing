@@ -7,10 +7,10 @@ float LoresInverseMapSize = (1.0/1024.0);
 float LoresMapSize = 1024;
 float2 TerrainCentreLocation = float2(0,0);
 float2 LoresTerrainCentreLocation = float2(0,0);
-Texture2DArray <float> HeightMap;
-Texture2DArray <float> LoresMap;
+Texture2D <float> HeightMap;
+Texture2D <float> LoresMap;
 
-Texture2D <float> [] HiresMap;
+Texture2DArray <float> HiresMap;
 
 int ZoomLevel = 10;
 
@@ -34,7 +34,9 @@ PS_TEX VS( VS_POS input )
 	PS_TEX output = (PS_TEX)0;
 	float4 pos = float4(input.pos,1);
 	float2 texcoord;
+	float2 arrayIndex;
 	float2 loresTexcoord;
+	int hiresArrayIndexX, hiresArrayIndexY;
 	float yScale = World._m11;
 	float xScale = World._m00;
 	float mapSize = MapSize;
@@ -45,9 +47,16 @@ PS_TEX VS( VS_POS input )
 
 	texcoord = float2(pos.x, pos.z) - TerrainCentreLocation;
 	texcoord = texcoord * InverseMapSize + 0.5;
+	arrayIndex = floor(texcoord*2);
 	loresTexcoord = float2(pos.x, pos.z) - LoresTerrainCentreLocation;
 	loresTexcoord = loresTexcoord * LoresInverseMapSize + 0.5;
-	hires = tex2Dlod(HeightMap, texcoord);
+
+	hiresArrayIndexX = 0;
+
+	//hires = tex2Dlod(HeightMap, texcoord);
+	hires = HiresMap.SampleLevel(HeightSampler, float3(frac(texcoord*2),arrayIndex.y*2+arrayIndex.x)+1,0) * 1;
+	//hires = HiresMap.SampleLevel(HeightSampler, texcoord, 0);
+  	//hires = 512*frac(texcoord.y * 2);
 	lores = tex2Dlod(LoresMap, loresTexcoord);
 
 	if(texcoord.x < inv || texcoord.x > 1-inv || texcoord.y < inv || texcoord.y > 1-inv)

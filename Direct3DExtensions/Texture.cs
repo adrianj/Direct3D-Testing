@@ -15,18 +15,27 @@ namespace Direct3DExtensions
 		D3D.EffectResourceVariable textureResource;
 		D3D.Device device;
 
-
-		public D3D.BindFlags ShaderBinding { get; set; }
-		public SlimDX.DXGI.Format PixelFormat { get; set; }
+		public D3D.Texture2DDescription Description { get { if (texture != null) return texture.Description; return new D3D.Texture2DDescription(); } }
 
 		public int Width { get { if (texture == null) return 0; return texture.Description.Width; } }
 		public int Height { get { if (texture == null) return 0; return texture.Description.Height; } }
 
-		public Texture(D3D.Device device, D3D.Effect effect, string textureName)
+		public D3D.Texture2D Texture2D { get { return texture; } }
+		public D3D.ShaderResourceView TextureView { get { return textureView; } }
+
+		public Texture(D3D.Device device)
 		{
-			ShaderBinding = D3D.BindFlags.ShaderResource;
-			PixelFormat = SlimDX.DXGI.Format.R32_Float;
 			this.device = device;
+		}
+
+
+		public Texture(D3D.Device device, D3D.Effect effect, string textureName) : this(device)
+		{
+			BindToEffect(effect, textureName);
+		}
+
+		public void BindToEffect(D3D.Effect effect, string textureName)
+		{
 			textureResource = effect.GetVariableByName(textureName).AsResource();
 		}
 
@@ -44,7 +53,15 @@ namespace Direct3DExtensions
 
 		public static void WriteToTexture<T>(D3D.Texture2D texture, T[,] data, int height, int width) where T : IConvertible
 		{
-			DataRectangle rect = texture.Map(0, D3D.MapMode.WriteDiscard, D3D.MapFlags.None);
+			DataRectangle rect = null;
+			try
+			{
+				rect = texture.Map(0, D3D.MapMode.WriteDiscard, D3D.MapFlags.None);
+			}
+			catch (D3D.Direct3D10Exception)
+			{
+				rect = texture.Map(0, D3D.MapMode.Write, D3D.MapFlags.None);
+			}
 			using (DataStream stream = rect.Data)
 			{
 				for (int y = height - 1; y >= 0; y--)
@@ -60,18 +77,51 @@ namespace Direct3DExtensions
 			texture.Unmap(0);
 		}
 
+		public void RecreateTexture(D3D.Texture2DDescription tDesc)
+		{
+			DisposeUnmanaged();
+
+			
+			texture = new D3D.Texture2D(device, tDesc);
+			if (tDesc.BindFlags == D3D.BindFlags.ShaderResource)
+			{
+				textureView = new D3D.ShaderResourceView(device, texture);
+
+				this.device.VertexShader.SetShaderResource(textureView, 0);
+				if (textureResource != null) textureResource.SetResource(textureView);
+			}
+		}
 
 		public void RecreateTexture(int width, int height)
 		{
-			D3D.Texture2DDescription tDesc = CreateWritableTextureDescription(width, height, ShaderBinding, PixelFormat);
-
-			DisposeUnmanaged();
+			if(texture == null)
+				RecreateTexture(CreateWritableTextureDescription(width, height, D3D.BindFlags.ShaderResource, SlimDX.DXGI.Format.R32_Float));
+			else
+				RecreateTexture(CreateWritableTextureDescription(width, height, Description.BindFlags, Description.Format));
 			
-			texture = new D3D.Texture2D(device, tDesc);
-			textureView = new D3D.ShaderResourceView(device, texture);
+		}
 
-			this.device.VertexShader.SetShaderResource(textureView, 0);
-			textureResource.SetResource(textureView);
+		public static Texture CreateStagingTexture(D3D.Device device, int width, int height, SlimDX.DXGI.Format PixelFormat)
+		{
+			Texture tex = new Texture(device);
+			var tDesc = CreateWritableTextureDescription(width, height, D3D.BindFlags.None, PixelFormat);
+			tDesc.Usage = D3D.ResourceUsage.Staging;
+			tDesc.Format = PixelFormat;
+			tDesc.CpuAccessFlags = D3D.CpuAccessFlags.Read | D3D.CpuAccessFlags.Write;
+			tDesc.Format = SlimDX.DXGI.Format.R8G8B8A8_UNorm;
+			tDesc.BindFlags = D3D.BindFlags.None;
+			tex.RecreateTexture(tDesc);
+			return tex;
+		}
+
+		public static Texture CreateWritableTexture(D3D.Device device, int width, int height, D3D.BindFlags ShaderBinding, SlimDX.DXGI.Format PixelFormat)
+		{
+			Texture tex = new Texture(device);
+			var tDesc = CreateWritableTextureDescription(width, height, D3D.BindFlags.None, PixelFormat);
+			tDesc.Format = PixelFormat;
+			tDesc.BindFlags = ShaderBinding;
+			tex.RecreateTexture(tDesc);
+			return tex;
 		}
 
 		public static D3D.Texture2DDescription CreateWritableTextureDescription(int width, int height, D3D.BindFlags ShaderBinding, SlimDX.DXGI.Format PixelFormat)

@@ -1,6 +1,7 @@
 A Project for testing C# Direct3D Programming using SlimDX.
 
-Specifically Direct3D 10, Shader version 4.0.  (incompatible with Windows XP)
+Specifically the SlimDX January 2012 Release, Direct3D 10, Shader version 4.0.  (incompatible with Windows XP)
+See: http://www.slimdx.org/
 
 The active project is Direct3DExtensions and associated Test project.  The intent is to keep a logical seperation between the various parts of a 3D control. These are:
 * Device and Swapchain (D3DDevice.cs) - for most projects this won't need much changing.
