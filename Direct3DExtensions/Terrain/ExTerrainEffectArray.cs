@@ -13,6 +13,7 @@ namespace Direct3DExtensions.Terrain
 	public class ExTerrainEffectArray : ExTerrainEffect
 	{
 		TextureArray texArray;
+		D3D.Texture3D psTextureVolume;
 
 		public ExTerrainEffectArray()
 			: base()
@@ -42,11 +43,16 @@ namespace Direct3DExtensions.Terrain
 
 			WriteHiresTexture(heightMap);
 			WriteLoresTexture(heightMap);
+
+			psTextureVolume = D3D.Texture3D.FromFile(device.Device,@"C:\Users\adrianj\Pictures\Textures\heightTerrainVolume.dds");
+			D3D.EffectResourceVariable tRes = effect.GetVariableByName("PSTerrainTexture").AsResource();
+			tRes.SetResource(new ShaderResourceView(device.Device, psTextureVolume));
 		}
 
 		public override void WriteHiresTexture<T>(T[,] data)
 		{
 			WriteHiresTexture(data, 0);
+			base.WriteHiresTexture(data);
 		}
 
 		public void WriteHiresTexture<T>(T[,] data, int arrayIndex) where T : IConvertible

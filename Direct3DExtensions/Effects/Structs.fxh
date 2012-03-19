@@ -18,7 +18,7 @@ struct VS_POS
 struct VS_POS_TEX
 {
 	float3 pos : POSITION;
-	float2 uv  : TEXCOORD;
+	float3 uv  : TEXCOORD;
 };
 
 struct VS_POS_NORM
@@ -42,7 +42,7 @@ struct PS_POS
 struct PS_TEX
 {
 	float4 pos   : SV_POSITION;
-	float2 uv    : TEXCOORD;
+	float3 uv    : TEXCOORD;
 };
 
 struct PS_NORM
@@ -55,7 +55,7 @@ struct PS_NORM_TEX
 {
 	float4 pos : SV_POSITION;
 	float3 norm : NORMAL;
-	float2 uv : TEXCOORD;
+	float3 uv : TEXCOORD;
 };
 
 #endif

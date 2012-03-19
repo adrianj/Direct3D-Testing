@@ -33,7 +33,7 @@ namespace Direct3DExtensions.Terrain
 			terrainEffect = new ExTerrainEffectArray();
 			engine.AddEffect(terrainEffect);
 			plane = new TerrainMeshSet();
-			plane.Scale = new Vector3(20, 0.02f, 20);
+			plane.Scale = new Vector3(20, 0.04f, 20);
 
 			engine.InitializationComplete += (o, e) => { OnInitComplete(); };
 			engine.PreRendering += (o, e) => { OnPreRender(); };

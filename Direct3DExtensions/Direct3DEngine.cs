@@ -151,8 +151,8 @@ namespace Direct3DExtensions
 		protected virtual void Render()
 		{
 			CameraInput.OnRender();
-			FirePreRendering();
 			D3DDevice.Clear(); 
+			FirePreRendering();
 			ApplyCameraToEffect();
 			DrawGeometry();
 			D3DDevice.Present();

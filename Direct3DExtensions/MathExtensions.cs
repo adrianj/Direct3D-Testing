@@ -71,6 +71,10 @@ namespace Direct3DExtensions
 				ret++;
 			return ret;
 		}
+		public static int Modulus(int a, int b)
+		{
+			return (int)(a - b * System.Math.Floor((float)a / b));
+		}
 
 		public static float TriangleArea(Vector3 v0, Vector3 v1, Vector3 v2)
 		{

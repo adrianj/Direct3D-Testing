@@ -10,6 +10,8 @@ float2 LoresTerrainCentreLocation = float2(0,0);
 Texture2D <float> HeightMap;
 Texture2D <float> LoresMap;
 
+Texture3D PSTerrainTexture;
+
 Texture2DArray <float> HiresMap;
 
 int ZoomLevel = 10;
@@ -21,6 +23,13 @@ SamplerState HeightSampler
 	AddressV = Wrap;
 };
 
+SamplerState PSTerrainSampler
+{
+	Filter = MIN_MAG_MIP_LINEAR;
+	AddressU = Wrap;
+	AddressV = Wrap;
+	AddressW = Clamp;
+};
 
 float tex2Dlod( Texture2D<float> hMap, float2 uv)
 {
@@ -53,8 +62,8 @@ PS_TEX VS( VS_POS input )
 
 	hiresArrayIndexX = 0;
 
-	//hires = tex2Dlod(HeightMap, texcoord);
-	hires = HiresMap.SampleLevel(HeightSampler, float3(frac(texcoord*2),arrayIndex.y*2+arrayIndex.x)+1,0) * 1;
+	hires = tex2Dlod(HeightMap, texcoord);
+	//hires = HiresMap.SampleLevel(HeightSampler, float3(frac(texcoord*2),arrayIndex.y*2+arrayIndex.x)+1,0) * 1;
 	//hires = HiresMap.SampleLevel(HeightSampler, texcoord, 0);
   	//hires = 512*frac(texcoord.y * 2);
 	lores = tex2Dlod(LoresMap, loresTexcoord);
@@ -70,7 +79,7 @@ PS_TEX VS( VS_POS input )
 	else if(ZoomLevel == 2)
 		pos.y = hires;
 
-	output.uv = float2(pos.x,pos.y);
+	output.uv = float3(pos.x,pos.z,pos.y);
 	pos.y = pos.y * yScale;
 	output.pos = pos;
 	return output;
@@ -101,46 +110,23 @@ void GS( triangle PS_TEX input[3], inout TriangleStream<PS_NORM_TEX> TriStream )
 
 float4 PS ( PS_NORM_TEX input ) : SV_Target
 {
-	float h = input.uv.y;
-	float4 water = float4(0.2,0.2,1,0.5);
-	float4 sand = float4(0.7,0.7,0.2,1);
-	float4 grass = float4(0.2,0.7,0.2,1);
-	float4 rock = float4(0.7,0.5,0.4,1);
-	float4 snow = float4(0.95,0.95,0.95,0.95);
-	float4 colour;
+	float h = input.uv.z;
 	float3 direction;
-	float col1, col2, ambient, intensity;
-	col1 = clamp(h * 0.1, 0, 1);
-	col2 = clamp(h * 0.1, 0.5, 1);
-	colour = float4(col1,col2,col1,1);
-	if(h < 5)
-	{
-		h = h * 0.2;
-		colour = sand*h + water*(1-h);
-	}
-	else if(h < 25)
-	{
-		h = (h-5)*0.5;
-		colour = grass*h + sand*(1-h);
-	}
-	else if(h < 525)
-	{
-		h = (h-25) * 0.002;
-		colour = rock*h + grass*(1-h);
-	}
-	else
-	{
-		h = (h-525) * 0.001;
-		colour = snow*h + rock*(1-h);
-	}
-	colour = clamp(colour,0,1);
+	float2 uv;
+	float ambient, intensity;
+	float4 colour;
+	uv = float2(input.uv.x,input.uv.y) * InverseMapSize; 
+	h = log2(log2(h))*0.25;
+	h = clamp(h,0,1);
+	colour = PSTerrainTexture.SampleLevel(PSTerrainSampler, float3(uv,h),0);
+
 	ambient = 0.0;
 	direction = normalize(float3(1,1,1));
 	intensity = dot(input.norm, direction) * 0.5 + 0.5;
 	intensity = clamp(intensity + ambient,0,1);
 	
 	colour.xyz = colour.xyz * intensity;
-	//colour.w = 1;
+	colour.w = 1;
 	return colour;
 
 }

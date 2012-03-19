@@ -15,7 +15,7 @@ namespace Direct3DExtensions
 		D3D.FillMode fillMode = D3D.FillMode.Solid;
 		public D3D.FillMode FillMode { get { return fillMode; } set { fillMode = value; SetRasterizer(fillMode); } }
 		public D3D.Device Device { get; private set; }
-		//public D3D.Viewport Viewport { get; private set; }
+		public D3D.Viewport Viewport { get; private set; }
 		public DXGI.SwapChain SwapChain { get; private set; }
 
 		public D3D.RenderTargetView RenderTarget { get; private set; }
@@ -124,7 +124,7 @@ namespace Direct3DExtensions
 			DepthBuffer = new D3D.Texture2D(Device, depthbufferdesc);
 			DepthBufferView = new D3D.DepthStencilView(Device, DepthBuffer);
 
-			D3D.Viewport Viewport = new D3D.Viewport()
+			Viewport = new D3D.Viewport()
 			{
 				X = 0,
 				Y = 0,

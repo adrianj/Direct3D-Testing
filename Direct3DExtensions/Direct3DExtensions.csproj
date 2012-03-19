@@ -117,7 +117,32 @@
     <Compile Include="Textured3DEngine.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Texturing\ResourceView.cs" />
+    <Compile Include="Texturing\ShaderTexture.cs" />
+    <Compile Include="Texturing\StagingTexture.cs" />
     <Compile Include="VertexTypes.cs" />
+    <Compile Include="VirtualTexture\ConcurrentQueue.cs" />
+    <Compile Include="VirtualTexture\DepthBuffer.cs" />
+    <Compile Include="VirtualTexture\FeedbackBuffer.cs" />
+    <Compile Include="VirtualTexture\LruCollection.cs" />
+    <Compile Include="VirtualTexture\Memory.cs" />
+    <Compile Include="VirtualTexture\Page.cs" />
+    <Compile Include="VirtualTexture\PageCache.cs" />
+    <Compile Include="VirtualTexture\PageIndexer.cs" />
+    <Compile Include="VirtualTexture\PageLoader.cs" />
+    <Compile Include="VirtualTexture\PageTable.cs" />
+    <Compile Include="VirtualTexture\ProcessingThread.cs" />
+    <Compile Include="VirtualTexture\Quadtree.cs" />
+    <Compile Include="VirtualTexture\RenderTarget.cs" />
+    <Compile Include="VirtualTexture\SimpleImage.cs" />
+    <Compile Include="VirtualTexture\StagingTexturePool.cs" />
+    <Compile Include="VirtualTexture\Texture.cs" />
+    <Compile Include="VirtualTexture\TextureAtlas.cs" />
+    <Compile Include="VirtualTexture\TileDataFile.cs" />
+    <Compile Include="VirtualTexture\VirtualTexture.cs" />
+    <Compile Include="VirtualTexture\VirtualTextureController.cs" />
+    <Compile Include="VirtualTexture\VirtualTextureInfo.cs" />
+    <Compile Include="VirtualTexture\WriteTexture.cs" />
     <EmbeddedResource Include="HostForm.resx">
       <DependentUpon>D3DHostForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -142,11 +167,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Effects\Terrain.fx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Effects\Terrain_TexArray.fx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Effects\VirtualTexture.fxh" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -156,8 +182,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <None Include="Effects\Default.fx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <None Include="Effects\VirtualTextureTest.fx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Effects\Samplers.fxh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -166,6 +192,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
