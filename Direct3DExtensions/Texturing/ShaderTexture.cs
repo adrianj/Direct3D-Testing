@@ -54,6 +54,8 @@ namespace Direct3DExtensions.Texturing
 		public void WriteTexture(StagingTexture staging, int xoffset, int yoffset)
 		{
 			device.CopySubresourceRegion(staging.Resource, 0, Resource, 0, xoffset, yoffset, 0);
+			if (device.DeviceRemovedReason.IsFailure)
+				throw new SlimDXException("Could not copy device subresource. Double check you haven't exceeded the resource region.");
 		}
 	}
 }

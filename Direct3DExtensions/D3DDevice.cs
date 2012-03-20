@@ -153,7 +153,9 @@ namespace Direct3DExtensions
 
 		public virtual void Present()
 		{
-			SwapChain.Present(0, DXGI.PresentFlags.None);
+			{ }
+			Result res = SwapChain.Present(0, DXGI.PresentFlags.None);
+
 		}
 
 		private bool disposed = false;

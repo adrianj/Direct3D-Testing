@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using NUnit.Framework;
+using System.Drawing;
 using Direct3DExtensions;
 using Direct3DExtensions.Texturing;
 
@@ -16,7 +17,7 @@ namespace Direct3DExtensions_Test
 		D3DHostForm form;
 		MultipleEffect3DEngine engine;
 		Mesh mesh;
-		int w = 32;
+		int w = 16;
 		int r = 32;
 		float[,] data;
 		Effect effect;
@@ -138,7 +139,7 @@ namespace Direct3DExtensions_Test
 				staging = CreateFilledStagingTexture(data);
 				sTex.WriteTexture(staging, i*w, i*w);
 			}
-			sTex.BindToEffect(effect, "tex");
+			sTex.BindToEffect(effect, "MyTexture");
 			mesh.BindToPass(engine.D3DDevice, effect, "P1");
 			engine.Geometry.Add(mesh);
 		}
@@ -155,6 +156,40 @@ namespace Direct3DExtensions_Test
 			staging.WriteTexture(data);
 			return staging;
 		}
+
+		[Test]
+		public void TestWithImages()
+		{
+			engine.InitializationComplete += (o, e) => InitTextureAtlas();
+			Application.Run(form);
+		}
+
+		void InitTextureAtlas()
+		{
+			sTex = new ShaderTexture(engine.D3DDevice.Device, w * r, w * r, SlimDX.DXGI.Format.R8G8B8A8_UNorm);
+			Bitmap bmp = new Bitmap(w, w, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+			StagingTexture staging = new StagingTexture(engine.D3DDevice.Device, w, w, SlimDX.DXGI.Format.R8G8B8A8_UNorm);
+			for (int x = 0; x < r; x++)
+				for (int y = 0; y < r; y++)
+				{
+					int red = x * 256 / r;
+					int green = y * 256 / r;
+					using (Graphics g = Graphics.FromImage(bmp))
+					{
+						g.FillRectangle(new SolidBrush(Color.FromArgb(red, green, 0)), new Rectangle(0, 0, w, w));
+					}
+					staging.WriteTexture(bmp);
+					sTex.WriteTexture(staging, x * w, y * w);
+				}
+
+
+			sTex.BindToEffect(effect, "MyTexture");
+			mesh.BindToPass(engine.D3DDevice, effect, "P1");
+			engine.Geometry.Add(mesh);
+		}
+
+		
 
 	}
 }

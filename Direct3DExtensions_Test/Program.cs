@@ -17,7 +17,7 @@ namespace Direct3DExtensions_Test
 		{
 			TestVirtualTexture tvt = new TestVirtualTexture();
 			tvt.SetUp();
-			tvt.TestTextureWithEffect();
+			tvt.TestWithImages();
 
 			//TerrainTexture_Test tt = new TerrainTexture_Test();
 			//tt.SetUp();

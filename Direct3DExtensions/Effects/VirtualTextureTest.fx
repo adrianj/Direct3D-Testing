@@ -1,7 +1,8 @@
 #include "Structs.fxh"
 #include "samplers.fxh"
 
-Texture2D <float> tex;
+Texture2D MyTexture;
+float InverseTextureSize = 0.03125;
 
 float4 GetPosition( float4 pos )
 {
@@ -22,15 +23,25 @@ PS_TEX VS_Pos_Normal ( VS_POS_TEX input )
 	return output;
 }
 
+/*
+	tex: the Texture2D we're sampling.
+	uv: tex coordinate, eg, worked out from world position.
+	offset: offset before tex lookup, eg, from camera position.
+	scale: DisplayedTextureSize / ActualTextureSize.
+*/
+float4 SampleVirtualTexture(Texture2D tex, float2 uv, float2 offset,float scale)
+{
+	uv = (uv - offset)*scale;
+	return tex.Sample(LinearWrapSampler, uv);
+}
 
 // The most basic virtual texture pixel shader
 float4 PS_Final( PS_TEX input ) : SV_Target
 {
 	float4 ret = (float4)0;
 	float2 offset = float2(CameraPos.x, CameraPos.z);
-	float2 uv = input.uv - offset * 0.03125;
-	float col = tex.Sample(LinearWrapSampler, uv);
-	ret = float4(col,col,col,1);
+	offset = offset * InverseTextureSize;
+	ret = SampleVirtualTexture(MyTexture, input.uv, offset, 0.5);
 	return ret;
 }
 
