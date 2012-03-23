@@ -8,6 +8,8 @@ namespace Direct3DLib
 {
 	public class EarthProjection
 	{
+		public static double EarthDiameterInMetres = 12756000;
+
 		private static double XScale = 256.0 / 360.0;
 		public static double UnitsPerDegreeLatitude = 110;
 		public static double UnitsPerMetreElevation = 0.001;

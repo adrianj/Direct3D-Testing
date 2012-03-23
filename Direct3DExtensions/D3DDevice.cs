@@ -12,17 +12,22 @@ namespace Direct3DExtensions
 {
 	public class D3DDevice : DisposablePattern, IDisposable
 	{
+		
 		D3D.FillMode fillMode = D3D.FillMode.Solid;
+
+
 		public D3D.FillMode FillMode { get { return fillMode; } set { fillMode = value; SetRasterizer(fillMode); } }
 		public D3D.Device Device { get; private set; }
 		public D3D.Viewport Viewport { get; private set; }
 		public DXGI.SwapChain SwapChain { get; private set; }
 
 		public D3D.RenderTargetView RenderTarget { get; private set; }
+		public D3D.Texture2D RenderTexture { get; private set; }
 		public D3D.Texture2D DepthBuffer { get; private set; }
 		public D3D.DepthStencilView DepthBufferView { get; private set; }
 
 		public int IndicesDrawn { get; private set; }
+		
 
 		protected D3DHostControl control;
 
@@ -30,7 +35,7 @@ namespace Direct3DExtensions
 		{
 		}
 
-		public void Init(D3DHostControl control)
+		public virtual void Init(D3DHostControl control)
 		{
 			this.control = control;
 			DXGI.SampleDescription sampledesc = new SlimDX.DXGI.SampleDescription(1, 0);
@@ -99,13 +104,27 @@ namespace Direct3DExtensions
 			if (RenderTarget != null) RenderTarget.Dispose();
 			if (DepthBuffer != null) DepthBuffer.Dispose();
 			if (DepthBufferView != null) DepthBufferView.Dispose();
+			if (RenderTexture != null) RenderTexture.Dispose();
 
 			SwapChain.ResizeBuffers(1, width, height, DXGI.Format.R8G8B8A8_UNorm, DXGI.SwapChainFlags.None);
 
-			using (D3D.Texture2D backbuffer = D3D.Texture2D.FromSwapChain<D3D.Texture2D>(SwapChain, 0))
-			{ 
-				RenderTarget = new D3D.RenderTargetView(Device, backbuffer);
-			}
+			D3D.Texture2DDescription rdesc = new D3D.Texture2DDescription()
+			{
+				Width = width,
+				Height = height,
+				MipLevels = 1,
+				ArraySize = 1,
+				Format = SlimDX.DXGI.Format.R8G8B8A8_UNorm,
+				SampleDescription = new SlimDX.DXGI.SampleDescription(1, 0),
+				Usage = D3D.ResourceUsage.Default,
+				BindFlags = D3D.BindFlags.RenderTarget,
+				CpuAccessFlags = D3D.CpuAccessFlags.None,
+				OptionFlags = D3D.ResourceOptionFlags.None
+			};
+			
+			RenderTexture = D3D.Texture2D.FromSwapChain<D3D.Texture2D>(SwapChain, 0);
+			//RenderTexture = new D3D.Texture2D(Device, rdesc);
+			RenderTarget = new D3D.RenderTargetView(Device, RenderTexture);
 
 			D3D.Texture2DDescription depthbufferdesc = new D3D.Texture2DDescription()
 			{ 
@@ -134,12 +153,18 @@ namespace Direct3DExtensions
 				MaxZ = 1.0f
 			};
 			Device.Rasterizer.SetViewports(Viewport);
+			SetOutputTargets();
+		}
+
+		protected virtual void SetOutputTargets()
+		{
 			Device.OutputMerger.SetTargets(DepthBufferView, RenderTarget);
 		}
 
 		public virtual void Clear()
 		{
 			IndicesDrawn = 0;
+			
 			Device.ClearRenderTargetView(RenderTarget, control.BackColor);
 			Device.ClearDepthStencilView(DepthBufferView, D3D.DepthStencilClearFlags.Depth, 1.0f, 0);
 			SetRasterizer(fillMode);
@@ -153,9 +178,9 @@ namespace Direct3DExtensions
 
 		public virtual void Present()
 		{
-			{ }
+			
 			Result res = SwapChain.Present(0, DXGI.PresentFlags.None);
-
+			
 		}
 
 		private bool disposed = false;
@@ -178,16 +203,12 @@ namespace Direct3DExtensions
 			{
 				Device.ClearAllObjects();
 			}
-			if (RenderTarget != null) RenderTarget.Dispose();
-			RenderTarget = null;
-			if (DepthBufferView != null) DepthBufferView.Dispose();
-			DepthBufferView = null;
-			if (DepthBuffer != null) DepthBuffer.Dispose();
-			DepthBuffer = null;
-			if (SwapChain != null) SwapChain.Dispose();
-			SwapChain = null;
-			if (Device != null) Device.Dispose();
-			Device = null;
+			if (RenderTexture != null) RenderTexture.Dispose(); RenderTexture = null;
+			if (RenderTarget != null) RenderTarget.Dispose(); RenderTarget = null;
+			if (DepthBufferView != null) DepthBufferView.Dispose(); DepthBufferView = null;
+			if (DepthBuffer != null) DepthBuffer.Dispose(); DepthBuffer = null;
+			if (SwapChain != null) SwapChain.Dispose(); SwapChain = null;
+			if (Device != null) Device.Dispose(); Device = null;
 		}
 	}
 }

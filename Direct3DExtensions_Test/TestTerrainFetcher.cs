@@ -11,7 +11,7 @@ using System.Drawing;
 namespace Direct3DExtensions_Test
 {
 	[TestFixture]
-	public class TerrainTexture_Test
+	public class TestTerrainFetcher
 	{
 		// I want the image centre around about Devonport, with width/height a power of two.
 		float w = 1.6f;
@@ -43,7 +43,7 @@ namespace Direct3DExtensions_Test
 			latLongRegion = new RectangleF(lng - w * 0.5f, lat - h * 0.5f, w, h);
 			long t0 = System.Environment.TickCount;
 			long t1 = System.Environment.TickCount;
-			TerrainHeightTextureFetcher fetcher = new Strm3TextureFetcher();
+			TerrainHeightTextureFetcher fetcher = new Srtm3TextureFetcher();
 			
 			terrain = fetcher.FetchTerrain(latLongRegion);
 			
@@ -58,6 +58,73 @@ namespace Direct3DExtensions_Test
 			
 		}
 
+
+
+		[Test]
+		public void TestStrm3PixelRegion()
+		{
+			PointF longLat = new PointF(lng, lat);
+			TerrainHeightTextureFetcher fetcher = new Srtm3TextureFetcher();
+			Rectangle region = new Rectangle(0, 0, 1000, 1500);
+
+			terrain = fetcher.FetchTerrain(longLat, region);
+
+			Image img = ImagingFunctions.CreateImageFromArray(terrain, ImagingFunctions.HsvColourMap(256));
+			ImagingFunctions.SaveAndDisplayImage(img, "terrainFetchPixel030.png");
+			region = new Rectangle(0, 1500, 1000, 1500);
+
+			terrain = fetcher.FetchTerrain(longLat, region);
+
+			img = ImagingFunctions.CreateImageFromArray(terrain, ImagingFunctions.HsvColourMap(256));
+			ImagingFunctions.SaveAndDisplayImage(img, "terrainFetchPixel032.png");
+		}
+
+
+
+		[Test]
+		public void TestStrm30PixelRegion()
+		{
+			PointF longLat = new PointF(lng, lat);
+			TerrainHeightTextureFetcher fetcher = new Srtm30TextureFetcher();
+			Rectangle region = new Rectangle(0, 0, 2000, 1500);
+
+			terrain = fetcher.FetchTerrain(longLat, region);
+
+			Image img = ImagingFunctions.CreateImageFromArray(terrain, ImagingFunctions.HsvColourMap(256));
+			ImagingFunctions.SaveAndDisplayImage(img, "terrainFetchPixel300.png");
+			region = new Rectangle(0, 1500, 2000, 1500);
+
+			terrain = fetcher.FetchTerrain(longLat, region);
+
+			img = ImagingFunctions.CreateImageFromArray(terrain, ImagingFunctions.HsvColourMap(256));
+			ImagingFunctions.SaveAndDisplayImage(img, "terrainFetchPixel302.png");
+		}
+
+
+
+		[Test]
+		public void TestStrm30PixelMap()
+		{
+			PointF longLat = new PointF(lng, lat);
+			TerrainHeightTextureFetcher fetcher = new Srtm30TextureFetcher();
+			int w = 2048;
+			int h = 2048;
+			for (int i = 0; i < 2; i++)
+			{
+				for (int j = 0; j < 2; j++)
+				{
+
+					Rectangle region = new Rectangle(700 + i * w, 1800 - j * h, w, h);
+
+					terrain = fetcher.FetchTerrain(longLat, region);
+
+					Image img = ImagingFunctions.CreateImageFromArray(terrain, ImagingFunctions.HsvColourMap(256));
+					ImagingFunctions.SaveAndDisplayImage(img, "terrainFetchPixel04" + i + j + ".png");
+				}
+			}
+
+		}
+
 		[Test]
 		public void TestStrm30()
 		{
@@ -66,7 +133,7 @@ namespace Direct3DExtensions_Test
 			latLongRegion = new RectangleF(lng - w * 0.5f, lat - h * 0.5f, w, h);
 			long t0 = System.Environment.TickCount;
 			long t1 = System.Environment.TickCount;
-			TerrainHeightTextureFetcher fetcher = new Strm30TextureFetcher();
+			TerrainHeightTextureFetcher fetcher = new Srtm30TextureFetcher();
 			latLongRegion = new RectangleF(lng - w * 0.5f, lat - h * 0.5f, w, h);
 			terrain = fetcher.FetchTerrain(latLongRegion);
 

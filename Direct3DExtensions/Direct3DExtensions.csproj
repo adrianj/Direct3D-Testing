@@ -63,7 +63,10 @@
     <Compile Include="DisposablePattern.cs" />
     <Compile Include="Effect.cs" />
     <Compile Include="CameraInput.cs" />
+    <Compile Include="MultipleOutputDevice.cs" />
     <Compile Include="Terrain\ClipmapTerrainManager.cs" />
+    <Compile Include="Terrain\EarthProjection.cs" />
+    <Compile Include="Terrain\ExTerrainManager.cs" />
     <Compile Include="Geometry\CustomMesh.cs" />
     <Compile Include="Geometry\ExpandableSquareGrid.cs" />
     <Compile Include="Geometry\ExpandedIsometricPlane.cs" />
@@ -90,6 +93,7 @@
     <Compile Include="Terrain\Landscape.cs" />
     <Compile Include="Terrain\LandscapeManager.cs" />
     <Compile Include="Terrain\Patch.cs" />
+    <Compile Include="Terrain\SrtmTextureFetcher.cs" />
     <Compile Include="Terrain\TerrainHeightTextureFetcher.cs" />
     <Compile Include="Terrain\TerrainMeshSet.cs" />
     <Compile Include="Terrain\TriTreeNode.cs" />
@@ -117,9 +121,11 @@
     <Compile Include="Textured3DEngine.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Texturing\ScreenCapture.cs" />
     <Compile Include="Texturing\ResourceView.cs" />
     <Compile Include="Texturing\ShaderTexture.cs" />
     <Compile Include="Texturing\StagingTexture.cs" />
+    <Compile Include="Texturing\TiledTexture.cs" />
     <Compile Include="VertexTypes.cs" />
     <Compile Include="VirtualTexture\ConcurrentQueue.cs" />
     <Compile Include="VirtualTexture\DepthBuffer.cs" />
@@ -140,7 +146,6 @@
     <Compile Include="VirtualTexture\TextureAtlas.cs" />
     <Compile Include="VirtualTexture\TileDataFile.cs" />
     <Compile Include="VirtualTexture\VirtualTexture.cs" />
-    <Compile Include="VirtualTexture\VirtualTextureController.cs" />
     <Compile Include="VirtualTexture\VirtualTextureInfo.cs" />
     <Compile Include="VirtualTexture\WriteTexture.cs" />
     <EmbeddedResource Include="HostForm.resx">
@@ -156,6 +161,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="Effects\ClipmapTerrain.fx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Effects\Main.fx">
       <SubType>Code</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

@@ -34,9 +34,18 @@ namespace Direct3DExtensions
 
 	public class CameraChangedEventArgs : EventArgs
 	{
-		public bool PositionChanged { get; set; }
-		public bool ViewChanged { get; set; }
-		public bool ProjectionChanged { get; set; }
+		public CameraChangedEventArgs(bool positionChanged, bool viewChanged, bool projectionChanged, Camera camera)
+		{
+			this.PositionChanged = positionChanged;
+			this.ProjectionChanged = projectionChanged;
+			this.ViewChanged = viewChanged;
+			this.Camera = camera;
+		}
+
+		public bool PositionChanged { get; private set; }
+		public bool ViewChanged { get; private set; }
+		public bool ProjectionChanged { get; private set; }
+		public Camera Camera { get; private set; }
 	}
 
 	public delegate void CameraChangedEventHandler(object sender, CameraChangedEventArgs e);
@@ -81,12 +90,7 @@ namespace Direct3DExtensions
 		protected virtual void FireCameraChangedEvent(bool posChanged, bool viewChanged, bool projChanged)
 		{
 			if (CameraChanged == null) return;
-			CameraChangedEventArgs e = new CameraChangedEventArgs()
-			{
-				ViewChanged = viewChanged,
-				PositionChanged = posChanged,
-				ProjectionChanged = projChanged
-			};
+			CameraChangedEventArgs e = new CameraChangedEventArgs(viewChanged, posChanged, projChanged, this);
 			CameraChanged(this, e);
 		}
 

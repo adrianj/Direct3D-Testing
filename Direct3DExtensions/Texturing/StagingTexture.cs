@@ -96,16 +96,13 @@ namespace Direct3DExtensions.Texturing
 			DataRectangle rect = texture.Map(0, D3D.MapMode.Write, D3D.MapFlags.None);
 
 			using (DataStream stream = rect.Data)
-			{
 				for (int y = height - 1; y >= 0; y--)
 					for (int x = 0; x < width; x++)
 					{
-						if (y < data.GetLength(0) && x < data.GetLength(1))
-							stream.Write(Convert.ToSingle(data[y, x]));
-						else
-							stream.Write((float)0);
+						stream.Write(Convert.ToSingle(data[y, x]));
 					}
-			}
+
+
 
 			texture.Unmap(0);
 		}
@@ -146,8 +143,26 @@ namespace Direct3DExtensions.Texturing
 		{
 			if (texture == null || texture.Description.Format != this.format || texture.Description.Width != width || texture.Description.Height != height)
 			{
+				Console.WriteLine("Recreating staging texture, "+width+","+height);
 				RecreateTexture(width, height);
 			}
+		}
+
+		public virtual Image ConvertToImage()
+		{
+			Bitmap bmp = new Bitmap(this.Description.Width, this.Description.Height, PixelFormat.Format32bppArgb);
+			BitmapData bData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.WriteOnly, bmp.PixelFormat);
+			using (DataStream stream = new DataStream(bData.Scan0, bData.Stride * bData.Height, false, true))
+			{
+				DataRectangle rect = texture.Map(0, D3D.MapMode.Read, D3D.MapFlags.None);
+				using (DataStream texStream = rect.Data)
+				{
+					byte[] bytes = texStream.ReadRange<byte>((int)stream.Length);
+					stream.WriteRange<byte>(bytes);
+				}
+			}
+			bmp.UnlockBits(bData);
+			return bmp;
 		}
 
 		public virtual float[,] ReadTexture()
@@ -164,6 +179,37 @@ namespace Direct3DExtensions.Texturing
 			}
 			texture.Unmap(0);
 			return ret;
+		}
+
+		public virtual Color4 ReadPixelAsColour(Point p)
+		{
+			DataRectangle rect = texture.Map(0, D3D.MapMode.Read, D3D.MapFlags.None);
+			int formatSize = rect.Pitch / Description.Width;
+
+			using (DataStream stream = rect.Data)
+			{
+				stream.Seek(p.X * formatSize + p.Y * rect.Pitch, System.IO.SeekOrigin.Begin);
+				Color4 ret = new Color4();
+				ret.Alpha = stream.Read<byte>();
+				ret.Blue = stream.Read<byte>();
+				ret.Green = stream.Read<byte>();
+				ret.Red = stream.Read<byte>();
+				return ret;
+			}
+		}
+
+		public virtual float ReadPixelAsFloat(Point p)
+		{
+			DataRectangle rect = texture.Map(0, D3D.MapMode.Read, D3D.MapFlags.None);
+			int formatSize = rect.Pitch / Description.Width;
+
+			using (DataStream stream = rect.Data)
+			{
+				stream.Seek(p.X * formatSize + p.Y * rect.Pitch, System.IO.SeekOrigin.Begin);
+				byte[] bytes = stream.ReadRange<byte>(4);
+				bytes = bytes.Reverse().ToArray();
+				return BitConverter.ToSingle(bytes, 0);
+			}
 		}
 	}
 }

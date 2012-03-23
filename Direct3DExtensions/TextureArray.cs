@@ -11,7 +11,6 @@ namespace Direct3DExtensions
 	public class TextureArray : DisposablePattern
 	{
 		D3D.Texture2D[] texArray;
-		D3D.ShaderResourceView[] textureViews;
 		D3D.EffectResourceVariable textureResource;
 		public D3D.Texture2D tex2DArray;
 		public D3D.Texture3D tex3D;

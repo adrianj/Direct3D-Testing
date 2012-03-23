@@ -10,289 +10,141 @@ namespace Direct3DExtensions.Terrain
 {
 	public interface TerrainHeightTextureFetcher
 	{
-		short[,] FetchTerrain(RectangleF regionInLatLongNotation);
+		/// <summary>
+		/// Fetches terrain height information by specifying a region in Latitude/Longitude notation.  The actual output size in pixels is kind of variable
+		/// and depends a lot on the values of PixelsPerLatitude, PixelsPerLongitude and some rounding which is hard to control.
+		/// </summary>
+		/// <param name="regionInLongLatNotation"></param>
+		/// <returns></returns>
+		short[,] FetchTerrain(RectangleF regionInLongLatNotation);
+		/// <summary>
+		/// Fetches terrain height information by specifying the central Latitude/Longitude and then select the region as offsets from this point in pixels.
+		/// E.g, staringLatLong = (-36,174) would have Auckland, NZ close to the centre of the region if the top/left of the rectangle were (0,0).
+		/// This has the advantage that the output size is guaranteed to be the size of the rectangle, and adjacent regions can be easily calculated by
+		/// adding an offset to the rectangle position instead of calculating new lat/long coordinates.
+		/// </summary>
+		/// <param name="startingLongLat"></param>
+		/// <param name="regionInPixels"></param>
+		/// <returns></returns>
+		short[,] FetchTerrain(PointF startingLongLat, Rectangle regionInPixels);
+		int PixelsPerLatitude { get; }
+		int PixelsPerLongitude { get; }
 	}
 
-	public class Strm3TextureFetcher : TerrainHeightTextureFetcher
+	public class TerrainDescriptor
+		{
+			public PointF longLat { get; set; }
+			public Rectangle regionInPixels { get; set; }
+
+			// override object.Equals
+			public override bool Equals(object obj)
+			{
+				if (obj == null || GetType() != obj.GetType())
+				{
+					return false;
+				}
+				TerrainDescriptor other = obj as TerrainDescriptor;
+				if (this.longLat != other.longLat)
+					return false;
+				if (this.regionInPixels != other.regionInPixels)
+					return false;
+				return true;
+			}
+
+			// override object.GetHashCode
+			public override int GetHashCode()
+			{
+				return longLat.GetHashCode() ^ regionInPixels.GetHashCode();
+			}
+	}
+
+	public class MemorySet<T1,T2> where T2 : IConvertible
 	{
-		public string Strm3DataFolder = @"C:\Users\adrianj\Documents\Work\CAD\WebGIS_SRTM3\";
-
-		protected int FileMapHeight = 1201;
-		protected int FileMapWidth = 1201;
-		public int PixelsPerLatitude { get; protected set; }
-		public int PixelsPerLongitude { get; protected set; }
-		protected int LongDiffBetweenFiles = 1;
-		protected int LatDiffBetweenFiles = 1;
-		protected short NullValue = short.MinValue;
-		protected Point sizeInPixels;
-		protected Rectangle coarseRegion;
-
-		public Strm3TextureFetcher()
+		class TimestampedData
 		{
-			PixelsPerLatitude = 1200;
-			PixelsPerLongitude = 1200;
-		}
-
-		public short[,] FetchTerrain(RectangleF regionInLatLongNotation)
-		{
-			coarseRegion = CalculateCoarseRegion(regionInLatLongNotation);
-			sizeInPixels = CalculateRegionSizeInPixels(regionInLatLongNotation);
-			short[,] array = new short[sizeInPixels.Y,sizeInPixels.X];
-			Point arrayOffset = new Point();
-			Rectangle regionInPixels = new Rectangle();
-			for (int y = 0; y <= coarseRegion.Height; y+=LatDiffBetweenFiles)
+		
+			T2[,] tag;
+			public int LastAccessTime { get; private set; }
+			public TimestampedData(T2[,] data)
 			{
-				arrayOffset.X = 0;
-				for (int x = 0; x <= coarseRegion.Width; x+=LongDiffBetweenFiles)
+				this.tag = data;
+				Tap();
+			}
+
+			public T2[,] GetData()
+			{
+				Tap();
+				return tag;
+			}
+
+			void Tap()
+			{
+				LastAccessTime = Environment.TickCount;
+			}
+
+			// override object.Equals
+			public override bool Equals(object obj)
+			{
+				if (obj == null || GetType() != obj.GetType())
 				{
-					Point coarsePoint = UpdateCoarsePoint(y, x);
-					string filename = GetFilenameFromLatLong(coarsePoint.X, coarsePoint.Y);
-					regionInPixels = CalculateRegionInFile(regionInLatLongNotation, coarsePoint);
-					ReadHgtFile(array, filename, arrayOffset, regionInPixels);
-					arrayOffset.X += regionInPixels.Width;
+					return false;
 				}
-				arrayOffset.Y += regionInPixels.Height;
-			}
-			return array;
-		}
-
-
-		protected virtual Point UpdateCoarsePoint(int y, int x)
-		{
-			Point coarsePoint = new Point(coarseRegion.Left + x, coarseRegion.Bottom - y);
-			return coarsePoint;
-		}
-
-
-
-		protected virtual void ReadHgtFile(short [,] destinationArray, string filename, Point arrayOffset, Rectangle regionInPixels)
-		{
-			//Console.WriteLine("" + this + ": filename: " + filename);
-			//Console.WriteLine("offset: " + arrayOffset + ", region: " + regionInPixels +", coarseRegion: "+coarseRegion);
-
-			if (regionInPixels.Left + regionInPixels.Width > FileMapWidth || regionInPixels.Top + regionInPixels.Height > FileMapHeight)
-				throw new Exception("Requested offset and region outside bounds of file. " + regionInPixels);
-
-			if (regionInPixels.Width < 0 || regionInPixels.Height < 0)
-				throw new Exception("Can't access a negative region. " + regionInPixels);
-			if (!File.Exists(filename))
-			{
-				//Console.WriteLine("File not found: " + filename);
-				return;
+				return this.tag.Equals((obj as TimestampedData).tag);
 			}
 
-			using (BinaryReader reader = new BinaryReader(new FileStream(filename, FileMode.Open)))
+			// override object.GetHashCode
+			public override int GetHashCode()
 			{
-				long seekOffset = regionInPixels.Top * (FileMapWidth) * 2;
-				reader.BaseStream.Seek(seekOffset, SeekOrigin.Begin);
-				for (int y = 0; y < regionInPixels.Height; y++)
+				return tag.GetHashCode();
+			}
+		}
+
+		Dictionary<T1, TimestampedData> memory = new Dictionary<T1, TimestampedData>();
+
+		/// <summary>
+		/// Maximum total size, in pixels, that the stack will store.
+		/// </summary>
+		public long MaxSize { get; set; }
+
+		public MemorySet()
+		{
+			MaxSize = 64;
+		}
+
+		public bool Contains(T1 value)
+		{
+			return memory.ContainsKey(value);
+		}
+
+		public void Add(T1 value, T2[,] array)
+		{
+			if (memory.Count * array.Length > MaxSize)
+				RemoveOldestElement();
+
+			TimestampedData data = new TimestampedData(array);
+			memory[value] = data;
+		}
+
+		public T2[,] Get(T1 value)
+		{
+			if (!Contains(value))
+				return null;
+			TimestampedData data = memory[value];
+			return data.GetData();
+		}
+
+		void RemoveOldestElement()
+		{
+			if (memory.Count < 1) return;
+			int min = int.MaxValue;
+			T1 minKey = default(T1);
+			foreach(KeyValuePair<T1,TimestampedData> pair in memory)
+				if (pair.Value.LastAccessTime < min)
 				{
-					seekOffset = regionInPixels.Left * 2;
-					reader.BaseStream.Seek(seekOffset, SeekOrigin.Current);
-					for (int x = 0; x < regionInPixels.Width; x++)
-					{
-						byte[] b = reader.ReadBytes(2);
-						if (x > regionInPixels.Width) continue;
-						if (b.Length != 2)
-							throw new Exception("Unexpectedly reached EOF.");
-						short s = GetValueFromBytes(b);
-						destinationArray[y + arrayOffset.Y, x + arrayOffset.X] = s;
-					}
-					seekOffset = ((FileMapWidth) - regionInPixels.Left - regionInPixels.Width) * 2;
-					reader.ReadBytes((int)seekOffset);
+					min = pair.Value.LastAccessTime;
+					minKey = pair.Key;
 				}
-			}
+			memory.Remove(minKey);
 		}
-
-		protected virtual short GetValueFromBytes(byte[] b)
-		{
-			b = b.Reverse().ToArray();
-			short s = BitConverter.ToInt16(b, 0);
-			if (s == NullValue) s = 0;
-			return s;
-		}
-
-		Point CalculateRegionSizeInPixels(RectangleF regionInLatLongNotation)
-		{
-			int width = 0;
-			int height = 0;
-			for (int y = 0; y <= coarseRegion.Height; y += LatDiffBetweenFiles)
-			{
-				width = 0;
-				Rectangle regionInFile = new Rectangle();
-				for (int x = 0; x <= coarseRegion.Width; x += LongDiffBetweenFiles)
-				{
-					Point coarsePoint = UpdateCoarsePoint(y, x);
-					//Console.WriteLine("coarsePoint: " + coarsePoint);
-					regionInFile = CalculateRegionInFile(regionInLatLongNotation, coarsePoint);
-					width += regionInFile.Width;
-
-				}
-				height += regionInFile.Height;
-			}
-			//width = width / PixelsPerLongitude;
-			//height = height / PixelsPerLatitude;
-			//width = (int)Math.Round((regionInLatLongNotation.Right - regionInLatLongNotation.Left) * (float)PixelsPerLongitude);
-			//height = (int)Math.Round((regionInLatLongNotation.Bottom - regionInLatLongNotation.Top) * (float)PixelsPerLongitude);
-			return new Point(width, height);
-		}
-
-		protected virtual Rectangle CalculateCoarseRegion(RectangleF regionInLatLongNotation)
-		{
-			int top = IncrementWhileLessThan(90, -LatDiffBetweenFiles, regionInLatLongNotation.Top);
-			int bottom = IncrementWhileLessThan(90, -LatDiffBetweenFiles, regionInLatLongNotation.Bottom);
-			int left = IncrementWhileLessThan(-180, LongDiffBetweenFiles,regionInLatLongNotation.Left);
-			int right = IncrementWhileLessThan(-180, LongDiffBetweenFiles, regionInLatLongNotation.Right);
-			int width = right - left;
-			int height = bottom - top;
-			Rectangle rect = new Rectangle(left, top, width, height);
-
-			return rect;
-		}
-
-
-
-		int IncrementWhileLessThan(int start, int increment, float terminal)
-		{
-			int r = start;
-			if (increment == 0)
-				throw new Exception("Can't increment in steps of 0");
-			if (increment > 0)
-			{
-				while ((float)r < terminal)
-					r += increment;
-				return r - increment;
-			}
-			else
-			{
-				while ((float)r > terminal)
-					r += increment;
-				return r - increment;
-			}
-		}
-
-		protected virtual Rectangle CalculateRegionInFile(RectangleF regionInLatLongNotation, Point coarseLatLong)
-		{
-			int xOffset = 0;
-			int yOffset = 0;
-			int width = PixelsPerLongitude * LongDiffBetweenFiles;
-			int height = PixelsPerLongitude * LatDiffBetweenFiles;
-			//Console.WriteLine("Calc Region: " + regionInLatLongNotation + ", " + coarseLatLong);
-			int bdiff; int tdiff; int ldiff; int rdiff;
-			GetPixelDistanceFromEdges(regionInLatLongNotation, coarseLatLong, out bdiff, out tdiff, out ldiff, out rdiff);
-
-			//Console.WriteLine("b: " + bdiff + ", t: " + tdiff + ", l: " + ldiff + ", r: " + rdiff);
-			if (ldiff > 0)
-			{
-				xOffset = ldiff;
-				width -= xOffset;
-				//Console.WriteLine("Left side: " + xOffset + "," + width);
-			}
-			if (rdiff > 0)
-			{
-				width -= rdiff;
-				//Console.WriteLine("Right side: " + xOffset + "," + width);
-			}
-			if (tdiff > 0)
-			{
-				yOffset = tdiff;
-				height -= yOffset;
-				//Console.WriteLine("Top side: "+ yOffset + "," + height);
-			}
-			if (bdiff > 0)
-			{
-				height -= bdiff;
-				//Console.WriteLine("Bottom side: "  + yOffset + "," + height);
-			}
-			int lat = (int)regionInLatLongNotation.Top;
-			int lng = (int)regionInLatLongNotation.Left;
-			Point point = new Point(xOffset, yOffset);
-			Size size = new Size(width, height);
-			Rectangle rect = new Rectangle(point, size);
-			return rect;
-		}
-
-		protected virtual void GetPixelDistanceFromEdges(RectangleF regionInLatLongNotation, Point coarseLatLong, out int bdiff, out int tdiff, out int ldiff, out int rdiff)
-		{
-			int top = (int)((float)PixelsPerLatitude * regionInLatLongNotation.Bottom);
-			int bottom = (int)((float)PixelsPerLatitude * regionInLatLongNotation.Top);
-			int left = (int)((float)PixelsPerLongitude * regionInLatLongNotation.Left);
-			int right = (int)((float)PixelsPerLatitude * regionInLatLongNotation.Right);
-
-			bdiff = bottom - PixelsPerLatitude * (coarseLatLong.Y -LatDiffBetweenFiles);
-			
-			tdiff = PixelsPerLatitude * coarseLatLong.Y - top;
-			ldiff = left - PixelsPerLongitude * coarseLatLong.X;
-			rdiff = PixelsPerLongitude * (coarseLatLong.X + LongDiffBetweenFiles) - right;
-		}
-
-		protected virtual string GetFilenameFromLatLong(int longitude, int latitude)
-		{
-			if (longitude >= 180)
-				longitude -= 360;
-			latitude -= 1;
-			string lat = GetLatitudeString(latitude);
-			string lng = GetLongitudeString(longitude);
-			string filename = lat + lng + ".hgt";
-			return Strm3DataFolder + filename;
-		}
-
-		protected static string GetLongitudeString(int longitude)
-		{
-			string lng = "";
-			if (longitude < 0)
-			{
-				longitude = Math.Abs(longitude);
-				lng = "W";
-			}
-			else
-				lng = "E";
-			lng += longitude.ToString("D3");
-			return lng;
-		}
-
-		protected static string GetLatitudeString(int latitude)
-		{
-			string lat = "";
-			if (latitude < 0)
-			{
-				latitude = Math.Abs(latitude);
-				lat = "S";
-			}
-			else
-				lat = "N";
-			lat += latitude.ToString("D2");
-			return lat;
-		}
-    
 	}
-
-	public class Strm30TextureFetcher : Strm3TextureFetcher
-	{
-
-		public Strm30TextureFetcher()
-		{
-			this.FileMapHeight = 6000;
-			this.FileMapWidth = 4800;
-			this.LatDiffBetweenFiles = 50;
-			this.LongDiffBetweenFiles = 40;
-			this.PixelsPerLatitude = this.FileMapHeight / LatDiffBetweenFiles;
-			this.PixelsPerLongitude = this.FileMapWidth / LongDiffBetweenFiles;
-			Strm3DataFolder = @"C:\Users\adrianj\Documents\Work\CAD\WebGIS_SRTM30\";
-		}
-
-		protected override string GetFilenameFromLatLong(int longitude, int latitude)
-		{
-			if (longitude >= 180)
-				longitude -= 360;
-			string lat = GetLatitudeString(latitude);
-			string lng = GetLongitudeString(longitude);
-			string filename = lng + lat + ".dem";
-			return Strm3DataFolder + filename;
-		}
-
-
-
-	}
-
 }

@@ -29,6 +29,8 @@ namespace Direct3DExtensions
 
 		public bool ShowStatistics { get { return allSprites.Contains(statsSprite); } set { SetShowStatistics(value); } }
 
+		
+
 		protected override void InitCameraInput()
 		{
 			base.InitCameraInput();
@@ -129,6 +131,17 @@ namespace Direct3DExtensions
 			}
 		}
 
+		
+
+		private void ScreenshotOnPrintScreen()
+		{
+			if (this.CameraInput.Input.IsKeyPressed(Keys.F12))
+			{
+				Direct3DExtensions.Texturing.ScreenCapture sc = new Direct3DExtensions.Texturing.ScreenCapture(this);
+				sc.TakeScreenshotToClipboard();
+			}
+		}
+
 		private void UpdateStats()
 		{
 			if (!ShowStatistics) return;
@@ -167,6 +180,8 @@ namespace Direct3DExtensions
 				ToggleFillMode();
 			if (e.KeyCode == Keys.F9)
 				ToggleStatsDisplay();
+			if (e.KeyCode == Keys.F12)
+				ScreenshotOnPrintScreen();
 		}
 
 		public void ToggleFillMode()

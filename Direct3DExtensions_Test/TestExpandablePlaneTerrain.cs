@@ -46,7 +46,7 @@ namespace Direct3DExtensions_Test
 
 		private void FetchHiresTerrain()
 		{
-			TerrainHeightTextureFetcher fetcher = new Strm3TextureFetcher();
+			TerrainHeightTextureFetcher fetcher = new Srtm3TextureFetcher();
 			Vector2 terrainLocation = new Vector2((float)MathExtensions.Round(initialTerrainLocation.X, 0.125), (float)MathExtensions.Round(initialTerrainLocation.Y, 0.125));
 			hiresTerrain = fetcher.FetchTerrain(GetCentredSquareRectangle(terrainLocation, DegreesToWorldUnits(0.5) / 1200.0f));
 			TerrainEffect.WriteHiresTexture(hiresTerrain);
@@ -56,7 +56,7 @@ namespace Direct3DExtensions_Test
 
 		void FetchLoresTerrain()
 		{
-			TerrainHeightTextureFetcher fetcher = new Strm30TextureFetcher();
+			TerrainHeightTextureFetcher fetcher = new Srtm30TextureFetcher();
 			Vector2 terrainLocation = new Vector2((float)MathExtensions.Round(initialTerrainLocation.X, 1), (float)MathExtensions.Round(initialTerrainLocation.Y, 1));
 
 			loresTerrain = fetcher.FetchTerrain(GetCentredSquareRectangle(terrainLocation, DegreesToWorldUnits(9.999) / 1200.0f));

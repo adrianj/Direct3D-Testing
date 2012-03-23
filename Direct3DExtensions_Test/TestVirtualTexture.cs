@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using NUnit.Framework;
 using System.Drawing;
 using Direct3DExtensions;
+using Direct3DExtensions.Terrain;
 using Direct3DExtensions.Texturing;
 
 namespace Direct3DExtensions_Test
@@ -50,6 +51,22 @@ namespace Direct3DExtensions_Test
 			for (int y = 0; y < data.GetLength(0); y++)
 				for (int x = 0; x < data.GetLength(1); x++)
 					data[y, x] = value;
+		}
+
+		private void MultiplyWithValue(float [,] data, float value)
+		{
+			for (int y = 0; y < data.GetLength(0); y++)
+				for (int x = 0; x < data.GetLength(1); x++)
+					data[y, x] = value * data[y,x];
+		}
+
+		private float[,] ToFloat<T>(T[,] data) where T : IConvertible
+		{
+			float[,] ret = new float[data.GetLength(0), data.GetLength(1)];
+			for (int y = 0; y < data.GetLength(0); y++)
+				for (int x = 0; x < data.GetLength(1); x++)
+					ret[y, x] = Convert.ToSingle(data[y, x]);
+			return ret;
 		}
 
 		[Test]
@@ -183,6 +200,40 @@ namespace Direct3DExtensions_Test
 					sTex.WriteTexture(staging, x * w, y * w);
 				}
 
+
+			sTex.BindToEffect(effect, "MyTexture");
+			mesh.BindToPass(engine.D3DDevice, effect, "P1");
+			engine.Geometry.Add(mesh);
+		}
+
+		[Test]
+		public void TestWithActualTerrain()
+		{
+			engine.InitializationComplete += (o, e) => InitActualTerrain();
+			Application.Run(form);
+		}
+
+		void InitActualTerrain()
+		{
+			int width = 256;
+			int numTiles = 4;
+			PointF longLat = new PointF(174.8f, -36.8f);
+
+			sTex = new ShaderTexture(engine.D3DDevice.Device, width * numTiles, width * numTiles, SlimDX.DXGI.Format.R32_Float);
+
+			StagingTexture staging = new StagingTexture(engine.D3DDevice.Device, width, width, SlimDX.DXGI.Format.R32_Float);
+			TerrainHeightTextureFetcher fetcher = new Srtm3TextureFetcher();
+
+			for (int x = 0; x < numTiles; x++)
+				for (int y = 0; y < numTiles; y++)
+				{
+					Rectangle regionInPixels = new Rectangle(x * width, y * width, width, width);
+					short[,] terrain = fetcher.FetchTerrain(longLat, regionInPixels);
+					float[,] data = ToFloat(terrain);
+					MultiplyWithValue(data, 0.01f);
+					staging.WriteTexture(data);
+					sTex.WriteTexture(staging, x * width, y * width);
+				}
 
 			sTex.BindToEffect(effect, "MyTexture");
 			mesh.BindToPass(engine.D3DDevice, effect, "P1");

@@ -15,13 +15,19 @@ namespace Direct3DExtensions_Test
 		[STAThread]
 		static void Main()
 		{
-			TestVirtualTexture tvt = new TestVirtualTexture();
-			tvt.SetUp();
-			tvt.TestWithImages();
+			TestClipmapTerrainManager ctm = new TestClipmapTerrainManager();
+			ctm.SetUp();
+			ctm.TestClipmapManagerWithMultipleOutputs();
+			ctm.TearDown();
 
-			//TerrainTexture_Test tt = new TerrainTexture_Test();
+			//TestTerrainFetcher tt = new TestTerrainFetcher();
 			//tt.SetUp();
-			//tt.TestStrm30();
+			//tt.TestStrm30PixelMap();
+
+			//TestVirtualTexture tvt = new TestVirtualTexture();
+			//tvt.SetUp();
+			//tvt.TestWithImages();
+
 
 			//TestClipmapTerrainManager te = new TestClipmapTerrainManager();
 			//te.SetUp();

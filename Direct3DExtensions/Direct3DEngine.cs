@@ -20,6 +20,7 @@ namespace Direct3DExtensions
 		Effect Effect { get; set; }
 		Geometry Geometry { get; set; }
 		D3DHostControl HostControl { get; set; }
+		bool InitSuccessful { get; }
 		void InitializeDirect3D();
 		void BindMesh(Mesh mesh, int passIndex);
 		void BindMesh(Mesh mesh, string passName);
@@ -39,7 +40,7 @@ namespace Direct3DExtensions
 		public virtual Geometry Geometry { get; set; }
 
 
-		private bool initSuccessful = false;
+		public bool InitSuccessful { get; private set; }
 		D3DHostControl hostControl;
 		public D3DHostControl HostControl { get { return hostControl; } set { SetParent(value); } }
 
@@ -50,14 +51,14 @@ namespace Direct3DExtensions
 
 		protected void FirePostRendering()
 		{
-			if (PostRendering == null || !initSuccessful) return;
+			if (PostRendering == null || !InitSuccessful) return;
 			RenderEventArgs e = new RenderEventArgs(CameraInput.TimeDelta);
 			PostRendering(this, e);
 		}
 
 		protected void FirePreRendering()
 		{
-			if (PreRendering == null || !initSuccessful) return;
+			if (PreRendering == null || !InitSuccessful) return;
 			RenderEventArgs e = new RenderEventArgs(CameraInput.TimeDelta);
 			PreRendering(this, e);
 		}
@@ -70,7 +71,7 @@ namespace Direct3DExtensions
 
 		protected void FireCameraChanged(CameraChangedEventArgs e)
 		{
-			if (CameraChanged != null && initSuccessful)
+			if (CameraChanged != null && InitSuccessful)
 				CameraChanged(this, e);
 		}
 
@@ -83,14 +84,14 @@ namespace Direct3DExtensions
 
 		public virtual void InitializeDirect3D()
 		{
-			if (initSuccessful) return;
+			if (InitSuccessful) return;
 				InitDevice();
 				InitEffect();
 				InitGeometry();
 				InitCameraInput();
 				Application.Idle += Application_Idle;
 				FireInitializationComplete();
-				initSuccessful = true;
+				InitSuccessful = true;
 		}
 
 		protected virtual void InitCameraInput()
@@ -197,7 +198,7 @@ namespace Direct3DExtensions
 			Geometry = null;
 			if (D3DDevice != null) D3DDevice.Dispose();
 			D3DDevice = null;
-			initSuccessful = false;
+			InitSuccessful = false;
 		}
 
 		bool disposed = false;

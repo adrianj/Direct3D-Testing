@@ -2,200 +2,190 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Drawing;
-using System.Windows.Forms;
 using System.Text;
+using System.Drawing;
+using Direct3DExtensions.Texturing;
 using SlimDX;
+using D3D = SlimDX.Direct3D10;
 
 namespace Direct3DExtensions.Terrain
 {
 	public class ClipmapTerrainManager : DisposablePattern
 	{
-		ExTerrainEffect terrainEffect;
-		Direct3DEngine engine;
-		Mesh plane;
-		short[,] hiresTerrain;
-		short[,] loresTerrain;
-		float WorldUnitsPerDegree = 1024.0f;
-		float HiresResolution = 0.125f;
-		float LoresResolution = 1.0f;
-		double HiresWidth = 0.50000;
-		double LoresWidth = 10;
-		Vector2 initialTerrainLocation = new Vector2(175f, -37f);
-		Vector2 currentCameraLocation;
-		Vector2 currentTerrainLocation;
+		MultipleEffect3DEngine engine;
+		ExTerrainManager terrainManager;
+		Effect effect;
+		TiledTexture texture;
+		Point columnRow = new Point();
+		D3D.EffectVectorVariable locationVar;
 
-		public ExTerrainEffect TerrainEffect { get { return terrainEffect; } }
 
-		public ClipmapTerrainManager(MultipleEffect3DEngine engine)
+		public int WidthInTiles { get; set; }
+		public int WidthOfTiles { get; set; }
+		public TerrainHeightTextureFetcher TerrainFetcher { get; set; }
+		public PointF StartingLongLat { get; set; }
+		public string TextureVariableName { get; set; }
+
+		public ClipmapTerrainManager(MultipleEffect3DEngine engine, Effect effect)
 		{
 			this.engine = engine;
-			terrainEffect = new ExTerrainEffectArray();
-			engine.AddEffect(terrainEffect);
-			plane = new TerrainMeshSet();
-			plane.Scale = new Vector3(20, 0.04f, 20);
+			this.effect = effect;
+
+			WidthInTiles = 1;
+			WidthOfTiles = 256;
+			TerrainFetcher = new Srtm3TextureFetcher();
+			StartingLongLat = new PointF(174.8f, -36.8f);
+			TextureVariableName = "HiresTexture";
 
 			engine.InitializationComplete += (o, e) => { OnInitComplete(); };
 			engine.PreRendering += (o, e) => { OnPreRender(); };
 			engine.CameraChanged += (o, e) => { OnCameraChanged(e); };
 		}
 
-		public short[,] GetHiresTerrain() { return hiresTerrain; }
+		void OnInitComplete()
+		{
+			if(TextureVariableName.EndsWith(ShaderTexture.VariableTextureSuffix))
+				TextureVariableName = TextureVariableName.Substring(0, TextureVariableName.Length - ShaderTexture.VariableTextureSuffix.Length);
+			texture = new TiledTexture(engine.D3DDevice.Device, WidthOfTiles, WidthOfTiles, WidthInTiles, WidthInTiles, SlimDX.DXGI.Format.R32_Float);
+			texture.BindToEffect(effect, TextureVariableName);
 
-		public short[,] GetLoresTerrain() { return loresTerrain; }
+			string locationVarName = TextureVariableName + "Location";
+			locationVar = effect.GetVariableByName(locationVarName).AsVector();
+			locationVar.Set(new Vector2());
 
+			InitTerrainAtStartingLongLat();
+		}
+
+		private void InitTerrainAtStartingLongLat()
+		{
+			for(int y = 0; y < WidthInTiles; y++)
+				for (int x = 0; x < WidthInTiles; x++)
+				{
+					UpdateTile(x, y, x, y);
+				}
+		}
+
+		System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+		long fetchTime = 0;
+		long writeTime = 0;
+
+		private void UpdateTile(int tileIndexX, int tileIndexY, int texIndexX, int texIndexY)
+		{
+			watch.Restart();
+			long start = watch.ElapsedTicks;
+			long end = watch.ElapsedTicks;
+			int offset = WidthOfTiles * (WidthInTiles - 1) / 2;
+			Point loc = new Point(tileIndexX * WidthOfTiles - offset, tileIndexY * WidthOfTiles - offset);
+			Rectangle region = new Rectangle(loc, new Size(WidthOfTiles, WidthOfTiles));
+			short[,] data = TerrainFetcher.FetchTerrain(StartingLongLat, region);
+			end = watch.ElapsedTicks;
+			fetchTime = (fetchTime + end - start) / 2;
+			start = watch.ElapsedTicks;
+			texture.WriteTexture(data, texIndexX, texIndexY);
+			end = watch.ElapsedTicks;
+			writeTime = (writeTime + end - start) / 2;
+		}
 
 		void OnPreRender()
 		{
-			if (engine.CameraInput.Input.IsKeyPressed(Keys.P))
-			{
-				terrainEffect.ZoomLevel = (terrainEffect.ZoomLevel + 1) % 3;
-			}
+
 		}
+
 
 		void OnCameraChanged(CameraChangedEventArgs e)
 		{
 			if (e.PositionChanged)
 			{
-				SetTerrainScale();
-				SetTerrainTranslation();
-				SetHeightmapTranslation();
 
-				(engine as Test3DEngine).additionalStatistics = "Scale: " + plane.Scale +
-					"\nPos: " + plane.Translation + "\n: var: " + terrainEffect.InverseMapSize;
+				Point newColRow = CalculateColumnRowFromCameraPosition(e.Camera.Position);
 
+				if (newColRow != columnRow)
+				{
+
+					if (this.TerrainFetcher is Srtm30TextureFetcher) Console.WriteLine("Lores update!");
+					if (newColRow.X > columnRow.X)
+					{
+						columnRow.X = newColRow.X;
+						UpdateRightColumn();
+					}
+					if (newColRow.X < columnRow.X)
+					{
+						columnRow.X = newColRow.X;
+						UpdateLeftColumn();
+					}
+
+					if (newColRow.Y > columnRow.Y)
+					{
+						columnRow.Y = newColRow.Y;
+						UpdateTopRow();
+					}
+					if (newColRow.Y < columnRow.Y)
+					{
+						columnRow.Y = newColRow.Y;
+						UpdateBottomRow();
+					}
+
+					Vector2 location = new Vector2((float)columnRow.X / (float)WidthInTiles, (float)columnRow.Y / (float)WidthInTiles);
+					locationVar.Set(location);
+
+				}
 			}
 		}
 
-		void OnInitComplete()
+
+		Point CalculateColumnRowFromCameraPosition(Vector3 camPos)
 		{
-			engine.CameraInput.Camera.FarZ = 12000;
-			engine.BindMesh(plane, "ExTerrain");
-			ResetTerrain(initialTerrainLocation);
-			SetTerrainScale();
-			SetTerrainTranslation();
+			float x = camPos.X * TerrainFetcher.PixelsPerLongitude;
+			float y = camPos.Z * TerrainFetcher.PixelsPerLatitude;
+			x /= WidthOfTiles;
+			y /= WidthOfTiles;
+			x /= 1200;
+			y /= 1200;
+			return new Point((int)x, (int)y);
 		}
 
-		private void SetTerrainTranslation()
+		void UpdateTopRow()
 		{
-			Vector3 pos = engine.CameraInput.Camera.Position;
-			plane.Translation = new Vector3(pos.X, 0, pos.Z);
+			UpdateRow(columnRow.X, columnRow.Y + WidthInTiles-1, MathExtensions.PositiveMod(columnRow.Y - 1, WidthInTiles));
 		}
 
-		private void SetTerrainScale()
+		void UpdateBottomRow()
 		{
-			Vector3 pos = engine.CameraInput.Camera.Position;
-			Vector3 scale = plane.Scale;
-			plane.Scale = GetScaleFromHeight(pos.Y, scale.Y);
+			UpdateRow(columnRow.X, columnRow.Y, MathExtensions.PositiveMod(columnRow.Y, WidthInTiles));
 		}
 
-		private void SetHeightmapTranslation()
+		void UpdateRow(int tileIndexX, int tileIndexY, int texIndexY)
 		{
-			Vector2 offset = CameraLocationInDegrees() - WorldUnitsToDegrees(currentCameraLocation);
-			offset = MathExtensions.Round(offset, HiresResolution);
-			if (offset != Vector2.Zero)
-			{
-				Console.WriteLine("\nBefore: ");
-				Console.WriteLine("PrevTerrainLoc: " + currentTerrainLocation + ", offsetDeg: " + offset + ", initialCam: " + currentCameraLocation);
-				currentTerrainLocation = currentTerrainLocation + offset;
-				//currentCameraLocation = currentCameraLocation + DegreesToWorldUnits(offset);
-				currentCameraLocation = currentCameraLocation + DegreesToWorldUnits(offset);
-				//ResetHiresTerrain(currentTerrainLocation);
-				//terrainEffect.WriteHiresTexture(new short[64, 256], 128, 128);
-				Console.WriteLine("After: ");
-				Console.WriteLine("PrevTerrainLoc: " + currentTerrainLocation + ", offsetDeg: " + offset + ", initialCam: " + currentCameraLocation);
-			}
+			for (int x = 0; x < WidthInTiles; x++)
+				UpdateTile(tileIndexX + x, tileIndexY, MathExtensions.PositiveMod(tileIndexX + x, WidthInTiles), texIndexY);
 		}
 
-		private Vector3 GetScaleFromHeight(double height, float originalYScale)
+		void UpdateLeftColumn()
 		{
-			Vector3 scale = new Vector3(1, originalYScale, 1);
-			height = Math.Pow(height, 2.0 / 3.0);
-			height = height / 8;
-			height = MathExtensions.PowerOfTwo(height, 1);
-			scale.X = (float)height;
-			scale.Z = (float)height;
-			return scale;
+			UpdateColumn(columnRow.X, columnRow.Y, MathExtensions.PositiveMod(columnRow.X, WidthInTiles));
+		}
+
+		void UpdateRightColumn()
+		{
+			UpdateColumn(columnRow.X + WidthInTiles - 1, columnRow.Y, MathExtensions.PositiveMod(columnRow.X - 1, WidthInTiles));
+		}
+
+		void UpdateColumn(int tileIndexX, int tileIndexY, int texIndexX)
+		{
+			for (int y = 0; y < WidthInTiles; y++)
+				UpdateTile(tileIndexX, tileIndexY + y, texIndexX, MathExtensions.PositiveMod(tileIndexY+y,WidthInTiles));
 		}
 
 
-		private void ResetTerrain(Vector2 terrainLoc)
-		{
-			currentTerrainLocation = terrainLoc;
-			//currentCameraLocation = DegreesToWorldUnits(MathExtensions.Round(CameraLocationInDegrees(), HiresResolution));
-			currentCameraLocation = CameraLocationInWorldUnits();
-			ResetHiresTerrain(terrainLoc);
-			ResetLoresTerrain(terrainLoc);
-		}
-		private void ResetHiresTerrain(Vector2 terrainLoc)
-		{
-			TerrainHeightTextureFetcher fetcher = new Strm3TextureFetcher();
-			Vector2 terrainLocation = MathExtensions.Round(terrainLoc, HiresResolution);
-			hiresTerrain = fetcher.FetchTerrain(GetCentredSquareRectangle(terrainLocation, DegreesToWorldUnits(HiresWidth) / 1200.0f));
-			terrainEffect.WriteHiresTexture(hiresTerrain);
-			Console.WriteLine("TerrainCentreLoc: " + currentCameraLocation);
-			terrainEffect.TerrainCentreLocation = currentCameraLocation * 1200.0f/1024.0f;
-		}
 
-		private void ResetLoresTerrain(Vector2 terrainLoc)
+		public float[,] GetTerrain()
 		{
-			TerrainHeightTextureFetcher fetcher = new Strm30TextureFetcher();
-			Vector2 terrainLocation = MathExtensions.Round(terrainLoc, LoresResolution);
-
-			loresTerrain = fetcher.FetchTerrain(GetCentredSquareRectangle(terrainLocation, DegreesToWorldUnits(LoresWidth) / 1200.0f));
-			terrainEffect.WriteLoresTexture(loresTerrain);
-			terrainEffect.LoresTerrainCentreLocation = currentCameraLocation;
-		}
-
-		Vector2 CameraLocationInDegrees()
-		{
-			Vector2 camPos = CameraLocationInWorldUnits();
-			return WorldUnitsToDegrees(camPos);
-		}
-
-		private Vector2 CameraLocationInWorldUnits()
-		{
-			Vector2 camPos = MathExtensions.Vector3XZ(engine.CameraInput.Camera.Position);
-			return camPos;
+			throw new NotImplementedException();
 		}
 
 
-		Vector2 DegreesToWorldUnits(Vector2 degrees)
-		{
-			return new Vector2(DegreesToWorldUnits(degrees.X), DegreesToWorldUnits(degrees.Y));
-		}
-
-		float DegreesToWorldUnits(double degrees)
-		{
-			return (float)degrees * WorldUnitsPerDegree;
-		}
-
-		Vector2 WorldUnitsToDegrees(Vector2 worldUnits)
-		{
-			return new Vector2(WorldUnitsToDegrees(worldUnits.X), WorldUnitsToDegrees(worldUnits.Y));
-		}
-
-
-		float WorldUnitsToDegrees(double worldUnits)
-		{
-			return (float)worldUnits / WorldUnitsPerDegree;
-		}
-
-		RectangleF GetCentredSquareRectangle(Vector2 centre, float width)
-		{
-			PointF point = new PointF(centre.X - width * 0.5f, centre.Y - width * 0.5f);
-			SizeF size = new SizeF(width, width);
-			RectangleF rect = new RectangleF(point, size);
-			return rect;
-		}
-
-
-		void DisposeManaged() { }
-		void DisposeUnmanaged()
-		{
-			if (plane != null) plane.Dispose(); plane = null;
-			if (terrainEffect != null) terrainEffect.Dispose(); terrainEffect = null;
-		}
+		void DisposeManaged() { if (terrainManager != null) terrainManager.Dispose(); terrainManager = null; }
+		void DisposeUnmanaged() { }
 
 		bool disposed = false;
 		protected override void Dispose(bool disposing)

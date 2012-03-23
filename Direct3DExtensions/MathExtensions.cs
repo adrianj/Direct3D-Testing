@@ -18,6 +18,14 @@ namespace Direct3DExtensions
 			else return val;
 		}
 
+		public static int PositiveMod(int val, int mod)
+		{
+			int ret = val % mod;
+			if (ret < 0)
+				ret += mod;
+			return ret;
+		}
+
 		public static bool Orientation(Vector3 v0Wvp, Vector3 v1Wvp, Vector3 v2Wvp)
 		{
 			Plane p = new Plane(v0Wvp, v1Wvp, v2Wvp);
@@ -40,6 +48,12 @@ namespace Direct3DExtensions
 		public static Vector2 Round(Vector2 val, float resolution)
 		{
 			return new Vector2(Round(val.X, resolution), Round(val.Y, resolution));
+		}
+
+		public static int Round(int val, int resolution)
+		{
+			int ret = val / resolution;
+			return ret * resolution;
 		}
 
 		public static double PowerOfTwo(double f, double minValue)

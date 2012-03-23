@@ -71,7 +71,7 @@ namespace Direct3DExtensions.Terrain
 		{
 			if (grids.Count < 1) return;
 			grids[0].Translation = this.Translation;
-			float res = MathExtensions.PowerOfTwo(grids.Count) * 2 * this.Scale.X;
+			float res = MathExtensions.PowerOfTwo(grids.Count) * 4 * this.Scale.X;
 			Vector3 t = this.Translation;
 			t.X = res * (float)Math.Round(t.X / res);
 			t.Z = res * (float)Math.Round(t.Z / res);

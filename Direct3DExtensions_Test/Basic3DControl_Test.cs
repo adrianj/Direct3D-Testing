@@ -19,13 +19,14 @@ namespace Direct3DExtensions_Test
 			Application.EnableVisualStyles();
 			if (!WindowSet)
 			{
+
 				Application.SetCompatibleTextRenderingDefault(false);
 				WindowSet = true;
 			}
 		}
 	}
 
-	[TestFixture]
+	[TestFixture, RequiresSTA]
 	public class Basic3DControl_Test
 	{
 		D3DHostForm form;
@@ -105,6 +106,7 @@ namespace Direct3DExtensions_Test
 			engine.InitializationComplete += (o, e) => { AddCustomGeometry(); };
 			Application.Run(form);
 		}
+
 
 		void AddCustomGeometry()
 		{
