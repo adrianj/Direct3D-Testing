@@ -38,7 +38,6 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="nunit.framework, Version=2.5.10.11092, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77" />
     <Reference Include="SlimDX, Version=4.0.13.43, Culture=neutral, PublicKeyToken=b1b0c32fd1ffe4f9, processorArchitecture=AMD64" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -50,9 +49,6 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="VirtualTextureDemo">
-      <HintPath>..\..\Examples\VirtualTextureDemo_1.02\Source\bin\Debug\VirtualTextureDemo.exe</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Direct3DEngine.cs">
@@ -127,27 +123,6 @@
     <Compile Include="Texturing\StagingTexture.cs" />
     <Compile Include="Texturing\TiledTexture.cs" />
     <Compile Include="VertexTypes.cs" />
-    <Compile Include="VirtualTexture\ConcurrentQueue.cs" />
-    <Compile Include="VirtualTexture\DepthBuffer.cs" />
-    <Compile Include="VirtualTexture\FeedbackBuffer.cs" />
-    <Compile Include="VirtualTexture\LruCollection.cs" />
-    <Compile Include="VirtualTexture\Memory.cs" />
-    <Compile Include="VirtualTexture\Page.cs" />
-    <Compile Include="VirtualTexture\PageCache.cs" />
-    <Compile Include="VirtualTexture\PageIndexer.cs" />
-    <Compile Include="VirtualTexture\PageLoader.cs" />
-    <Compile Include="VirtualTexture\PageTable.cs" />
-    <Compile Include="VirtualTexture\ProcessingThread.cs" />
-    <Compile Include="VirtualTexture\Quadtree.cs" />
-    <Compile Include="VirtualTexture\RenderTarget.cs" />
-    <Compile Include="VirtualTexture\SimpleImage.cs" />
-    <Compile Include="VirtualTexture\StagingTexturePool.cs" />
-    <Compile Include="VirtualTexture\Texture.cs" />
-    <Compile Include="VirtualTexture\TextureAtlas.cs" />
-    <Compile Include="VirtualTexture\TileDataFile.cs" />
-    <Compile Include="VirtualTexture\VirtualTexture.cs" />
-    <Compile Include="VirtualTexture\VirtualTextureInfo.cs" />
-    <Compile Include="VirtualTexture\WriteTexture.cs" />
     <EmbeddedResource Include="HostForm.resx">
       <DependentUpon>D3DHostForm.cs</DependentUpon>
     </EmbeddedResource>
