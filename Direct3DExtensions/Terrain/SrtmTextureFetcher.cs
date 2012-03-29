@@ -11,7 +11,7 @@ namespace Direct3DExtensions.Terrain
 
 	public class Srtm3TextureFetcher : TerrainHeightTextureFetcher
 	{
-		public string SrtmDataFolder = @"C:\Public\WebGIS\WebGIS_SRTM3\";
+		public string SrtmDataFolder = @"d:\git\WebGIS\WebGIS_SRTM3\";
 
 		protected int FileMapHeight = 1201;
 		protected int FileMapWidth = 1201;
@@ -369,7 +369,7 @@ namespace Direct3DExtensions.Terrain
 			this.LongDiffBetweenFiles = 40;
 			this.PixelsPerLatitude = this.FileMapHeight / LatDiffBetweenFiles;
 			this.PixelsPerLongitude = this.FileMapWidth / LongDiffBetweenFiles;
-			SrtmDataFolder = @"C:\Public\WebGIS\WebGIS_SRTM30\";
+			SrtmDataFolder = @"d:\git\WebGIS\WebGIS_SRTM30\";
 		}
 
 		protected override string GetFilenameFromLongLat(int longitude, int latitude)

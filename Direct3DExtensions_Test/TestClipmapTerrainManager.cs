@@ -23,8 +23,8 @@ namespace Direct3DExtensions_Test
 		ExTerrainManager etm;
 		Effect effect;
 		PointF startingLongLat = new PointF(174.5f, -37.0f);
-		int widthOfTiles = 32;
-		int widthInTiles = 32;
+		int widthOfTiles = 64;
+        int widthInTiles = 4;
 
 		[SetUp]
 		public void SetUp()
@@ -35,8 +35,8 @@ namespace Direct3DExtensions_Test
 			engine.AddEffect(effect);
 			hiresCtm = new ClipmapTerrainManager(engine, effect)
 			{
-				WidthInTiles = widthInTiles/2,
-				WidthOfTiles = widthOfTiles/2,
+				WidthInTiles = widthInTiles,
+				WidthOfTiles = widthOfTiles,
 				StartingLongLat = startingLongLat
 			};
 			loresCtm = new ClipmapTerrainManager(engine, effect)
@@ -47,7 +47,7 @@ namespace Direct3DExtensions_Test
 				TerrainFetcher = new Srtm30TextureFetcher(),
 				StartingLongLat = startingLongLat
 			};
-			etm = new ExTerrainManager(engine,effect);
+			etm = new ExTerrainManager(engine,effect) { AutoAdjustScaleBasedOnHeight = true};
 			form = new D3DHostForm();
 
 			//engine.InitializationComplete += (o, e) => 
