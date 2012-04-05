@@ -53,7 +53,7 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="nunit.framework, Version=2.6.0.12051, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL" />
+    <Reference Include="nunit.framework, Version=2.5.10.11092, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL" />
     <Reference Include="SlimDX, Version=4.0.13.43, Culture=neutral, PublicKeyToken=b1b0c32fd1ffe4f9, processorArchitecture=AMD64" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -75,6 +75,7 @@
     <Compile Include="RepeatabiliyTest.cs" />
     <Compile Include="TerrainTest.cs" />
     <Compile Include="TestClipmapTerrainManager.cs" />
+    <Compile Include="TestMeshOptimiser.cs" />
     <Compile Include="TestTerrainFetcher.cs" />
     <Compile Include="TestExTerrainManager.cs" />
     <Compile Include="TestExpandablePlaneTerrain.cs" />

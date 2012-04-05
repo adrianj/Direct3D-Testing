@@ -25,6 +25,7 @@ namespace Direct3DExtensions.Terrain
 		public TerrainHeightTextureFetcher TerrainFetcher { get; set; }
 		public PointF StartingLongLat { get; set; }
 		public string TextureVariableName { get; set; }
+		public string SrtmDataFolder { get { return TerrainFetcher.SrtmDataFolder; } set { TerrainFetcher.SrtmDataFolder = value; } }
 
 		public ClipmapTerrainManager(MultipleEffect3DEngine engine, Effect effect)
 		{
@@ -34,7 +35,7 @@ namespace Direct3DExtensions.Terrain
 			WidthInTiles = 1;
 			WidthOfTiles = 256;
 			TerrainFetcher = new Srtm3TextureFetcher();
-			StartingLongLat = new PointF(174.8f, -36.8f);
+			StartingLongLat = new PointF(174, -37);
 			TextureVariableName = "HiresTexture";
 
 			engine.InitializationComplete += (o, e) => { OnInitComplete(); };

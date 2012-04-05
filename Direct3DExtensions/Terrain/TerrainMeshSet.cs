@@ -53,6 +53,7 @@ namespace Direct3DExtensions.Terrain
 				grids.Add(new ExpandableSquareGrid(gridColumns, gridColumns));
 			}
 			UpdateScales();
+			MeshOptimiser.CombineIntoSingleMesh(this, grids);
 		}
 
 		void UpdateScales()

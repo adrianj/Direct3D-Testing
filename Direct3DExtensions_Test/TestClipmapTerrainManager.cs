@@ -37,6 +37,7 @@ namespace Direct3DExtensions_Test
 			{
 				WidthInTiles = widthInTiles,
 				WidthOfTiles = widthOfTiles,
+				TextureVariableName = "HiresTexture",
 				StartingLongLat = startingLongLat
 			};
 			loresCtm = new ClipmapTerrainManager(engine, effect)

@@ -29,6 +29,7 @@ namespace Direct3DExtensions.Terrain
 		short[,] FetchTerrain(PointF startingLongLat, Rectangle regionInPixels);
 		int PixelsPerLatitude { get; }
 		int PixelsPerLongitude { get; }
+		string SrtmDataFolder { get; set; }
 	}
 
 	public class TerrainDescriptor

@@ -29,6 +29,8 @@ namespace Direct3DExtensions.Terrain
 
 
 			plane = new TerrainMeshSet();
+			MeshOptimiser.RemoveDuplicateVertices(plane);
+			
 			double yscale = EarthProjection.ConvertMetresToWorldUnits(1);
 			plane.Scale = new Vector3(20, (float)yscale, 20);
 

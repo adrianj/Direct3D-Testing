@@ -59,6 +59,7 @@
     <Compile Include="DisposablePattern.cs" />
     <Compile Include="Effect.cs" />
     <Compile Include="CameraInput.cs" />
+    <Compile Include="Geometry\MeshOptimiser.cs" />
     <Compile Include="MultipleOutputDevice.cs" />
     <Compile Include="Terrain\ClipmapTerrainManager.cs" />
     <Compile Include="Terrain\EarthProjection.cs" />
