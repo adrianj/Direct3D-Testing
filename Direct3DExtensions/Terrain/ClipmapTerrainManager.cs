@@ -40,10 +40,16 @@ namespace Direct3DExtensions.Terrain
 
 			engine.InitializationComplete += (o, e) => { OnInitComplete(); };
 			engine.PreRendering += (o, e) => { OnPreRender(); };
+			engine.PostRendering += (o, e) => OnPostRender();
 			engine.CameraChanged += (o, e) => { OnCameraChanged(e); };
 		}
 
-		void OnInitComplete()
+		public float GetHeightOnMap(Vector3 pos)
+		{
+			return 0;
+		}
+
+		private void OnInitComplete()
 		{
 			if(TextureVariableName.EndsWith(ShaderTexture.VariableTextureSuffix))
 				TextureVariableName = TextureVariableName.Substring(0, TextureVariableName.Length - ShaderTexture.VariableTextureSuffix.Length);
@@ -56,6 +62,8 @@ namespace Direct3DExtensions.Terrain
 
 			InitTerrainAtStartingLongLat();
 		}
+
+
 
 		private void InitTerrainAtStartingLongLat()
 		{
@@ -92,6 +100,11 @@ namespace Direct3DExtensions.Terrain
 
 		}
 
+		void OnPostRender()
+		{
+		
+		}
+
 
 		void OnCameraChanged(CameraChangedEventArgs e)
 		{
@@ -102,8 +115,6 @@ namespace Direct3DExtensions.Terrain
 
 				if (newColRow != columnRow)
 				{
-
-					if (this.TerrainFetcher is Srtm30TextureFetcher) Console.WriteLine("Lores update!");
 					if (newColRow.X > columnRow.X)
 					{
 						columnRow.X = newColRow.X;

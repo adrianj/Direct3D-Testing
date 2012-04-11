@@ -90,7 +90,7 @@ namespace Direct3DExtensions
 		protected virtual void FireCameraChangedEvent(bool posChanged, bool viewChanged, bool projChanged)
 		{
 			if (CameraChanged == null) return;
-			CameraChangedEventArgs e = new CameraChangedEventArgs(viewChanged, posChanged, projChanged, this);
+			CameraChangedEventArgs e = new CameraChangedEventArgs(posChanged,viewChanged, projChanged, this);
 			CameraChanged(this, e);
 		}
 

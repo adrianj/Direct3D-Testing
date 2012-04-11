@@ -11,11 +11,14 @@ namespace Direct3DExtensions.Terrain
 {
 	public class ExTerrainManager : DisposablePattern
 	{
+		float heightAtCamera = 0;
 		protected Effect terrainEffect;
 		protected Direct3DEngine engine;
-		protected Mesh plane;
+		protected TerrainMeshSet plane;
+		
 
-		public string PassName { get; set; }
+		public string RenderPassName { get; set; }
+		public string SetupPassName { get; set; }
 		public Effect TerrainEffect { get { return terrainEffect; } }
 		public int TerrainHeightOffset { get; set; }
 		public bool AutoAdjustScaleBasedOnHeight { get; set; }
@@ -24,18 +27,20 @@ namespace Direct3DExtensions.Terrain
 		public ExTerrainManager(MultipleEffect3DEngine engine, Effect effect)
 		{
 			this.terrainEffect = effect;
-			this.PassName = "ExTerrain";
+			this.RenderPassName = "ExTerrain";
+			this.SetupPassName = "ExTerrainSetup";
 			this.engine = engine;
 
 
 			plane = new TerrainMeshSet();
-			MeshOptimiser.RemoveDuplicateVertices(plane);
+			//MeshOptimiser.RemoveDuplicateVertices(plane);
 			
 			double yscale = EarthProjection.ConvertMetresToWorldUnits(1);
 			plane.Scale = new Vector3(20, (float)yscale, 20);
 
 			engine.InitializationComplete += (o, e) => { OnInitComplete(); };
 			engine.PreRendering += (o, e) => { OnPreRender(); };
+			engine.PostRendering += (o, e) => OnPostRender();
 			engine.CameraChanged += (o, e) => { OnCameraChanged(e); };
 		}
 
@@ -46,19 +51,134 @@ namespace Direct3DExtensions.Terrain
 
 		}
 
+		Vector2 previousCameraLocation = new Vector2();
+		float heightAGL = 1;
+
 		void OnCameraChanged(CameraChangedEventArgs e)
 		{
 			if (e.PositionChanged)
 			{
 				SetTerrainScale();
 				SetTerrainTranslation();
+				Vector2 camLoc = MathExtensions.Round(new Vector2(e.Camera.Position.X, e.Camera.Position.Z),0.5f);
+				if (!camLoc.Equals(previousCameraLocation))
+				{
+					IEnumerable<VertexTypes.Pos3Norm3Tex3> gsOut = plane.ReadGSVertices();
+					//float min = HeightAtPoint(gsOut, new Vector2(e.Camera.Position.X, e.Camera.Position.Z));
+					float min = MeanHeight(gsOut);
+					heightAtCamera = min;
+					Console.WriteLine("" + heightAtCamera);
+					previousCameraLocation = camLoc;
+				}
 			}
+		}
+		void OnPostRender()
+		{
+		}
+
+		float MeanHeight(IEnumerable<VertexTypes.Pos3Norm3Tex3> gsOut)
+		{
+			Dictionary<Vector2, float> uniquePoints = new Dictionary<Vector2, float>();
+			float sum = 0;
+			int i = 0;
+			foreach (Vertex v in gsOut)
+			{
+				sum += v.Pos.Y;
+				i++;
+				if (i > 10000)
+					break;
+			}
+			return sum / i;
+		}
+
+		class DVec : Tuple<Vector2, float>
+		{
+			public float Dist { get { return Item2; } }
+			public Vector2 Loc { get { return Item1; } }
+			public DVec(Vector2 loc, float dist) : base(loc,dist){}
+			public static DVec MaxInList(IEnumerable<DVec> list)
+			{
+				DVec max = new DVec(Vector2.Zero, float.MinValue);
+				foreach (DVec d in list)
+					if (d.Dist > max.Dist)
+						max = d;
+				return max;
+			}
+			public static DVec MinInList(IEnumerable<DVec> list)
+			{
+				DVec min = new DVec(Vector2.Zero, float.MaxValue);
+				foreach (DVec d in list)
+					if (d.Dist < min.Dist)
+						min = d;
+				return min;
+			}
+		}
+
+		float HeightAtPoint(IEnumerable<VertexTypes.Pos3Norm3Tex3> gsOut, Vector2 point)
+		{
+
+			Dictionary<DVec, Vertex> minList = new Dictionary<DVec, Vertex>();
+			Dictionary<Vector2, float> uniquePoints = new Dictionary<Vector2, float>();
+			DVec maxInList = new DVec(Vector2.Zero, float.MaxValue);
+
+			foreach(Vertex v in gsOut)
+			{
+				Vector2 vNoHeight = new Vector2(v.Pos.X, v.Pos.Z);
+				if (uniquePoints.ContainsKey(vNoHeight))
+					continue;
+				float d = Vector2.Subtract(point, vNoHeight).LengthSquared();
+				uniquePoints[vNoHeight] = d;
+				if (minList.Count < 4 || d < maxInList.Dist)
+				{
+					DVec dvec = new DVec(vNoHeight, d);
+					if (minList.Count > 3)
+						minList.Remove(maxInList);
+					minList[dvec] = v;
+					maxInList = DVec.MaxInList(minList.Keys);
+				}
+			}
+			Vertex[] p = Sort(minList.Values);
+			return BilinearInterp(p, point);
+		}
+
+		Vertex[] Sort(IEnumerable<Vertex> verts)
+		{
+			return verts.OrderBy(p => p.Pos.Z).ThenBy(p => p.Pos.X).Cast<Vertex>().ToArray();
+		}
+
+		float BilinearInterp(Vertex[] arrayOfFour, Vector2 point)
+		{
+			if (arrayOfFour.Length == 0)
+				return 0;
+			if (arrayOfFour.Length < 4)
+				return arrayOfFour[0].Pos.Y;
+
+			float x1 = (arrayOfFour[0].Pos.X + arrayOfFour[2].Pos.X) * 0.5f;
+			float x2 = (arrayOfFour[1].Pos.X + arrayOfFour[3].Pos.X) * 0.5f;
+			float y1 = (arrayOfFour[0].Pos.Z + arrayOfFour[1].Pos.Z) * 0.5f;
+			float y2 = (arrayOfFour[2].Pos.Z + arrayOfFour[3].Pos.Z) * 0.5f;
+			float x = point.X;
+			float y = point.Y;
+
+			float r1 = (x2 - x) / (x2 - x1) * arrayOfFour[0].Pos.Y + (x - x1) / (x2 - x1) * arrayOfFour[1].Pos.Y;
+			if (float.IsNaN(r1))
+				r1 = arrayOfFour[0].Pos.Y;
+			float r2 = (x2 - x) / (x2 - x1) * arrayOfFour[2].Pos.Y + (x - x1) / (x2 - x1) * arrayOfFour[3].Pos.Y;
+			if (float.IsNaN(r2))
+				r2 = arrayOfFour[2].Pos.Y;
+
+			float p = (y2 - y) / (y2 - y1) * r1 + (y - y1) / (y2 - y1) * r2;
+			if (float.IsNaN(p))
+				p = r1;
+
+			return p;
 		}
 
 		void OnInitComplete()
 		{
 			engine.CameraInput.Camera.FarZ = 12000;
-			engine.BindMesh(plane, PassName);
+			engine.BindMesh(plane, SetupPassName);
+			plane.BindToRenderPass(engine.D3DDevice, terrainEffect, terrainEffect.GetPassIndexByName(RenderPassName));
 			SetTerrainScale();
 			SetTerrainTranslation();
 		}
@@ -82,7 +202,7 @@ namespace Direct3DExtensions.Terrain
 			Vector3 scale = new Vector3(1, originalYScale, 1);
 			if (!AutoAdjustScaleBasedOnHeight)
 				return scale;
-			height = Math.Max(height - TerrainHeightOffset, 1);
+			height = Math.Max(height - TerrainHeightOffset - heightAtCamera, 1);
 			height = Math.Pow(height, 2.0 / 3.0);
 			height = height / 8;
 			height = MathExtensions.PowerOfTwo(height, 1);

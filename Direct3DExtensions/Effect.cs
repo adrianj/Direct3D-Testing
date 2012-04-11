@@ -25,7 +25,7 @@ namespace Direct3DExtensions
 	public class WorldViewProjEffect : DisposablePattern, Effect
 	{
 		protected int MaxTechniques = 4;
-		protected int MaxPasses = 4;
+		protected int MaxPasses = 16;
 
 		public static string DefaultShaderFilename = @"Effects\Main.fx";
 
@@ -63,8 +63,9 @@ namespace Direct3DExtensions
 
 		public virtual void Init(D3DDevice device)
 		{
-			SlimDX.D3DCompiler.ShaderFlags shaderflags = SlimDX.D3DCompiler.ShaderFlags.None;
-			effect = D3D.Effect.FromFile(device.Device, ShaderFilename, "fx_4_0", shaderflags, SlimDX.D3DCompiler.EffectFlags.None, null, null, null);
+			SlimDX.D3DCompiler.ShaderFlags shaderflags = SlimDX.D3DCompiler.ShaderFlags.EnableStrictness;
+			SlimDX.D3DCompiler.EffectFlags effectFlags = SlimDX.D3DCompiler.EffectFlags.None;
+			effect = D3D.Effect.FromFile(device.Device, ShaderFilename, "fx_4_0", shaderflags, effectFlags, null, null, null);
 
 			passes = new List<D3D.EffectPass>();
 			for (int i = 0; i < MaxTechniques; i++)

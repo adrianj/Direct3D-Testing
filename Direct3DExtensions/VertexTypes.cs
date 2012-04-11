@@ -20,7 +20,7 @@ namespace Direct3DExtensions
 		//public interface IPosition : Vertex  {  }
 		public interface INormal : Vertex  { Vector3 Normal { get; set; } }
 		public interface ITextured : Vertex  { Vector2 TexCoord { get; set; } }
-
+		public interface ITex3 : Vertex { Vector3 TexCoord { get; set; } }
 		
 		public struct Position : Vertex
 		{
@@ -41,6 +41,14 @@ namespace Direct3DExtensions
 			public Vector3 Pos { get; set; }
 			public Vector3 Normal { get; set; }
 			public Vector2 TexCoord { get; set; }
+			public override string ToString() { return VertexToString(this); }
+		}
+
+		public struct Pos3Norm3Tex3 : INormal, ITex3
+		{
+			public Vector3 Pos { get; set; }
+			public Vector3 Normal { get; set; }
+			public Vector3 TexCoord { get; set; }
 			public override string ToString() { return VertexToString(this); }
 		}
 
@@ -70,6 +78,11 @@ namespace Direct3DExtensions
 				list.Add(new D3D.InputElement("TEXCOORD", 0, DXGI.Format.R32G32_Float, offset, 0));
 				offset += 8;
 			}
+			if (t.GetInterface("ITex3") != null)
+			{
+				list.Add(new D3D.InputElement("TEXCOORD", 0, DXGI.Format.R32G32B32_Float, offset, 0));
+				offset += 12;
+			}
 			return list.ToArray();
 		}
 
@@ -80,7 +93,9 @@ namespace Direct3DExtensions
 			if (v.GetType().GetInterface("INormal") != null)
 				ret += " {N: " + (v as INormal).Normal+"}";
 			if (v.GetType().GetInterface("ITextured") != null)
-				ret += " {T: " + (v as ITextured).TexCoord+"}";
+				ret += " {T: " + (v as ITextured).TexCoord + "}";
+			if (v.GetType().GetInterface("ITex3") != null)
+				ret += " {T: " + (v as ITex3).TexCoord + "}";
 			return ret;
 		}
 
@@ -116,6 +131,8 @@ namespace Direct3DExtensions
 				(ret as ITextured).TexCoord = (vertexToCast as ITextured).TexCoord;
 			if (newVertexType.GetInterface("INormal") != null && vertexToCast is INormal)
 				(ret as INormal).Normal = (vertexToCast as INormal).Normal;
+			if (newVertexType.GetInterface("ITex3") != null && vertexToCast is ITextured)
+				(ret as ITex3).TexCoord = (vertexToCast as ITex3).TexCoord;
 			return ret;
 		}
 	}

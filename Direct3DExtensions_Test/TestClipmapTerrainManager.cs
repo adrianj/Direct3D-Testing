@@ -23,15 +23,15 @@ namespace Direct3DExtensions_Test
 		ExTerrainManager etm;
 		Effect effect;
 		PointF startingLongLat = new PointF(174.5f, -37.0f);
-		int widthOfTiles = 64;
-        int widthInTiles = 4;
+		int widthOfTiles = 32;
+        int widthInTiles = 16;
 
 		[SetUp]
 		public void SetUp()
 		{
 			AppControl.SetUpApplication();
 			engine = new MultipleEffect3DEngine() { D3DDevice = new MultipleOutputDevice() { NumAdditionalTargets = 1 } };
-			effect = new WorldViewProjEffect() { ShaderFilename = @"Effects\ClipmapTerrain.fx" };
+			effect = new WorldViewProjEffect() { ShaderFilename = @"Effects\ClipmapTerrain_w_GSOut.fx" };
 			engine.AddEffect(effect);
 			hiresCtm = new ClipmapTerrainManager(engine, effect)
 			{
@@ -50,8 +50,6 @@ namespace Direct3DExtensions_Test
 			};
 			etm = new ExTerrainManager(engine,effect) { AutoAdjustScaleBasedOnHeight = true};
 			form = new D3DHostForm();
-
-			//engine.InitializationComplete += (o, e) => 
 
 			form.SetEngine(engine);
 		}

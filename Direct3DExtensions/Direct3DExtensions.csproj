@@ -59,6 +59,7 @@
     <Compile Include="DisposablePattern.cs" />
     <Compile Include="Effect.cs" />
     <Compile Include="CameraInput.cs" />
+    <Compile Include="Geometry\GeometryOutputStream.cs" />
     <Compile Include="Geometry\MeshOptimiser.cs" />
     <Compile Include="MultipleOutputDevice.cs" />
     <Compile Include="Terrain\ClipmapTerrainManager.cs" />
@@ -138,6 +139,9 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Effects\ClipmapTerrain.fx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Effects\ClipmapTerrain_w_GSOut.fx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Effects\Main.fx">

@@ -4,42 +4,43 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using SlimDX;
+using D3D = SlimDX.Direct3D10;
 
 namespace Direct3DExtensions.Terrain
 {
 	public class TerrainMeshSet : BasicMesh
 	{
-		List<Mesh> grids = new List<Mesh>();
+		int numGrids = 3;
+		GeometryOutputStream<VertexTypes.Pos3Norm3Tex3> gsOutput;
+		int renderPassIndex;
+		bool doSetup = true;
 
-		public override Vector3 Scale
-		{
-			get { return base.Scale; }
-			set { base.Scale = value; UpdateScales(); }
-		}
+		D3D.InputLayout renderPassLayout;
 
 		public override Vector3 Translation
 		{
 			get { return base.Translation; }
-			set { base.Translation = value; UpdateTranslation(); }
+			set { UpdateTranslation(value); }
 		}
 
-		public override Vector3 Rotation
+		public override Vector3 Scale
 		{
-			get { return base.Rotation; }
-			set { base.Rotation = value; UpdateRotation(); }
+			get { return base.Scale; }
+			set { UpdateScale(value); }
 		}
 
 		public TerrainMeshSet()
 		{
 			Recreate();
-			
+		
 		}
 
 		private void Recreate()
 		{
 			int numGrids = 3;
-			int gridColumns = 8;
-			int rowFactor = 3;
+			int gridColumns = 16;
+			int rowFactor = 1;
+			List<Mesh> grids = new List<Mesh>();
 			using (MeshFactory fact = new MeshFactory())
 				grids.Add(fact.CreateDiamondGrid(gridColumns, gridColumns));
 			for (int i = 0; i < numGrids-1; i++)
@@ -52,11 +53,13 @@ namespace Direct3DExtensions.Terrain
 			{
 				grids.Add(new ExpandableSquareGrid(gridColumns, gridColumns));
 			}
-			UpdateScales();
+			SetScales(grids);
 			MeshOptimiser.CombineIntoSingleMesh(this, grids);
+			this.numGrids = grids.Count;
 		}
 
-		void UpdateScales()
+		
+		void SetScales(List<Mesh> grids)
 		{
 			if (grids.Count < 1) return;
 			grids[0].Scale = this.Scale;
@@ -68,36 +71,98 @@ namespace Direct3DExtensions.Terrain
 			}
 		}
 
-		void UpdateTranslation()
+		void UpdateScale(Vector3 value)
 		{
-			if (grids.Count < 1) return;
-			grids[0].Translation = this.Translation;
-			float res = MathExtensions.PowerOfTwo(grids.Count) * 4 * this.Scale.X;
-			Vector3 t = this.Translation;
-			t.X = res * (float)Math.Round(t.X / res);
-			t.Z = res * (float)Math.Round(t.Z / res);
-			for (int i = 0; i < grids.Count; i++)
+			if (!base.Scale.Equals(value))
 			{
-				grids[i].Translation = t;
+				base.Scale = value;
+				doSetup = true;
 			}
 		}
-
-		void UpdateRotation()
+		
+		void UpdateTranslation(Vector3 value)
 		{
-			foreach (Mesh g in grids)
-				g.Rotation = this.Rotation;
+			float res = MathExtensions.PowerOfTwo(numGrids) * 2 * this.Scale.X;
+			Vector3 t = value;
+			t.X = res * (float)Math.Round(t.X / res);
+			t.Z = res * (float)Math.Round(t.Z / res);
+			if (!base.Translation.Equals(t))
+			{
+				base.Translation = t;
+				doSetup = true;
+			}
 		}
 
 		public override void BindToPass(D3DDevice device, Effect effect, int passIndex)
 		{
-			foreach (Mesh g in grids)
-				g.BindToPass(device, effect, passIndex);
+			gsOutput = new GeometryOutputStream<VertexTypes.Pos3Norm3Tex3>(device.Device, effect[passIndex], this.Indices.Length);
+			base.BindToPass(device, effect, passIndex);
 		}
+
+		public void BindToRenderPass(D3DDevice device, Effect effect, int passIndex)
+		{
+			renderPassIndex = passIndex;
+			renderPassLayout = VertexTypes.GetInputLayout(this.Device.Device, effect[passIndex], typeof(VertexTypes.Pos3Norm3Tex3));
+		}
+
+		int i = 0;
 
 		public override void Draw()
 		{
-			foreach (Mesh g in grids)
-				g.Draw();
+			if (doSetup)
+			{
+				base.DoDrawConstants();
+				base.DoDrawVertices();
+				gsOutput.BindTarget();
+				base.DoDrawFinal();
+				gsOutput.UnbindTarget();
+				doSetup = false;
+			}
+			RenderFromStreamOut();
+			i++;
 		}
+
+		private void RenderFromStreamOut()
+		{
+			Effect[renderPassIndex].Apply();
+			
+			Device.Device.InputAssembler.SetInputLayout(renderPassLayout);
+			Device.Device.InputAssembler.SetPrimitiveTopology(Topology);
+			int vsize = VertexTypes.SizeOf(typeof(VertexTypes.Pos3Norm3Tex3));
+			Device.Device.InputAssembler.SetVertexBuffers(0, new D3D.VertexBufferBinding(gsOutput.GSOutputBuffer, vsize, 0));
+			//Device.Device.InputAssembler.SetIndexBuffer(indexbuffer, SlimDX.DXGI.Format.R32_UInt, 0);
+			 
+			Device.Device.DrawAuto();
+		}
+
+		public IEnumerable<VertexTypes.Pos3Norm3Tex3> ReadGSVertices()
+		{
+			return gsOutput;
+		}
+
+
+		#region Dispose
+		void DisposeManaged() { if (gsOutput != null) gsOutput.Dispose(); gsOutput = null;
+		if (renderPassLayout != null) renderPassLayout.Dispose(); renderPassLayout = null;
+		}
+		void DisposeUnmanaged() { }
+
+		bool disposed = false;
+		protected override void Dispose(bool disposing)
+		{
+			if (!disposed)
+			{
+				if (disposing)
+				{
+					DisposeManaged();
+				}
+
+				DisposeUnmanaged();
+				disposed = true;
+			}
+			base.Dispose(disposing);
+		}
+		#endregion
+    
 	}
 }

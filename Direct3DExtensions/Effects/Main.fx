@@ -55,6 +55,16 @@ PS_TEX VS_Height_Texture( VS_POS_TEX input )
 	return output;
 }
 
+PS_NORM VS_Pos_Only (VS_POS input )
+{
+	PS_NORM output = (PS_NORM)0;
+	
+	output.pos = GetPosition(float4(input.pos, 1.0));
+	output.norm = float3(input.pos.x,input.pos.z,input.pos.y);
+	
+	return output;
+}
+
 float4 PS_Normal ( PS_NORM input ) : SV_Target
 {
 	float4 output = (float4)0;
@@ -139,5 +149,12 @@ technique10 Render
 		SetVertexShader( CompileShader( vs_4_0, VS_Terrain()));
 		SetGeometryShader(CompileShader(gs_4_0, GS_Terrain()));
 		SetPixelShader(CompileShader(ps_4_0, PS_Terrain()));
+	}
+
+	pass PosOnly
+	{
+		SetGeometryShader(0);
+		SetVertexShader(CompileShader( vs_4_0, VS_Pos_Only() ) );
+		SetPixelShader(CompileShader( ps_4_0, PS_Normal() ) );
 	}
 }

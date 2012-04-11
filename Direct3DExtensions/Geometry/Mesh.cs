@@ -174,16 +174,31 @@ namespace Direct3DExtensions
 
 		public virtual void Draw()
 		{
-			Matrix World = CalculateWorld();
-			Effect.SetWorld(World);
-			Effect[EffectPassIndex].Apply();
 			if (Vertices.Length < 1 || Indices.Length < 1 || vertexbuffer == null || layout == null) return;
+			DoDrawConstants();
+			DoDrawVertices();
+			DoDrawFinal();
+		}
+
+		protected void DoDrawFinal()
+		{
+			Device.DrawIndexed(Indices.Length);
+		}
+
+		protected void DoDrawVertices()
+		{
 			Device.Device.InputAssembler.SetInputLayout(layout);
 			Device.Device.InputAssembler.SetPrimitiveTopology(Topology);
 			int vsize = VertexTypes.SizeOf(Vertices[0].GetType());
 			Device.Device.InputAssembler.SetVertexBuffers(0, new D3D.VertexBufferBinding(vertexbuffer, vsize, 0));
 			Device.Device.InputAssembler.SetIndexBuffer(indexbuffer, SlimDX.DXGI.Format.R32_UInt, 0);
-			Device.DrawIndexed(Indices.Length);
+		}
+
+		protected void DoDrawConstants()
+		{
+			Matrix World = CalculateWorld();
+			Effect.SetWorld(World);
+			Effect[EffectPassIndex].Apply();
 		}
 
 		protected virtual Matrix CalculateWorld()

@@ -15,16 +15,16 @@ namespace Direct3DExtensions_Test
 		[STAThread]
 		static void Main()
 		{
-			TestMeshOptimiser tmo = new TestMeshOptimiser();
-			tmo.SetUp();
-			tmo.TestMeshAddition();
-			tmo.TearDown();
+			//TestMeshOptimiser tmo = new TestMeshOptimiser();
+			//tmo.SetUp();
+			//tmo.TestExTerrainOptimise();
+			//tmo.TearDown();
 
-			//TestClipmapTerrainManager ctm = new TestClipmapTerrainManager();
-			//ctm.SetUp();
-			//ctm.TestClipmapManager();
+			TestClipmapTerrainManager ctm = new TestClipmapTerrainManager();
+			ctm.SetUp();
+			ctm.TestClipmapManager();
 			//ctm.TestClipmapManagerWithMultipleOutputs();
-			//ctm.TearDown();
+			ctm.TearDown();
 
 			//TestTerrainFetcher tt = new TestTerrainFetcher();
 			//tt.SetUp();
