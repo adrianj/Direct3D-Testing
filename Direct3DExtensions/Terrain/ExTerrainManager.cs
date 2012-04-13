@@ -6,15 +6,26 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Text;
 using SlimDX;
+using D3D = SlimDX.Direct3D10;
 
 namespace Direct3DExtensions.Terrain
 {
 	public class ExTerrainManager : DisposablePattern
 	{
 		float heightAtCamera = 0;
+		Texturing.StagingTexture minimapReadableCopy;
+		bool planeSetup;
 		protected Effect terrainEffect;
-		protected Direct3DEngine engine;
+		protected MultipleEffect3DEngine engine;
 		protected TerrainMeshSet plane;
+
+		protected Vector2 cps;
+		D3D.EffectVectorVariable cameraPosAtSetupVar;
+		public Vector2 CameraPosAtSetup
+		{
+			get { return cps; }
+			private set { cps = value; if (cameraPosAtSetupVar != null) cameraPosAtSetupVar.Set(cps); }
+		}
 		
 
 		public string RenderPassName { get; set; }
@@ -45,10 +56,36 @@ namespace Direct3DExtensions.Terrain
 		}
 
 
+		void OnPostRender()
+		{
+			if (planeSetup)
+			{
+				CopyMinimap();
+			}
+		}
+
 
 		void OnPreRender()
 		{
+			planeSetup = plane.doSetup;
+			if(plane.doSetup)
+			{
+				Vector3 pos = engine.CameraInput.Camera.Position;
+				CameraPosAtSetup = new Vector2(pos.X, pos.Z);
+			}
+		}
 
+		private void CopyMinimap()
+		{
+			Size size = plane.MinimapSprite.Size;
+			if (minimapReadableCopy == null)
+				minimapReadableCopy = new Texturing.StagingTexture(engine.D3DDevice.Device, size.Width, size.Height, plane.MinimapSprite.Description.Format);
+			else if (!size.Equals(minimapReadableCopy.Size))
+			{
+				minimapReadableCopy.Dispose();
+				minimapReadableCopy = new Texturing.StagingTexture(engine.D3DDevice.Device, size.Width, size.Height, plane.MinimapSprite.Description.Format);
+			}
+			minimapReadableCopy.WriteTexture(plane.MinimapSprite.Texture);
 		}
 
 		Vector2 previousCameraLocation = new Vector2();
@@ -60,8 +97,23 @@ namespace Direct3DExtensions.Terrain
 			{
 				SetTerrainScale();
 				SetTerrainTranslation();
-				Vector2 camLoc = MathExtensions.Round(new Vector2(e.Camera.Position.X, e.Camera.Position.Z),0.5f);
-				if (!camLoc.Equals(previousCameraLocation))
+				Vector2 camLoc = new Vector2(e.Camera.Position.X, e.Camera.Position.Z);
+				Vector2 planeLoc = new Vector2(plane.Translation.X, plane.Translation.Z);
+				if (minimapReadableCopy == null) return;
+				Size size = minimapReadableCopy.Size;
+				
+				Point centre = new Point(size.Width / 2, size.Height / 2);
+				Vector2 camOffset = camLoc - planeLoc;
+				centre = GetPointOnMinimap(camLoc);
+				int i = minimapReadableCopy.ReadPixelAsInt(centre);
+				i >>= 8;
+				Vector4 v = (Vector4)minimapReadableCopy.ReadPixelAsColour(centre);
+				Console.WriteLine(centre + ", Centre pixel: " + v + " = " + i);
+				using (DataStream stream = minimapReadableCopy.GetReadStream())
+				{
+					
+				}
+				/*if (!camLoc.Equals(previousCameraLocation))
 				{
 					IEnumerable<VertexTypes.Pos3Norm3Tex3> gsOut = plane.ReadGSVertices();
 					//float min = HeightAtPoint(gsOut, new Vector2(e.Camera.Position.X, e.Camera.Position.Z));
@@ -70,11 +122,31 @@ namespace Direct3DExtensions.Terrain
 					Console.WriteLine("" + heightAtCamera);
 					previousCameraLocation = camLoc;
 				}
+				 */
 			}
+
 		}
-		void OnPostRender()
+
+		Point GetPointOnMinimap(Vector2 worldCoord)
 		{
+			float mapWidthInWorldUnits = 100 * plane.Scale.X;
+			Vector2 minimapSize = new Vector2(minimapReadableCopy.Size.Width, minimapReadableCopy.Size.Height);
+			Vector2 planeLoc = new Vector2(plane.Translation.X, plane.Translation.Z);
+
+			// planeLoc actually doesn't move the minimap.
+			Vector2 point = (CameraPosAtSetup);
+			Console.WriteLine("plane: "+planeLoc+", camAtSetup: "+CameraPosAtSetup);
+			point =  worldCoord - point;
+
+			point = Vector2.Multiply(point, 1/mapWidthInWorldUnits);
+
+
+			point = Vector2.Modulate(point, minimapSize);
+			point = point + minimapSize * 0.5f;
+			point = Vector2.Clamp(point, Vector2.Zero, minimapSize-new Vector2(1,1));
+			return new Point((int)point.X, (int)point.Y);
 		}
+
 
 		float MeanHeight(IEnumerable<VertexTypes.Pos3Norm3Tex3> gsOut)
 		{
@@ -179,8 +251,14 @@ namespace Direct3DExtensions.Terrain
 			engine.CameraInput.Camera.FarZ = 12000;
 			engine.BindMesh(plane, SetupPassName);
 			plane.BindToRenderPass(engine.D3DDevice, terrainEffect, terrainEffect.GetPassIndexByName(RenderPassName));
+			cameraPosAtSetupVar = terrainEffect.GetVariableByName("CameraPosAtSetup").AsVector();
 			SetTerrainScale();
 			SetTerrainTranslation();
+			if (engine is Sprite3DEngine)
+			{
+				Sprite3DEngine s = engine as Sprite3DEngine;
+				plane.AddMinimapToSpriteEngine(s);
+			}
 		}
 
 		private void SetTerrainTranslation()
@@ -211,6 +289,7 @@ namespace Direct3DExtensions.Terrain
 			return scale;
 		}
 
+		#region dispose
 
 		void DisposeManaged() { }
 		void DisposeUnmanaged()
@@ -234,6 +313,7 @@ namespace Direct3DExtensions.Terrain
 			}
 			base.Dispose(disposing);
 		}
-    
+		#endregion
+
 	}
 }

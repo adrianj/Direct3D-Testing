@@ -16,6 +16,7 @@ namespace Direct3DExtensions
 		void Init(D3DDevice device);
 		void SetWorld(Matrix world);
 		void SetCamera(Camera camera);
+		void SetCamera();
 		D3D.EffectPass this[int index] { get; }
 		int EffectCount { get; }
 		int GetPassIndexByName(string passName);
@@ -34,6 +35,7 @@ namespace Direct3DExtensions
 
 		protected D3D.Effect effect;
 		protected List<D3D.EffectPass> passes;
+		protected Camera previousCamera;
 
 		public D3D.EffectPass this[int index] { get { return passes[index]; } }
 		public int EffectCount { get { return passes.Count; } }
@@ -96,9 +98,14 @@ namespace Direct3DExtensions
 		{
 			World.SetMatrix(world);
 		}
-
+		public void SetCamera()
+		{
+			if (previousCamera != null)
+				SetCamera(previousCamera);
+		}
 		public virtual void SetCamera(Camera camera)
 		{
+			previousCamera = camera;
 			View.SetMatrix(camera.View);
 			Proj.SetMatrix(camera.Projection);
 			InvProj.SetMatrix(Matrix.Invert(camera.Projection));

@@ -146,6 +146,7 @@ namespace Direct3DExtensions
 		{
 			if (HostControl.Width < 1 || HostControl.Height < 1) return;
 			CameraInput.SetSize(HostControl.Width, HostControl.Height);
+			
 			D3DDevice.SetSize(HostControl.Width, HostControl.Height);
 		}
 

@@ -22,8 +22,8 @@ namespace Direct3DExtensions_Test
 
 			TestClipmapTerrainManager ctm = new TestClipmapTerrainManager();
 			ctm.SetUp();
-			ctm.TestClipmapManager();
-			//ctm.TestClipmapManagerWithMultipleOutputs();
+			//ctm.TestClipmapManager();
+			ctm.TestClipmapManagerWithMultipleOutputs();
 			ctm.TearDown();
 
 			//TestTerrainFetcher tt = new TestTerrainFetcher();

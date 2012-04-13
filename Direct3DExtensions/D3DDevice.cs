@@ -14,15 +14,14 @@ namespace Direct3DExtensions
 	{
 		
 		D3D.FillMode fillMode = D3D.FillMode.Solid;
-
+		D3D.BlendStateDescription AlphaBlendState;
 
 		public D3D.FillMode FillMode { get { return fillMode; } set { fillMode = value; SetRasterizer(fillMode); } }
 		public D3D.Device Device { get; private set; }
 		public D3D.Viewport Viewport { get; private set; }
 		public DXGI.SwapChain SwapChain { get; private set; }
 
-		public D3D.RenderTargetView RenderTarget { get; private set; }
-		public D3D.Texture2D RenderTexture { get; private set; }
+		public Texturing.RenderTarget RenderTarget { get; private set; }
 		public D3D.Texture2D DepthBuffer { get; private set; }
 		public D3D.DepthStencilView DepthBufferView { get; private set; }
 
@@ -37,6 +36,9 @@ namespace Direct3DExtensions
 
 		public virtual void Init(D3DHostControl control)
 		{
+			DisposeManaged();
+			
+
 			this.control = control;
 			DXGI.SampleDescription sampledesc = new SlimDX.DXGI.SampleDescription(1, 0);
 			DXGI.ModeDescription modedesc = new SlimDX.DXGI.ModeDescription()
@@ -71,7 +73,13 @@ namespace Direct3DExtensions
 			
 
 			SetSize(control.Width, control.Height);
-			D3D.BlendStateDescription blendState = new D3D.BlendStateDescription()
+			SetBlendState(true);
+
+		}
+
+		public void SetBlendState(bool enableAlphaBlending)
+		{
+			AlphaBlendState = new D3D.BlendStateDescription()
 			{
 				BlendOperation = D3D.BlendOperation.Add,
 				SourceBlend = D3D.BlendOption.SourceAlpha,
@@ -82,10 +90,9 @@ namespace Direct3DExtensions
 				DestinationAlphaBlend = D3D.BlendOption.Zero,
 
 			};
-			blendState.SetBlendEnable(0, true);
-			blendState.SetWriteMask(0, D3D.ColorWriteMaskFlags.All);
-			Device.OutputMerger.BlendState = D3D.BlendState.FromDescription(Device, blendState);
-
+			AlphaBlendState.SetBlendEnable(0, enableAlphaBlending);
+			AlphaBlendState.SetWriteMask(0, D3D.ColorWriteMaskFlags.All);
+			Device.OutputMerger.BlendState = D3D.BlendState.FromDescription(Device, AlphaBlendState);
 		}
 
 		public void SetRasterizer(D3D.FillMode fillMode)
@@ -99,32 +106,24 @@ namespace Direct3DExtensions
 			Device.Rasterizer.State = rsdState;
 		}
 
+
+		public System.Drawing.Size GetSize()
+		{
+			if (RenderTarget == null) return new System.Drawing.Size();
+			D3D.Texture2DDescription desc = RenderTarget.Texture.Description;
+			return new System.Drawing.Size(desc.Width, desc.Height);
+		}
+
 		public void SetSize(int width, int height)
 		{
-			if (RenderTarget != null) RenderTarget.Dispose();
 			if (DepthBuffer != null) DepthBuffer.Dispose();
 			if (DepthBufferView != null) DepthBufferView.Dispose();
-			if (RenderTexture != null) RenderTexture.Dispose();
-
-			SwapChain.ResizeBuffers(1, width, height, DXGI.Format.R8G8B8A8_UNorm, DXGI.SwapChainFlags.None);
-
-			D3D.Texture2DDescription rdesc = new D3D.Texture2DDescription()
-			{
-				Width = width,
-				Height = height,
-				MipLevels = 1,
-				ArraySize = 1,
-				Format = SlimDX.DXGI.Format.R8G8B8A8_UNorm,
-				SampleDescription = new SlimDX.DXGI.SampleDescription(1, 0),
-				Usage = D3D.ResourceUsage.Default,
-				BindFlags = D3D.BindFlags.RenderTarget,
-				CpuAccessFlags = D3D.CpuAccessFlags.None,
-				OptionFlags = D3D.ResourceOptionFlags.None
-			};
+			if (RenderTarget != null) RenderTarget.Dispose();
 			
-			RenderTexture = D3D.Texture2D.FromSwapChain<D3D.Texture2D>(SwapChain, 0);
-			//RenderTexture = new D3D.Texture2D(Device, rdesc);
-			RenderTarget = new D3D.RenderTargetView(Device, RenderTexture);
+			
+			SwapChain.ResizeBuffers(1, width, height, DXGI.Format.R8G8B8A8_UNorm, DXGI.SwapChainFlags.None);
+			
+			RenderTarget = new Texturing.RenderTarget(this, width, height);
 
 			D3D.Texture2DDescription depthbufferdesc = new D3D.Texture2DDescription()
 			{ 
@@ -158,14 +157,24 @@ namespace Direct3DExtensions
 
 		protected virtual void SetOutputTargets()
 		{
-			Device.OutputMerger.SetTargets(DepthBufferView, RenderTarget);
+			SetRenderTargets(GetRenderTargets());
+		}
+
+		public void SetRenderTargets(D3D.RenderTargetView[] renderTargets)
+		{
+			Device.OutputMerger.SetTargets(DepthBufferView, renderTargets);
+		}
+
+		public virtual D3D.RenderTargetView[] GetRenderTargets()
+		{
+			return new D3D.RenderTargetView[] { RenderTarget.RenderView };
 		}
 
 		public virtual void Clear()
 		{
 			IndicesDrawn = 0;
-			
-			Device.ClearRenderTargetView(RenderTarget, control.BackColor);
+			RenderTarget.Clear(control.BackColor);
+			//Device.ClearRenderTargetView(RenderTargetView.RenderView, control.BackColor);
 			Device.ClearDepthStencilView(DepthBufferView, D3D.DepthStencilClearFlags.Depth, 1.0f, 0);
 			SetRasterizer(fillMode);
 		}
@@ -203,7 +212,6 @@ namespace Direct3DExtensions
 			{
 				Device.ClearAllObjects();
 			}
-			if (RenderTexture != null) RenderTexture.Dispose(); RenderTexture = null;
 			if (RenderTarget != null) RenderTarget.Dispose(); RenderTarget = null;
 			if (DepthBufferView != null) DepthBufferView.Dispose(); DepthBufferView = null;
 			if (DepthBuffer != null) DepthBuffer.Dispose(); DepthBuffer = null;

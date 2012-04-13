@@ -62,6 +62,9 @@
     <Compile Include="Geometry\GeometryOutputStream.cs" />
     <Compile Include="Geometry\MeshOptimiser.cs" />
     <Compile Include="MultipleOutputDevice.cs" />
+    <Compile Include="Sprite3DEngine.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Terrain\ClipmapTerrainManager.cs" />
     <Compile Include="Terrain\EarthProjection.cs" />
     <Compile Include="Terrain\ExTerrainManager.cs" />
@@ -119,9 +122,11 @@
     <Compile Include="Textured3DEngine.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Texturing\RenderTarget.cs" />
     <Compile Include="Texturing\ScreenCapture.cs" />
     <Compile Include="Texturing\ResourceView.cs" />
     <Compile Include="Texturing\ShaderTexture.cs" />
+    <Compile Include="Texturing\SpriteTexture.cs" />
     <Compile Include="Texturing\StagingTexture.cs" />
     <Compile Include="Texturing\TiledTexture.cs" />
     <Compile Include="VertexTypes.cs" />

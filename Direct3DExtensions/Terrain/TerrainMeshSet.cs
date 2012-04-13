@@ -10,12 +10,14 @@ namespace Direct3DExtensions.Terrain
 {
 	public class TerrainMeshSet : BasicMesh
 	{
+		D3D.InputLayout renderPassLayout;
 		int numGrids = 3;
 		GeometryOutputStream<VertexTypes.Pos3Norm3Tex3> gsOutput;
 		int renderPassIndex;
-		bool doSetup = true;
+		public Texturing.SpriteTexture MinimapSprite { get; private set; }
+		public bool doSetup { get; private set; }
+		public Texturing.RenderTarget MinimapTarget { get; private set; }
 
-		D3D.InputLayout renderPassLayout;
 
 		public override Vector3 Translation
 		{
@@ -32,7 +34,7 @@ namespace Direct3DExtensions.Terrain
 		public TerrainMeshSet()
 		{
 			Recreate();
-		
+			doSetup = true;
 		}
 
 		private void Recreate()
@@ -56,6 +58,11 @@ namespace Direct3DExtensions.Terrain
 			SetScales(grids);
 			MeshOptimiser.CombineIntoSingleMesh(this, grids);
 			this.numGrids = grids.Count;
+		}
+
+		public void AddMinimapToSpriteEngine(Sprite3DEngine engine)
+		{
+			engine.AddSprite(MinimapSprite);
 		}
 
 		
@@ -95,8 +102,14 @@ namespace Direct3DExtensions.Terrain
 
 		public override void BindToPass(D3DDevice device, Effect effect, int passIndex)
 		{
+			BindToSetupPass(device, effect, passIndex);
+		}
+
+		private void BindToSetupPass(D3DDevice device, Effect effect, int passIndex)
+		{
 			gsOutput = new GeometryOutputStream<VertexTypes.Pos3Norm3Tex3>(device.Device, effect[passIndex], this.Indices.Length);
 			base.BindToPass(device, effect, passIndex);
+			CreateMinimapTarget();
 		}
 
 		public void BindToRenderPass(D3DDevice device, Effect effect, int passIndex)
@@ -105,33 +118,73 @@ namespace Direct3DExtensions.Terrain
 			renderPassLayout = VertexTypes.GetInputLayout(this.Device.Device, effect[passIndex], typeof(VertexTypes.Pos3Norm3Tex3));
 		}
 
-		int i = 0;
+		private void CreateMinimapTarget()
+		{
+			System.Drawing.Size size = Device.GetSize();
+			if (MinimapTarget != null)
+			{
+				if (MinimapTarget.GetSize().Equals(Device.GetSize()))
+					return;
+				MinimapTarget.Dispose();
+			}
+			MinimapSprite = new Texturing.SpriteTexture(Device.Device, size.Width, size.Height);
+			MinimapTarget = new Texturing.RenderTarget(Device.Device, size.Width, size.Height);
+			//MinimapSprite.Scale = new Vector2(0.5f, 0.5f);
+			//MinimapSprite.Translation = new Vector2(0.75f, 0.75f);
+			MinimapSprite.Scale = new Vector2(2, 2);
+			MinimapSprite.Translation = new Vector2(0, 0);
+			MinimapSprite.ColourBlend = new Color4(1, 1, 1, 1);
+		}
 
 		public override void Draw()
 		{
+			
 			if (doSetup)
 			{
+				D3D.RenderTargetView[] previousRenderTargets = ChangeRenderTargetToMinimap();
 				base.DoDrawConstants();
 				base.DoDrawVertices();
-				gsOutput.BindTarget();
 				base.DoDrawFinal();
-				gsOutput.UnbindTarget();
+				RestoreRenderTargets(previousRenderTargets);
+				UpdateMinimapSprite();
 				doSetup = false;
 			}
 			RenderFromStreamOut();
-			i++;
+			
+		}
+
+		private void RestoreRenderTargets(D3D.RenderTargetView[] previousRenderTargets)
+		{
+			gsOutput.UnbindTarget();
+			Device.SetRenderTargets(previousRenderTargets);
+			Device.SetBlendState(true);
+		}
+
+		private D3D.RenderTargetView[] ChangeRenderTargetToMinimap()
+		{
+			D3D.RenderTargetView[] previousRenderTargets = Device.GetRenderTargets();
+			Device.SetBlendState(false);
+			CreateMinimapTarget();
+			MinimapTarget.Clear(new Color4(0, 0, 0, 0));
+			Device.SetRenderTargets(new D3D.RenderTargetView[] { MinimapTarget.RenderView });
+			gsOutput.BindTarget();
+			return previousRenderTargets;
+		}
+
+		private void UpdateMinimapSprite()
+		{
+			MinimapSprite.WriteTexture(MinimapTarget.Texture);
 		}
 
 		private void RenderFromStreamOut()
 		{
+			Effect.SetCamera();
 			Effect[renderPassIndex].Apply();
 			
 			Device.Device.InputAssembler.SetInputLayout(renderPassLayout);
 			Device.Device.InputAssembler.SetPrimitiveTopology(Topology);
 			int vsize = VertexTypes.SizeOf(typeof(VertexTypes.Pos3Norm3Tex3));
 			Device.Device.InputAssembler.SetVertexBuffers(0, new D3D.VertexBufferBinding(gsOutput.GSOutputBuffer, vsize, 0));
-			//Device.Device.InputAssembler.SetIndexBuffer(indexbuffer, SlimDX.DXGI.Format.R32_UInt, 0);
-			 
 			Device.Device.DrawAuto();
 		}
 

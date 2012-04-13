@@ -61,7 +61,7 @@ namespace Direct3DExtensions.Texturing
 
 		public override float[,] ReadTexture()
 		{
-			throw new InvalidOperationException("Cannot read directly from a ShaderTexture.");
+			throw new InvalidOperationException("Cannot read directly from a ShaderTexture. Use a staging texture intermediate");
 		}
 
 		public void WriteTexture(StagingTexture staging, int xoffset, int yoffset)

@@ -32,28 +32,36 @@ namespace Direct3DExtensions.Texturing
 			return ret;
 		}
 
-		public void TakeScreenshotToClipboard()
+		public void CopyScreenshotToClipboard()
 		{
 			if (!engine.InitSuccessful)
 			{
 				MessageBox.Show("Screenshot capture failed. Direct3D Engine not initialised");
 				return;
 			}
+			D3D.Texture2D source = engine.D3DDevice.RenderTarget.Texture;
+			D3D.Device device = engine.D3DDevice.Device;
+			CopyTextureToClipboard(device,source);
+		}
+
+		public static void CopyTextureToClipboard(D3D.Device device,D3D.Texture2D source)
+		{
 			if (System.Threading.Thread.CurrentThread.GetApartmentState() != System.Threading.ApartmentState.STA)
 			{
 				MessageBox.Show("Screenshot capture failed. Current thread apartment state not set to STA.");
 			}
-			D3D.Resource source = engine.D3DDevice.RenderTexture;
-			//D3D.Resource source = (engine.D3DDevice as MultipleOutputDevice).RenderTextures[1];
-			Image img = ConvertRenderTargetToImage(source);
-			
+
+			Image img = ConvertRenderTargetToImage(device, source);
+
 			Clipboard.SetImage(img);
 			MessageBox.Show("Screenshot copied to clipboard.");
 		}
 
+		
+
 		public StagingTexture[] GetRenderTargets()
 		{
-			D3D.Texture2DDescription renderDesc = engine.D3DDevice.RenderTexture.Description;
+			D3D.Texture2DDescription renderDesc = engine.D3DDevice.RenderTarget.Texture.Description;
 			D3DDevice dev = engine.D3DDevice;
 			StagingTexture[] ret;
 			if (dev is MultipleOutputDevice)
@@ -69,23 +77,23 @@ namespace Direct3DExtensions.Texturing
 			}
 			ret = new StagingTexture[1];
 			ret[0] = new StagingTexture(dev.Device, renderDesc.Width, renderDesc.Height, renderDesc.Format);
-			dev.Device.CopySubresourceRegion(dev.RenderTexture, 0, ret[0].Resource, 0, 0, 0, 0);
+			dev.Device.CopySubresourceRegion(dev.RenderTarget.Texture, 0, ret[0].Resource, 0, 0, 0, 0);
 			return ret;
 		}
 
-		private Image ConvertRenderTargetToImage(D3D.Resource source)
+		private static Image ConvertRenderTargetToImage(D3D.Device device, D3D.Texture2D source)
 		{
-			D3D.Texture2DDescription renderDesc = engine.D3DDevice.RenderTexture.Description;
-			StagingTexture staging = new StagingTexture(engine.D3DDevice.Device, renderDesc.Width, renderDesc.Height, SlimDX.DXGI.Format.R8G8B8A8_UNorm);
+			D3D.Texture2DDescription renderDesc = source.Description;// engine.D3DDevice.RenderTarget.Texture.Description;
+			StagingTexture staging = new StagingTexture(device, renderDesc.Width, renderDesc.Height, SlimDX.DXGI.Format.R8G8B8A8_UNorm);
 
-			engine.D3DDevice.Device.CopySubresourceRegion(source, 0, staging.Resource, 0, 0, 0, 0);
+			device.CopySubresourceRegion(source, 0, staging.Resource, 0, 0, 0, 0);
 
 
 			Image img = CopyTextureToBitmap(staging.Resource as D3D.Texture2D);
 			return img;
 		}
 
-		Image CopyTextureToBitmap(D3D.Texture2D texture)
+		public static Image CopyTextureToBitmap(D3D.Texture2D texture)
 		{
 			int width = texture.Description.Width;
 			if (width % 16 != 0)

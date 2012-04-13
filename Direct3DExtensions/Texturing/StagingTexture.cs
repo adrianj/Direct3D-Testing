@@ -12,13 +12,15 @@ namespace Direct3DExtensions.Texturing
 {
 	public class StagingTexture : ResourceView
 	{
+		protected SlimDX.DXGI.Format format;
 
-		protected D3D.Texture2D texture { get { return Resource as D3D.Texture2D; } }
+		public D3D.Texture2D Texture { get { return Resource as D3D.Texture2D; } }
+		public D3D.Texture2DDescription Description { get { return Texture.Description; } }
+		public Size Size { get { return GetSize(); } }
 
-		SlimDX.DXGI.Format format;
+		public StagingTexture(D3D.Device device) : base(device) { }
 
-		public D3D.Texture2DDescription Description { get { return texture.Description; } }
-
+		public StagingTexture(D3D.Device device, int width, int height) : this(device, width, height, SlimDX.DXGI.Format.R8G8B8A8_UNorm) { }
 
 		public StagingTexture(D3D.Device device, int width, int height, SlimDX.DXGI.Format format) : base(device)
 		{
@@ -45,6 +47,12 @@ namespace Direct3DExtensions.Texturing
 			Resource = D3D.Texture2D.FromFile(device, filename, iml);
 		}
 
+		public Size GetSize()
+		{
+			if (Texture == null) return new Size();
+			return new Size(Description.Width, Description.Height);
+		}
+
 		protected virtual void RecreateTexture(int width, int height)
 		{
 			if (Resource != null)
@@ -53,7 +61,7 @@ namespace Direct3DExtensions.Texturing
 			Resource = new D3D.Texture2D(device, description);
 		}
 
-		protected D3D.Texture2DDescription CreateDescription(int width, int height)
+		protected virtual D3D.Texture2DDescription CreateDescription(int width, int height)
 		{
 			D3D.Texture2DDescription description = new D3D.Texture2DDescription()
 			{
@@ -71,19 +79,23 @@ namespace Direct3DExtensions.Texturing
 			return description;
 		}
 
+		public virtual void WriteTexture(D3D.Texture2D existingTexture)
+		{
+			device.CopyResource(existingTexture, Resource);
+		}
+
 		public virtual void WriteTexture<T>(T[] data, int width) where T : IConvertible
 		{
 			int height = data.Length / width;
 			this.format = SlimDX.DXGI.Format.R32_Float;
 			CheckSizeFormatAndRecreate(height, width);
-			DataRectangle rect = texture.Map(0, D3D.MapMode.Write, D3D.MapFlags.None);
 
-			using (DataStream stream = rect.Data)
+			using (DataStream stream = GetWriteStream())
 			{
 				stream.WriteRange<float>(data.Cast<float>().ToArray());
 			}
 
-			texture.Unmap(0);
+			Texture.Unmap(0);
 		}
 
 		public virtual void WriteTexture<T>(T[,] data) where T : IConvertible
@@ -93,9 +105,7 @@ namespace Direct3DExtensions.Texturing
 			this.format = SlimDX.DXGI.Format.R32_Float;
 			CheckSizeFormatAndRecreate(height, width);
 
-			DataRectangle rect = texture.Map(0, D3D.MapMode.Write, D3D.MapFlags.None);
-
-			using (DataStream stream = rect.Data)
+			using (DataStream stream = GetWriteStream())
 				for (int y = height - 1; y >= 0; y--)
 					for (int x = 0; x < width; x++)
 					{
@@ -104,44 +114,58 @@ namespace Direct3DExtensions.Texturing
 
 
 
-			texture.Unmap(0);
+			Texture.Unmap(0);
 		}
 
-		public virtual void WriteTexture(byte[] argbColours, int width)
+		public virtual void WriteTexture(byte[] argbColours, int width, bool convertRGBAtoBGRA = true)
 		{
 			int height = argbColours.Length / width / 4;
 			this.format = SlimDX.DXGI.Format.R8G8B8A8_UNorm;
 			CheckSizeFormatAndRecreate(height, width);
 
-			DataRectangle rect = texture.Map(0, D3D.MapMode.Write, D3D.MapFlags.None);
-
-			using (DataStream stream = rect.Data)
+			using (DataStream stream = GetWriteStream())
 			{
 				for (int i = 0; i < argbColours.Length; i += 4)
 				{
-					stream.Write<byte>(argbColours[i+2]);  // DXGI format is BGRA, GDI format is RGBA.
-					stream.Write<byte>(argbColours[i+1]);
-					stream.Write<byte>(argbColours[i]);
-					stream.Write<byte>(argbColours[i+3]); 
+					byte[] components = new byte[] { argbColours[i], argbColours[i + 1], argbColours[i + 2], argbColours[i + 3] };
+					WriteColourToStream(stream, components,convertRGBAtoBGRA);
 				}
 			}
 
-			texture.Unmap(0);
+			Texture.Unmap(0);
 		}
 
-		public virtual void WriteTexture(Image image)
+		public static void WriteColourToStream(DataStream stream, byte[] components, bool convertRGBAtoBGRA)
+		{
+			byte alpha = components[3];
+			if (convertRGBAtoBGRA)
+			{
+				stream.Write<byte>(components[2]);  // DXGI format is BGRA, GDI format is RGBA.
+				stream.Write<byte>(components[1]);
+				stream.Write<byte>(components[0]);
+			}
+			else
+			{
+				stream.Write<byte>(components[0]);  // DXGI format is BGRA, GDI format is RGBA.
+				stream.Write<byte>(components[1]);
+				stream.Write<byte>(components[2]);
+			}
+			stream.Write<byte>(alpha);
+		}
+
+		public virtual void WriteTexture(Image image, bool convertGRBAtoBGRA = true)
 		{
 			BitmapData bData = (image as Bitmap).LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
 			using(DataStream stream = new DataStream(bData.Scan0, bData.Stride * bData.Height, true, false))
 			{
-				WriteTexture(stream.ReadRange<byte>((int)stream.Length), image.Width);
+				WriteTexture(stream.ReadRange<byte>((int)stream.Length), image.Width, convertGRBAtoBGRA);
 			}
 			(image as Bitmap).UnlockBits(bData);
 		}
 
 		private void CheckSizeFormatAndRecreate(int height, int width)
 		{
-			if (texture == null || texture.Description.Format != this.format || texture.Description.Width != width || texture.Description.Height != height)
+			if (Texture == null || Texture.Description.Format != this.format || Texture.Description.Width != width || Texture.Description.Height != height)
 			{
 				Console.WriteLine("Recreating staging texture, "+width+","+height);
 				RecreateTexture(width, height);
@@ -154,8 +178,7 @@ namespace Direct3DExtensions.Texturing
 			BitmapData bData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.WriteOnly, bmp.PixelFormat);
 			using (DataStream stream = new DataStream(bData.Scan0, bData.Stride * bData.Height, false, true))
 			{
-				DataRectangle rect = texture.Map(0, D3D.MapMode.Read, D3D.MapFlags.None);
-				using (DataStream texStream = rect.Data)
+				using (DataStream texStream = GetReadStream())
 				{
 					byte[] bytes = texStream.ReadRange<byte>((int)stream.Length);
 					stream.WriteRange<byte>(bytes);
@@ -165,10 +188,30 @@ namespace Direct3DExtensions.Texturing
 			return bmp;
 		}
 
+		public virtual DataStream GetWriteStream()
+		{
+			DataRectangle rect;
+			if (Description.Usage == D3D.ResourceUsage.Staging)
+				rect = Texture.Map(0, D3D.MapMode.Write, D3D.MapFlags.None);
+			else
+				rect = Texture.Map(0, D3D.MapMode.WriteDiscard, D3D.MapFlags.None);
+			return rect.Data;
+		}
+
+		public DataStream GetReadStream() { int i; return GetReadStream(out i); }
+		public virtual DataStream GetReadStream(out int dataPitch)
+		{
+			if ((Description.CpuAccessFlags & D3D.CpuAccessFlags.Read) != D3D.CpuAccessFlags.Read)
+				throw new InvalidOperationException("Texture was not created with read access.  Using a staging texture intermediate");
+			DataRectangle rect = Texture.Map(0, D3D.MapMode.Read, D3D.MapFlags.None);
+			dataPitch = rect.Pitch;
+			return rect.Data;
+		}
+
 		public virtual float[,] ReadTexture()
 		{
 			float[,] ret = new float[Description.Height, Description.Width];
-			DataRectangle rect = texture.Map(0, D3D.MapMode.Read, D3D.MapFlags.None);
+			DataRectangle rect = Texture.Map(0, D3D.MapMode.Read, D3D.MapFlags.None);
 			using (DataStream stream = rect.Data)
 			{
 				for (int y = Description.Height - 1; y >= 0; y--)
@@ -177,18 +220,17 @@ namespace Direct3DExtensions.Texturing
 						ret[y, x] = stream.Read<float>();
 					}
 			}
-			texture.Unmap(0);
+			Texture.Unmap(0);
 			return ret;
 		}
 
 		public virtual Color4 ReadPixelAsColour(Point p)
 		{
-			DataRectangle rect = texture.Map(0, D3D.MapMode.Read, D3D.MapFlags.None);
-			int formatSize = rect.Pitch / Description.Width;
-
-			using (DataStream stream = rect.Data)
+			int pitch;
+			using (DataStream stream = GetReadStream(out pitch))
 			{
-				stream.Seek(p.X * formatSize + p.Y * rect.Pitch, System.IO.SeekOrigin.Begin);
+				int formatSize = pitch / Description.Width;
+				stream.Seek(p.X * formatSize + p.Y * pitch, System.IO.SeekOrigin.Begin);
 				Color4 ret = new Color4();
 				ret.Alpha = stream.Read<byte>();
 				ret.Blue = stream.Read<byte>();
@@ -200,15 +242,27 @@ namespace Direct3DExtensions.Texturing
 
 		public virtual float ReadPixelAsFloat(Point p)
 		{
-			DataRectangle rect = texture.Map(0, D3D.MapMode.Read, D3D.MapFlags.None);
-			int formatSize = rect.Pitch / Description.Width;
-
-			using (DataStream stream = rect.Data)
+			int pitch;
+			using (DataStream stream = GetReadStream(out pitch))
 			{
-				stream.Seek(p.X * formatSize + p.Y * rect.Pitch, System.IO.SeekOrigin.Begin);
+				int formatSize = pitch / Description.Width;
+				stream.Seek(p.X * formatSize + p.Y * pitch, System.IO.SeekOrigin.Begin);
 				byte[] bytes = stream.ReadRange<byte>(4);
 				bytes = bytes.Reverse().ToArray();
 				return BitConverter.ToSingle(bytes, 0);
+			}
+		}
+
+		public virtual int ReadPixelAsInt(Point p)
+		{
+			int pitch;
+			using (DataStream stream = GetReadStream(out pitch))
+			{
+				int formatSize = pitch / Description.Width;
+				stream.Seek(p.X * formatSize + p.Y * pitch, System.IO.SeekOrigin.Begin);
+				byte[] bytes = stream.ReadRange<byte>(4);
+				bytes = bytes.Reverse().ToArray();
+				return BitConverter.ToInt32(bytes, 0);
 			}
 		}
 	}

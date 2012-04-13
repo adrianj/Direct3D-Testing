@@ -22,7 +22,7 @@ namespace Direct3DExtensions_Test
 		ClipmapTerrainManager loresCtm;
 		ExTerrainManager etm;
 		Effect effect;
-		PointF startingLongLat = new PointF(174.5f, -37.0f);
+		PointF startingLongLat = new PointF(174.875f, -36.75f);
 		int widthOfTiles = 32;
         int widthInTiles = 16;
 
@@ -74,7 +74,7 @@ namespace Direct3DExtensions_Test
 			if (engine.CameraInput.Input.IsMousePressed(MouseButtons.Right))
 			{
 				Direct3DExtensions.Texturing.ScreenCapture sc = new Direct3DExtensions.Texturing.ScreenCapture(engine);
-				Vector4 vec = sc.GetResultAtPoint(engine.CameraInput.Input.MousePosition,1);
+				Vector4 vec = sc.GetResultAtPoint(engine.CameraInput.Input.MousePosition,0);
 				Console.WriteLine("Right click at: " + engine.CameraInput.Input.MousePosition + " = " + vec);
 			}
 		}

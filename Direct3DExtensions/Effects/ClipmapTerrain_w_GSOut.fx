@@ -5,7 +5,6 @@ float InverseMapSize = (1.0/1024.0);
 float MapSize = 1024;
 float LoresInverseMapSize = (1.0/1024.0);
 float LoresMapSize = 1024;
-float2 TerrainCentreLocation = float2(0,0);
 Texture2D <float> HiresTexture;
 float2 HiresISize;
 float2 HiresLocation;
@@ -13,6 +12,7 @@ Texture2D <float> LoresTexture;
 float2 LoresISize;
 float2 LoresLocation;
 int ZoomLevel = 10;
+float2 CameraPosAtSetup;
 
 struct POS3_NORM3_TEX3
 {
@@ -111,12 +111,21 @@ PS_TEX VS( VS_POS input )
 void GS ( triangle PS_TEX input[3], inout TriangleStream<PS_NORM_TEX> TriStream )
 {
  PS_NORM_TEX output = (PS_NORM_TEX)0;
+	float xTrans = World._m03;
+	float zTrans = World._m23;
+	float xScale = World._m00;
+	float yScale = World._m11;
+	float zScale = World._m22;
     float3 faceEdgeA = input[1].pos.xyz - input[0].pos.xyz;
     float3 faceEdgeB = input[2].pos.xyz - input[0].pos.xyz;
     float3 faceNormal = normalize( cross(faceEdgeA, faceEdgeB) );
+
     for( int v=0; v<3; v++ )
     {
-        output.pos = input[v].pos;
+	output.pos.x = (input[v].pos.x+(xTrans)-CameraPosAtSetup.x)*0.01/xScale;
+	output.pos.y = (input[v].pos.z+(zTrans)-CameraPosAtSetup.y)*0.01/zScale;
+	output.pos.z = input[v].pos.y;
+	output.pos.w = 1;
         
         output.norm = faceNormal;
         
@@ -131,7 +140,16 @@ void GS ( triangle PS_TEX input[3], inout TriangleStream<PS_NORM_TEX> TriStream 
 PS_NORM_TEX VS_SecondPass( POS3_NORM3_TEX3 input)
 {
 	PS_NORM_TEX output = (PS_NORM_TEX)0;
+	float xTrans = World._m03;
+	float zTrans = World._m23;
+	float xScale = World._m00;
+	float yScale = World._m11;
+	float zScale = World._m22;
+
 	output.pos = float4(input.pos, 1);
+	output.pos.x = (input.pos.x*100*xScale)-(xTrans)+CameraPosAtSetup.x;
+	output.pos.z = (input.pos.y*100*zScale)-(zTrans)+CameraPosAtSetup.y;
+	output.pos.y = (input.pos.z);
 	output.norm = input.norm;
 	output.uv = input.uv;
 	output.pos = mul(output.pos, View);
@@ -146,6 +164,20 @@ struct PS_OUTPUT
 	float4 posY : SV_TARGET2;
 	float4 posZ : SV_TARGET3;
 };
+
+float4 PS_HeightMap ( PS_NORM_TEX input ) : SV_Target
+{
+	float f = 1;
+	float inv256 = 0.0625*0.0625;
+	float height = (input.pos.z*inv256);
+	clip(height <= 0 ? -1:1);
+	float4 colour = float4(0,0,0,1);
+	colour.x = 0;
+	colour.y = floor(height*256)*inv256;
+	colour.z = frac(height*256);
+	colour.w = 1;
+	return colour;
+}
 
 PS_OUTPUT PS ( PS_NORM_TEX input ) : SV_Target
 {
@@ -226,7 +258,7 @@ technique10 Render
 	{
 		SetGeometryShader(pGSwSO);
 		SetVertexShader( CompileShader( vs_4_0, VS() ) );
-		SetPixelShader( NULL );
+		SetPixelShader( CompileShader ( ps_4_0, PS_HeightMap() ) );
 		SetDepthStencilState (DisableDepth,0);
 	}
 }
